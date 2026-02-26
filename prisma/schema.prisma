@@ -1,0 +1,235 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(uuid())
+  name           String
+  email          String         @unique
+  password       String
+  avatar         String?
+  timezone       String         @default("Asia/Kolkata")
+  username       String         @unique
+  brandColor     String         @default("#0069ff")
+  logo           String?
+  emailVerified  Boolean        @default(false)
+  verificationToken String?     @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  eventTypes     EventType[]
+  schedules      Schedule[]
+  bookingsAsHost Booking[]      @relation("HostBookings")
+  notifications  Notification[]
+  teamMembers    TeamMember[]
+  contacts       Contact[]
+  coHostedEventTypes EventType[] @relation("CoHosts")
+}
+
+model EventType {
+  id              String           @id @default(uuid())
+  title           String
+  slug            String
+  description     String?
+  duration        Int              @default(30)
+  type            String           @default("one-on-one")
+  color           String           @default("#ff9500")
+  location        String?
+  bufferTimeBefore Int             @default(0)
+  bufferTimeAfter  Int             @default(0)
+  dateRangeType   String           @default("indefinite")
+  dateRangeDays   Int?
+  dateRangeStart  DateTime?
+  dateRangeEnd    DateTime?
+  maxBookingsPerDay Int?
+  minNotice       Int              @default(60)
+  isActive        Boolean          @default(true)
+  isSingleUse     Boolean          @default(false)
+  requiresPayment Boolean          @default(false)
+  price           Float?
+  currency        String?          @default("USD")
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coHosts         User[]           @relation("CoHosts")
+  bookings        Booking[]
+  customQuestions CustomQuestion[]
+  singleUseLinks  SingleUseLink[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([userId, slug])
+}
+
+model Schedule {
+  id            String         @id @default(uuid())
+  name          String         @default("Working Hours")
+  isDefault     Boolean        @default(false)
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availabilities Availability[]
+  dateOverrides DateOverride[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Availability {
+  id         String   @id @default(uuid())
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+}
+
+model DateOverride {
+  id         String   @id @default(uuid())
+  date       DateTime
+  startTime  String?
+  endTime    String?
+  isBlocked  Boolean  @default(false)
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  eventTypeId   String
+  eventType     EventType     @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  hostId        String
+  host          User          @relation("HostBookings", fields: [hostId], references: [id], onDelete: Cascade)
+  inviteeName   String
+  inviteeEmail  String
+  startTime     DateTime
+  endTime       DateTime
+  status        String        @default("confirmed")
+  timezone      String        @default("UTC")
+  notes         String?
+  cancelReason  String?
+  location      String?
+  answers       BookingAnswer[]
+  notifications Notification[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model CustomQuestion {
+  id          String   @id @default(uuid())
+  eventTypeId String
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  question    String
+  type        String   @default("text")
+  required    Boolean  @default(false)
+  options     String?
+  order       Int      @default(0)
+}
+
+model BookingAnswer {
+  id         String  @id @default(uuid())
+  bookingId  String
+  booking    Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  questionId String
+  answer     String
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
+
+model Team {
+  id        String       @id @default(uuid())
+  name      String
+  slug      String       @unique
+  members   TeamMember[]
+  invitations Invitation[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model TeamMember {
+  id     String @id @default(uuid())
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   String @default("member")
+
+  @@unique([teamId, userId])
+}
+
+model Invitation {
+  id        String   @id @default(uuid())
+  email     String
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role      String   @default("member")
+  invitedBy String
+  token     String   @unique
+  status    String   @default("pending") // pending, accepted, expired
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, email])
+}
+
+model Contact {
+  id              String               @id @default(uuid())
+  name            String
+  email           String
+  phone           String?
+  company         String?
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fieldValues     ContactFieldValue[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@unique([userId, email])
+}
+
+model ContactCustomField {
+  id          String              @id @default(uuid())
+  name        String
+  type        String              @default("text")
+  userId      String
+  order       Int                 @default(0)
+  values      ContactFieldValue[]
+  createdAt   DateTime            @default(now())
+}
+
+model ContactFieldValue {
+  id        String             @id @default(uuid())
+  contactId String
+  contact   Contact            @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  fieldId   String
+  field     ContactCustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  value     String
+
+  @@unique([contactId, fieldId])
+}
+
+model SingleUseLink {
+  id            String    @id @default(uuid())
+  token         String    @unique @default(uuid())
+  eventTypeId   String
+  eventType     EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  userId        String
+  contactName   String?
+  contactEmail  String?
+  isUsed        Boolean   @default(false)
+  bookingId     String?
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+}
