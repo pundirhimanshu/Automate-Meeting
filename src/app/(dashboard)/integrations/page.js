@@ -1,13 +1,25 @@
-export default function IntegrationsPage() {
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import IntegrationButton from '@/components/IntegrationButton';
+
+export default async function IntegrationsPage() {
+    const session = await getServerSession(authOptions);
+    const userIntegrations = await prisma.integration.findMany({
+        where: { userId: session.user.id }
+    });
+
+    const isConnected = (provider) => userIntegrations.some(i => i.provider === provider);
+
     const integrations = [
-        { name: 'Google Calendar', desc: 'Two-way calendar sync', icon: '📅', connected: true },
-        { name: 'Zoom', desc: 'Auto-create Zoom meetings', icon: '🎥', connected: false },
-        { name: 'Microsoft Teams', desc: 'Teams meeting links', icon: '💼', connected: false },
-        { name: 'Google Meet', desc: 'Google Meet integration', icon: '📹', connected: false },
-        { name: 'Stripe', desc: 'Collect payments', icon: '💳', connected: false },
-        { name: 'Slack', desc: 'Booking notifications', icon: '💬', connected: false },
-        { name: 'Outlook', desc: 'Outlook calendar sync', icon: '📧', connected: false },
-        { name: 'HubSpot', desc: 'CRM integration', icon: '🔗', connected: false },
+        { id: 'google_calendar', name: 'Google Calendar', desc: 'Two-way calendar sync', icon: '📅', connected: isConnected('google_calendar') },
+        { id: 'zoom', name: 'Zoom', desc: 'Auto-create Zoom meetings', icon: '🎥', connected: isConnected('zoom'), connectUrl: '/api/integrations/zoom/connect' },
+        { id: 'teams', name: 'Microsoft Teams', desc: 'Teams meeting links', icon: '💼', connected: isConnected('teams') },
+        { id: 'google_meet', name: 'Google Meet', desc: 'Google Meet integration', icon: '📹', connected: isConnected('google_meet') },
+        { id: 'stripe', name: 'Stripe', desc: 'Collect payments', icon: '💳', connected: isConnected('stripe') },
+        { id: 'slack', name: 'Slack', desc: 'Booking notifications', icon: '💬', connected: isConnected('slack') },
+        { id: 'outlook', name: 'Outlook', desc: 'Outlook calendar sync', icon: '📧', connected: isConnected('outlook') },
+        { id: 'hubspot', name: 'HubSpot', desc: 'CRM integration', icon: '🔗', connected: isConnected('hubspot') },
     ];
 
     return (
@@ -25,9 +37,11 @@ export default function IntegrationsPage() {
                                 <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>{int.desc}</div>
                             </div>
                         </div>
-                        <button className={`btn ${int.connected ? 'btn-secondary' : 'btn-primary'} btn-sm w-full`}>
-                            {int.connected ? '✓ Connected' : 'Connect'}
-                        </button>
+                        <IntegrationButton
+                            provider={int.id}
+                            connected={int.connected}
+                            connectUrl={int.connectUrl}
+                        />
                     </div>
                 ))}
             </div>
