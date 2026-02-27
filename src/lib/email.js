@@ -146,3 +146,67 @@ export async function sendVerificationEmail({ email, name, verifyUrl }) {
     console.error('[EMAIL] Verification email error:', error);
   }
 }
+
+export async function sendBookingCancellation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, cancelReason }) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+
+  const formattedDate = new Date(startTime).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const formattedTime = new Date(startTime).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  try {
+    // Send to Host
+    await transporter.sendMail({
+      from: EMAIL_FROM,
+      to: host.email,
+      subject: `Cancelled: ${inviteeName} - ${eventType.title}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+          <h2 style="color: #d73a49;">Meeting Cancelled</h2>
+          <p>Hi ${host.name},</p>
+          <p>The following meeting has been cancelled by the invitee.</p>
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p><strong>What:</strong> ${eventType.title}</p>
+          <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
+          <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
+          ${cancelReason ? `<p><strong>Reason for cancellation:</strong> ${cancelReason}</p>` : ''}
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p style="color: #6a737d; font-size: 12px;">This time slot is now available again in your schedule.</p>
+        </div>
+      `,
+    });
+
+    // Send to Invitee
+    await transporter.sendMail({
+      from: EMAIL_FROM,
+      to: inviteeEmail,
+      subject: `Cancelled: ${eventType.title} with ${host.name}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+          <h2 style="color: #d73a49;">Meeting Cancelled</h2>
+          <p>Hi ${inviteeName},</p>
+          <p>Your meeting with <strong>${host.name}</strong> has been successfully cancelled.</p>
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p><strong>What:</strong> ${eventType.title}</p>
+          <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
+          ${cancelReason ? `<p><strong>Reason for cancellation:</strong> ${cancelReason}</p>` : ''}
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p style="color: #6a737d; font-size: 12px;">If you need to reschedule, please visit the original booking link.</p>
+        </div>
+      `,
+    });
+
+    console.log('[EMAIL] Cancellation emails sent successfully');
+  } catch (error) {
+    console.error('[EMAIL] Error sending cancellation email:', error);
+  }
+}

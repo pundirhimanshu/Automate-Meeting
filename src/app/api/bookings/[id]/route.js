@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { sendBookingCancellation } from '@/lib/email';
 
 export async function PUT(request, { params }) {
     try {
@@ -8,7 +9,7 @@ export async function PUT(request, { params }) {
 
         const booking = await prisma.booking.findUnique({
             where: { id: params.id },
-            include: { eventType: true },
+            include: { eventType: { include: { user: true } } },
         });
 
         if (!booking) {
@@ -29,6 +30,17 @@ export async function PUT(request, { params }) {
                     message: `${booking.inviteeName} cancelled "${booking.eventType.title}"`,
                     bookingId: booking.id,
                 },
+            });
+
+            // Send cancellation email
+            await sendBookingCancellation({
+                booking,
+                eventType: booking.eventType,
+                host: booking.eventType.user,
+                inviteeName: booking.inviteeName,
+                inviteeEmail: booking.inviteeEmail,
+                startTime: booking.startTime,
+                cancelReason: cancelReason || '',
             });
 
             return NextResponse.json({ message: 'Booking cancelled' });
