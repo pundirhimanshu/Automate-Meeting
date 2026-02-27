@@ -37,7 +37,7 @@ export async function PUT(request, { params }) {
 
         const body = await request.json();
         const {
-            title, description, duration, type, color, locationType, location,
+            title, description, duration, type, color, locationType, location, phoneCallSource,
             bufferTimeBefore, bufferTimeAfter, dateRangeType,
             dateRangeDays, maxBookingsPerDay, minNotice, isActive,
             isSingleUse, requiresPayment, price, customQuestions,
@@ -54,6 +54,7 @@ export async function PUT(request, { params }) {
                 ...(color !== undefined && { color }),
                 ...(locationType !== undefined && { locationType }),
                 ...(location !== undefined && { location }),
+                ...(phoneCallSource !== undefined && { phoneCallSource }),
                 ...(bufferTimeBefore !== undefined && { bufferTimeBefore }),
                 ...(bufferTimeAfter !== undefined && { bufferTimeAfter }),
                 ...(dateRangeType !== undefined && { dateRangeType }),

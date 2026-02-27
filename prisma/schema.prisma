@@ -55,6 +55,7 @@ model EventType {
   color           String           @default("#ff9500")
   locationType    String           @default("none") // "none", "in_person", "phone", "zoom", "teams"
   location        String?          // Stores address, phone number, or join link
+  phoneCallSource String?          @default("host") // "host" or "invitee"
   bufferTimeBefore Int             @default(0)
   bufferTimeAfter  Int             @default(0)
   dateRangeType   String           @default("indefinite")

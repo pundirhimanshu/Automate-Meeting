@@ -38,7 +38,7 @@ export async function POST(request) {
         const body = await request.json();
         const {
             title, slug, description, duration, type, color,
-            locationType, location, bufferTimeBefore, bufferTimeAfter,
+            locationType, location, phoneCallSource, bufferTimeBefore, bufferTimeAfter,
             dateRangeType, dateRangeDays, dateRangeStart, dateRangeEnd,
             maxBookingsPerDay, minNotice, requiresPayment, price, currency,
             customQuestions,
@@ -68,6 +68,7 @@ export async function POST(request) {
                 color: color || '#ff9500',
                 locationType: locationType || 'none',
                 location: location || '',
+                phoneCallSource: phoneCallSource || 'host',
                 bufferTimeBefore: bufferTimeBefore || 0,
                 bufferTimeAfter: bufferTimeAfter || 0,
                 dateRangeType: dateRangeType || 'indefinite',

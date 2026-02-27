@@ -12,7 +12,7 @@ export default function BookingPage() {
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedTime, setSelectedTime] = useState(null);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [formData, setFormData] = useState({ name: '', email: '', notes: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '', notes: '' });
     const [answers, setAnswers] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -148,6 +148,7 @@ export default function BookingPage() {
                     endTime: selectedTime.end.toISOString(),
                     timezone: inviteeTimezone,
                     notes: formData.notes,
+                    inviteePhone: formData.phone,
                     answers: answerList,
                 }),
             });
@@ -392,6 +393,20 @@ export default function BookingPage() {
                                         required
                                     />
                                 </div>
+
+                                {data.eventType.locationType === 'phone' && data.eventType.phoneCallSource === 'invitee' && (
+                                    <div className="input-group">
+                                        <label>Phone Number *</label>
+                                        <input
+                                            className="input"
+                                            type="tel"
+                                            placeholder="e.g., +1 (555) 000-0000"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                )}
 
                                 {/* Custom Questions */}
                                 {data.eventType.customQuestions?.map((q) => (

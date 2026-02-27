@@ -49,6 +49,11 @@ export default function EditEventTypePage() {
                 newState.location = '';
             }
 
+            // Reset phone source if switching to phone
+            if (name === 'locationType' && value === 'phone') {
+                newState.phoneCallSource = 'host';
+            }
+
             return newState;
         });
     };
@@ -188,48 +193,71 @@ export default function EditEventTypePage() {
                                 </select>
                             </div>
                         </div>
-                        <div className="input-group">
-                            <label>Location</label>
-                            <select name="locationType" className="input" value={form.locationType || 'none'} onChange={handleChange}>
-                                <option value="none">No location set</option>
-                                <option value="google_meet">Google Meet</option>
-                                <option value="zoom">Zoom</option>
-                                <option value="teams">Microsoft Teams</option>
-                                <option value="phone">Phone Call</option>
-                                <option value="in_person">In Person</option>
-                            </select>
-                        </div>
-
                         {form.locationType === 'phone' && (
-                            <div className="input-group">
-                                <label>Phone Number</label>
-                                <input
-                                    name="location"
-                                    className="input"
-                                    placeholder="Enter your phone number or 'Invitee will provide'"
-                                    value={form.location || ''}
-                                    onChange={handleChange}
-                                    required
-                                />
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-                                    This number will be shared with the invitee after they book.
-                                </p>
+                            <div className="input-group" style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)' }}>
+                                <label style={{ fontWeight: 600, marginBottom: '12px', display: 'block' }}>How will you get in touch?</label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.9375rem' }}>
+                                        <input
+                                            type="radio"
+                                            name="phoneCallSource"
+                                            value="invitee"
+                                            checked={form.phoneCallSource === 'invitee'}
+                                            onChange={handleChange}
+                                            style={{ width: '18px', height: '18px' }}
+                                        />
+                                        Require invitee's phone number.
+                                    </label>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.9375rem' }}>
+                                        <input
+                                            type="radio"
+                                            name="phoneCallSource"
+                                            value="host"
+                                            checked={form.phoneCallSource === 'host'}
+                                            onChange={handleChange}
+                                            style={{ width: '18px', height: '18px' }}
+                                        />
+                                        Provide a phone number to invitees after they book.
+                                    </label>
+                                </div>
+
+                                {form.phoneCallSource === 'host' && (
+                                    <div style={{ marginTop: '16px' }}>
+                                        <div style={{ position: 'relative' }}>
+                                            <input
+                                                name="location"
+                                                className="input"
+                                                placeholder="Enter your phone number"
+                                                value={form.location || ''}
+                                                onChange={handleChange}
+                                                required
+                                                style={{ paddingLeft: '40px' }}
+                                            />
+                                            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '1.2rem' }}>🇺🇸</span>
+                                        </div>
+                                        <p style={{ fontSize: '0.75rem', color: '#d93025', marginTop: '4px' }}>
+                                            A valid phone number is required.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {form.locationType === 'in_person' && (
                             <div className="input-group">
-                                <label>Meeting Address *</label>
-                                <input
+                                <label style={{ fontWeight: 600 }}>Location name/address</label>
+                                <textarea
                                     name="location"
                                     className="input"
-                                    placeholder="e.g., 123 Main St, New York, NY"
+                                    placeholder="(e.g. Hollywood Bowl, 2301 Highland Ave, Los Angeles, CA 90068)"
                                     value={form.location || ''}
                                     onChange={handleChange}
                                     required
+                                    rows={3}
+                                    style={{ resize: 'vertical' }}
                                 />
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-                                    Provide a full address or specific meeting spot.
+                                <p style={{ fontSize: '0.75rem', color: '#d93025', marginTop: '4px' }}>
+                                    Physical location is required.
                                 </p>
                             </div>
                         )}

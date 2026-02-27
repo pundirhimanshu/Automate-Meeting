@@ -100,7 +100,7 @@ export async function POST(request) {
         const body = await request.json();
         const {
             eventTypeId, inviteeName, inviteeEmail, startTime, endTime,
-            timezone, notes, answers,
+            timezone, notes, answers, inviteePhone,
         } = body;
 
         if (!eventTypeId || !inviteeName || !inviteeEmail || !startTime || !endTime) {
@@ -164,7 +164,9 @@ export async function POST(request) {
 
         // Generate dynamic meeting link if needed
         let meetingLink = eventType.location || '';
-        if (eventType.locationType === 'zoom') {
+        if (eventType.locationType === 'phone' && eventType.phoneCallSource === 'invitee') {
+            meetingLink = inviteePhone || 'Invitee forgot to provide phone';
+        } else if (eventType.locationType === 'zoom') {
             meetingLink = await createZoomMeeting({
                 topic: `${inviteeName} & ${eventType.title}`,
                 startTime: new Date(startTime),
