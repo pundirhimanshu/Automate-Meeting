@@ -89,11 +89,26 @@ function SchedulingContent() {
 
     const searchParams = useSearchParams();
 
+    const [userData, setUserData] = useState(null);
+
     useEffect(() => {
         fetchEventTypes();
         fetchSchedules();
         fetchTeamMembers();
+        fetchUser();
+        window.addEventListener('logo-updated', fetchUser);
+        return () => window.removeEventListener('logo-updated', fetchUser);
     }, []);
+
+    const fetchUser = async () => {
+        try {
+            const res = await fetch('/api/user');
+            if (res.ok) {
+                const data = await res.json();
+                setUserData(data.user);
+            }
+        } catch (e) { }
+    };
 
     // Auto-open create drawer from sidebar button or query param
     useEffect(() => {
@@ -511,11 +526,14 @@ function SchedulingContent() {
                 )}
             </div>
 
-            {/* User Section */}
             <div className="user-section">
                 <div className="user-section-left">
-                    <div className="avatar" style={{ background: 'var(--primary)', fontSize: '0.75rem', width: '28px', height: '28px' }}>
-                        {session?.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    <div className="avatar" style={{ background: 'var(--primary)', fontSize: '0.75rem', width: '28px', height: '28px', overflow: 'hidden' }}>
+                        {userData?.logo ? (
+                            <img src={userData.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            session?.user?.name?.charAt(0)?.toUpperCase() || 'U'
+                        )}
                     </div>
                     <span className="user-name">{session?.user?.name || 'User'}</span>
                 </div>

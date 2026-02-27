@@ -9,12 +9,26 @@ export default function TopHeader() {
     const [showProfile, setShowProfile] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [logo, setLogo] = useState(null);
     const notifRef = useRef(null);
     const profileRef = useRef(null);
 
     useEffect(() => {
         fetchNotifications();
+        fetchUser();
+        window.addEventListener('logo-updated', fetchUser);
+        return () => window.removeEventListener('logo-updated', fetchUser);
     }, []);
+
+    const fetchUser = async () => {
+        try {
+            const res = await fetch('/api/user');
+            if (res.ok) {
+                const data = await res.json();
+                setLogo(data.user?.logo);
+            }
+        } catch (e) { }
+    };
 
     useEffect(() => {
         const handleClick = (e) => {
@@ -110,9 +124,13 @@ export default function TopHeader() {
                             setShowProfile(!showProfile);
                             setShowNotifications(false);
                         }}
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', overflow: 'hidden' }}
                     >
-                        {userInitial}
+                        {logo ? (
+                            <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            userInitial
+                        )}
                     </button>
 
                     {showProfile && (

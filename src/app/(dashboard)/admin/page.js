@@ -293,7 +293,11 @@ function AdminContent() {
                                             fd.append('logo', file);
                                             try {
                                                 const res = await fetch('/api/user/logo', { method: 'POST', body: fd });
-                                                if (res.ok) { const data = await res.json(); setUser({ ...user, logo: data.logo }); }
+                                                if (res.ok) {
+                                                    const data = await res.json();
+                                                    setUser({ ...user, logo: data.logo });
+                                                    window.dispatchEvent(new CustomEvent('logo-updated'));
+                                                }
                                                 else { const err = await res.json(); alert(err.error); }
                                             } catch (e) { alert('Upload failed'); }
                                         }
@@ -328,7 +332,11 @@ function AdminContent() {
                                     fd.append('logo', file);
                                     try {
                                         const res = await fetch('/api/user/logo', { method: 'POST', body: fd });
-                                        if (res.ok) { const data = await res.json(); setUser({ ...user, logo: data.logo }); }
+                                        if (res.ok) {
+                                            const data = await res.json();
+                                            setUser({ ...user, logo: data.logo });
+                                            window.dispatchEvent(new CustomEvent('logo-updated'));
+                                        }
                                         else { const err = await res.json(); alert(err.error); }
                                     } catch (e) { alert('Upload failed'); }
                                     e.target.value = '';

@@ -657,6 +657,19 @@ ol {
   font-size: 0.875rem;
 }
 
+.sidebar-custom-logo {
+  max-width: 140px;
+  max-height: 32px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .sidebar-collapse-btn {
   width: 24px;
   height: 24px;

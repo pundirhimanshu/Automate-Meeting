@@ -37,33 +37,23 @@ export async function POST(request) {
         }
 
         try {
-            // Create uploads directory if it doesn't exist
-            const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'logos');
-            await mkdir(uploadsDir, { recursive: true });
-
-            // Generate unique filename safely
-            const originalName = file.name || 'logo.png';
-            const ext = originalName.includes('.') ? originalName.split('.').pop() : 'png';
-            const filename = `${session.user.id}-${Date.now()}.${ext}`;
-            const filepath = path.join(uploadsDir, filename);
-
-            // Write file
+            // Convert to Base64 for Vercel/Serverless compatibility (no read-only FS issues)
             const bytes = await file.arrayBuffer();
             const buffer = Buffer.from(bytes);
-            await writeFile(filepath, buffer);
+            const base64Image = buffer.toString('base64');
+            const logoUrl = `data:${file.type};base64,${base64Image}`;
 
             // Save to database
-            const logoUrl = `/uploads/logos/${filename}`;
             await prisma.user.update({
                 where: { id: session.user.id },
                 data: { logo: logoUrl },
             });
 
-            console.log('LOGO UPLOAD: Success', logoUrl);
+            console.log('LOGO UPLOAD: Success (Base64 stored in DB)');
             return NextResponse.json({ logo: logoUrl });
-        } catch (fsError) {
-            console.error('LOGO UPLOAD FS ERROR:', fsError);
-            return NextResponse.json({ error: `Storage error: ${fsError.message}` }, { status: 500 });
+        } catch (error) {
+            console.error('LOGO UPLOAD CRITICAL ERROR:', error);
+            return NextResponse.json({ error: 'Upload process failed' }, { status: 500 });
         }
     } catch (error) {
         console.error('LOGO UPLOAD CRITICAL ERROR:', error);
