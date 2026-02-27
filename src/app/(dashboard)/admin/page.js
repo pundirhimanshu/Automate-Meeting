@@ -379,37 +379,47 @@ function AdminContent() {
             {activeTab === 'billing' && (
                 <div className="settings-section">
                     <h3>Billing & Plans</h3>
-                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                        {[
-                            { name: 'Free', price: '$0', features: ['1 event type', 'Email notifications', 'Basic booking page'], current: true },
-                            { name: 'Professional', price: '$12/mo', features: ['Unlimited event types', 'Custom branding', 'Team scheduling', 'Integrations'], current: false },
-                            { name: 'Enterprise', price: 'Custom', features: ['Everything in Pro', 'SSO', 'Advanced analytics', 'Priority support'], current: false },
-                        ].map((plan) => (
-                            <div
-                                key={plan.name}
-                                style={{
-                                    flex: 1,
-                                    minWidth: '200px',
-                                    padding: '24px',
-                                    border: plan.current ? '2px solid var(--primary)' : '1px solid var(--border-color)',
-                                    borderRadius: 'var(--radius-lg)',
-                                    background: plan.current ? 'var(--primary-light)' : 'var(--bg-white)',
-                                }}
-                            >
-                                <h4 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>{plan.name}</h4>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '16px' }}>{plan.price}</div>
-                                <ul style={{ listStyle: 'none', padding: 0 }}>
-                                    {plan.features.map((f) => (
-                                        <li key={f} style={{ padding: '4px 0', fontSize: '0.8125rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ color: 'var(--success)' }}>✓</span> {f}
-                                        </li>
-                                    ))}
-                                </ul>
-                                <button className={`btn ${plan.current ? 'btn-primary' : 'btn-secondary'} w-full`} style={{ marginTop: '16px' }} disabled={plan.current}>
-                                    {plan.current ? 'Current Plan' : 'Upgrade'}
-                                </button>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
+                        <div
+                            style={{
+                                width: '100%',
+                                maxWidth: '400px',
+                                padding: '32px',
+                                border: '2px solid var(--primary)',
+                                borderRadius: 'var(--radius-lg)',
+                                background: 'var(--primary-light)',
+                                textAlign: 'center'
+                            }}
+                        >
+                            <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>Best Plan</h4>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '24px' }}>
+                                INR 2000 <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)' }}>/ Year</span>
                             </div>
-                        ))}
+                            <ul style={{ listStyle: 'none', padding: 0, textAlign: 'left', marginBottom: '32px' }}>
+                                {[
+                                    'Unlimited event types',
+                                    'Custom branding & logos',
+                                    'Team scheduling (Group, Round Robin, Collective)',
+                                    'Full Zoom & Google Meet integration',
+                                    'Advanced phone booking with country codes',
+                                    'Email & SMS notifications',
+                                    'Priority support'
+                                ].map((f) => (
+                                    <li key={f} style={{ padding: '8px 0', fontSize: '0.9375rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{
+                                            width: '18px', height: '18px', borderRadius: '50%', background: 'var(--success)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                        }}>
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>
+                                        </div>
+                                        {f}
+                                    </li>
+                                ))}
+                            </ul>
+                            <button className="btn btn-primary w-full" style={{ padding: '12px', fontSize: '1rem' }} disabled>
+                                Current Plan
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
