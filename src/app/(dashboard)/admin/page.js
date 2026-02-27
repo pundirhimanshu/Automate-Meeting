@@ -54,6 +54,7 @@ function AdminContent() {
             if (res.ok) {
                 setSaved(true);
                 setTimeout(() => setSaved(false), 2000);
+                window.dispatchEvent(new CustomEvent('profile-updated'));
             }
         } catch (e) { } finally {
             setSaving(false);

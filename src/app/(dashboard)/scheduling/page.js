@@ -97,7 +97,20 @@ function SchedulingContent() {
         fetchTeamMembers();
         fetchUser();
         window.addEventListener('logo-updated', fetchUser);
-        return () => window.removeEventListener('logo-updated', fetchUser);
+        window.addEventListener('profile-updated', fetchUser);
+        // Re-fetch event types when user navigates back to this page
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                fetchEventTypes();
+                fetchUser();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            window.removeEventListener('logo-updated', fetchUser);
+            window.removeEventListener('profile-updated', fetchUser);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
     }, []);
 
     const fetchUser = async () => {

@@ -114,9 +114,13 @@ export default function Sidebar() {
 
     useEffect(() => {
         fetchLogo();
-        // Listen for logo updates from Admin page
+        // Listen for logo/profile updates from Admin page
         window.addEventListener('logo-updated', fetchLogo);
-        return () => window.removeEventListener('logo-updated', fetchLogo);
+        window.addEventListener('profile-updated', fetchLogo);
+        return () => {
+            window.removeEventListener('logo-updated', fetchLogo);
+            window.removeEventListener('profile-updated', fetchLogo);
+        };
     }, []);
 
     const fetchLogo = async () => {

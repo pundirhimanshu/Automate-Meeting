@@ -17,7 +17,17 @@ export default function TopHeader() {
         fetchNotifications();
         fetchUser();
         window.addEventListener('logo-updated', fetchUser);
-        return () => window.removeEventListener('logo-updated', fetchUser);
+        window.addEventListener('profile-updated', fetchUser);
+        // Refresh notifications when user navigates back to the tab
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') fetchNotifications();
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            window.removeEventListener('logo-updated', fetchUser);
+            window.removeEventListener('profile-updated', fetchUser);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
     }, []);
 
     const fetchUser = async () => {
