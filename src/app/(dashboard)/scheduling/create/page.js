@@ -108,7 +108,6 @@ export default function CreateEventTypePage() {
         <div style={{ maxWidth: '720px' }}>
             <div className="page-header">
                 <h1 className="page-title">Create Event Type</h1>
-                <p style={{ color: 'red', fontWeight: 'bold' }}>DEBUG: NEW VERSION -advanced locations</p>
             </div>
 
             <form onSubmit={handleSubmit}>

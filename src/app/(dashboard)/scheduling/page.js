@@ -59,7 +59,9 @@ function SchedulingContent() {
         duration: 30,
         type: 'one-on-one',
         color: '#ff9500',
+        locationType: 'none',
         location: '',
+        phoneCallSource: 'host',
         bufferTimeBefore: 0,
         bufferTimeAfter: 0,
         dateRangeType: 'indefinite',
@@ -208,7 +210,7 @@ function SchedulingContent() {
         setInvitesSent(false);
         setForm({
             title: '', description: '', duration: 30, type: 'one-on-one', color: '#ff9500',
-            location: '', bufferTimeBefore: 0, bufferTimeAfter: 0, dateRangeType: 'indefinite',
+            locationType: 'none', location: '', phoneCallSource: 'host', bufferTimeBefore: 0, bufferTimeAfter: 0, dateRangeType: 'indefinite',
             dateRangeDays: 60, maxBookingsPerDay: '', minNotice: 60, requiresPayment: false,
             price: '', customQuestions: [], coHostIds: [],
         });
@@ -266,6 +268,8 @@ function SchedulingContent() {
                 const data = await res.json();
                 setForm({
                     ...data.eventType,
+                    locationType: data.eventType.locationType || 'none',
+                    phoneCallSource: data.eventType.phoneCallSource || 'host',
                     maxBookingsPerDay: data.eventType.maxBookingsPerDay || '',
                     price: data.eventType.price || '',
                     customQuestions: data.eventType.customQuestions || [],
@@ -285,10 +289,24 @@ function SchedulingContent() {
 
     const handleChange = (e) => {
         const { name, value, type: inputType, checked } = e.target;
-        setForm((prev) => ({
-            ...prev,
-            [name]: inputType === 'checkbox' ? checked : value,
-        }));
+        setForm((prev) => {
+            const newState = {
+                ...prev,
+                [name]: inputType === 'checkbox' ? checked : value,
+            };
+
+            // Clear location if type changes to a non-text type
+            if (name === 'locationType' && ['none', 'google_meet', 'zoom', 'teams'].includes(value)) {
+                newState.location = '';
+            }
+
+            // Reset phone source if switching to phone
+            if (name === 'locationType' && value === 'phone') {
+                newState.phoneCallSource = 'host';
+            }
+
+            return newState;
+        });
     };
 
     const addQuestion = () => {
@@ -325,7 +343,9 @@ function SchedulingContent() {
             duration: parseInt(form.duration),
             type: form.type,
             color: form.color,
+            locationType: form.locationType,
             location: form.location,
+            phoneCallSource: form.phoneCallSource,
             bufferTimeBefore: parseInt(form.bufferTimeBefore),
             bufferTimeAfter: parseInt(form.bufferTimeAfter),
             dateRangeType: form.dateRangeType,
@@ -757,15 +777,84 @@ function SchedulingContent() {
                                             </div>
                                             <div className="input-group">
                                                 <label>Location</label>
-                                                <select name="location" className="input" value={form.location || ''} onChange={handleChange}>
-                                                    <option value="">No location set</option>
-                                                    <option value="Google Meet">Google Meet</option>
-                                                    <option value="Zoom">Zoom</option>
-                                                    <option value="Microsoft Teams">Microsoft Teams</option>
-                                                    <option value="Phone Call">Phone Call</option>
-                                                    <option value="In Person">In Person</option>
+                                                <select name="locationType" className="input" value={form.locationType} onChange={handleChange}>
+                                                    <option value="none">No location set</option>
+                                                    <option value="google_meet">Google Meet</option>
+                                                    <option value="zoom">Zoom</option>
+                                                    <option value="teams">Microsoft Teams</option>
+                                                    <option value="phone">Phone Call</option>
+                                                    <option value="in_person">In Person</option>
                                                 </select>
                                             </div>
+
+                                            {form.locationType === 'phone' && (
+                                                <div className="input-group" style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)' }}>
+                                                    <label style={{ fontWeight: 600, marginBottom: '12px', display: 'block' }}>How will you get in touch?</label>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.9375rem' }}>
+                                                            <input
+                                                                type="radio"
+                                                                name="phoneCallSource"
+                                                                value="invitee"
+                                                                checked={form.phoneCallSource === 'invitee'}
+                                                                onChange={handleChange}
+                                                                style={{ width: '18px', height: '18px' }}
+                                                            />
+                                                            Require invitee's phone number.
+                                                        </label>
+                                                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.9375rem' }}>
+                                                            <input
+                                                                type="radio"
+                                                                name="phoneCallSource"
+                                                                value="host"
+                                                                checked={form.phoneCallSource === 'host'}
+                                                                onChange={handleChange}
+                                                                style={{ width: '18px', height: '18px' }}
+                                                            />
+                                                            Provide a phone number to invitees after they book.
+                                                        </label>
+                                                    </div>
+
+                                                    {form.phoneCallSource === 'host' && (
+                                                        <div style={{ marginTop: '16px' }}>
+                                                            <div style={{ position: 'relative' }}>
+                                                                <input
+                                                                    name="location"
+                                                                    className="input"
+                                                                    placeholder="Enter your phone number"
+                                                                    value={form.location || ''}
+                                                                    onChange={handleChange}
+                                                                    required
+                                                                    style={{ paddingLeft: '40px' }}
+                                                                />
+                                                                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '1.2rem' }}>🇺🇸</span>
+                                                            </div>
+                                                            <p style={{ fontSize: '0.75rem', color: '#d93025', marginTop: '4px' }}>
+                                                                A valid phone number is required.
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {form.locationType === 'in_person' && (
+                                                <div className="input-group">
+                                                    <label style={{ fontWeight: 600 }}>Location name/address</label>
+                                                    <textarea
+                                                        name="location"
+                                                        className="input"
+                                                        placeholder="(e.g. Hollywood Bowl, 2301 Highland Ave, Los Angeles, CA 90068)"
+                                                        value={form.location || ''}
+                                                        onChange={handleChange}
+                                                        required
+                                                        rows={3}
+                                                        style={{ resize: 'vertical' }}
+                                                    />
+                                                    <p style={{ fontSize: '0.75rem', color: '#d93025', marginTop: '4px' }}>
+                                                        Physical location is required.
+                                                    </p>
+                                                </div>
+                                            )}
                                             <div className="input-group">
                                                 <label>Color</label>
                                                 <div className="color-picker-row">
