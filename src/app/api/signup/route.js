@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { sendVerificationEmail } from '@/lib/email';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
     try {
         const body = await request.json();

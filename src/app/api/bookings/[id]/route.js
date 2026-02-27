@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { sendBookingCancellation } from '@/lib/email';
 
+export const dynamic = 'force-dynamic';
+
 export async function PUT(request, { params }) {
     try {
         const body = await request.json();
