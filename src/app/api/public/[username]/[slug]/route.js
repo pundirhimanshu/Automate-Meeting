@@ -60,6 +60,7 @@ export async function GET(request, { params }) {
                 color: eventType.color,
                 locationType: eventType.locationType,
                 location: eventType.location,
+                countryCode: eventType.countryCode,
                 phoneCallSource: eventType.phoneCallSource,
                 bufferTimeBefore: eventType.bufferTimeBefore,
                 bufferTimeAfter: eventType.bufferTimeAfter,

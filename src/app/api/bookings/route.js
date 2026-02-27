@@ -164,8 +164,13 @@ export async function POST(request) {
 
         // Generate dynamic meeting link if needed
         let meetingLink = eventType.location || '';
-        if (eventType.locationType === 'phone' && eventType.phoneCallSource === 'invitee') {
-            meetingLink = inviteePhone || 'Invitee forgot to provide phone';
+        if (eventType.locationType === 'phone') {
+            if (eventType.phoneCallSource === 'invitee') {
+                meetingLink = inviteePhone || 'Invitee forgot to provide phone';
+            } else {
+                // Host phone: combine countryCode and location
+                meetingLink = `${eventType.countryCode || '+1'} ${eventType.location || ''}`.trim();
+            }
         } else if (eventType.locationType === 'zoom') {
             meetingLink = await createZoomMeeting({
                 topic: `${inviteeName} & ${eventType.title}`,

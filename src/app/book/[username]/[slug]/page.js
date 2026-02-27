@@ -3,6 +3,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
+export const COUNTRY_CODES = [
+    { code: '+1', flag: '🇺🇸', label: 'US (+1)' },
+    { code: '+44', flag: '🇬🇧', label: 'UK (+44)' },
+    { code: '+91', flag: '🇮🇳', label: 'IN (+91)' },
+    { code: '+1', flag: '🇨🇦', label: 'CA (+1)' },
+    { code: '+61', flag: '🇦🇺', label: 'AU (+61)' },
+    { code: '+49', flag: '🇩🇪', label: 'DE (+49)' },
+    { code: '+33', flag: '🇫🇷', label: 'FR (+33)' },
+    { code: '+971', flag: '🇦🇪', label: 'AE (+971)' },
+];
+
 export default function BookingPage() {
     const params = useParams();
     const router = useRouter();
@@ -12,8 +23,14 @@ export default function BookingPage() {
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedTime, setSelectedTime] = useState(null);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [formData, setFormData] = useState({ name: '', email: '', phone: '', notes: '' });
-    const [answers, setAnswers] = useState({});
+    const [form, setForm] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        countryCode: '+1',
+        notes: '',
+        answers: {},
+    });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [bookedData, setBookedData] = useState(null);
@@ -128,12 +145,12 @@ export default function BookingPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!selectedTime || !formData.name || !formData.email) return;
+        if (!selectedTime || !form.name || !form.email) return;
         setSubmitting(true);
         setError('');
 
         try {
-            const answerList = Object.entries(answers)
+            const answerList = Object.entries(form.answers)
                 .filter(([_, v]) => v.trim())
                 .map(([questionId, answer]) => ({ questionId, answer }));
 
@@ -142,13 +159,13 @@ export default function BookingPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     eventTypeId: data.eventType.id,
-                    inviteeName: formData.name,
-                    inviteeEmail: formData.email,
+                    inviteeName: form.name,
+                    inviteeEmail: form.email,
                     startTime: selectedTime.start.toISOString(),
                     endTime: selectedTime.end.toISOString(),
                     timezone: inviteeTimezone,
-                    notes: formData.notes,
-                    inviteePhone: formData.phone,
+                    notes: form.notes,
+                    inviteePhone: data.eventType.locationType === 'phone' && data.eventType.phoneCallSource === 'invitee' ? `${form.countryCode}${form.phone}` : null,
                     answers: answerList,
                 }),
             });
@@ -376,8 +393,8 @@ export default function BookingPage() {
                                     <input
                                         className="input"
                                         placeholder="Your full name"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        value={form.name}
+                                        onChange={(e) => setForm({ ...form, name: e.target.value })}
                                         required
                                     />
                                 </div>
@@ -388,8 +405,8 @@ export default function BookingPage() {
                                         className="input"
                                         type="email"
                                         placeholder="you@example.com"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        value={form.email}
+                                        onChange={(e) => setForm({ ...form, email: e.target.value })}
                                         required
                                     />
                                 </div>
@@ -397,14 +414,28 @@ export default function BookingPage() {
                                 {data.eventType.locationType === 'phone' && data.eventType.phoneCallSource === 'invitee' && (
                                     <div className="input-group">
                                         <label>Phone Number *</label>
-                                        <input
-                                            className="input"
-                                            type="tel"
-                                            placeholder="e.g., +1 (555) 000-0000"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            required
-                                        />
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <select
+                                                name="countryCode"
+                                                className="input"
+                                                value={form.countryCode}
+                                                onChange={(e) => setForm({ ...form, countryCode: e.target.value })}
+                                                style={{ width: '90px', padding: '10px 4px', fontSize: '0.9rem', flexShrink: 0 }}
+                                            >
+                                                {COUNTRY_CODES.map(c => (
+                                                    <option key={`${c.flag}-${c.code}`} value={c.code}>{c.flag} {c.code}</option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                type="tel"
+                                                className="input"
+                                                placeholder="Phone number"
+                                                value={form.phone}
+                                                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                                                required
+                                                style={{ flex: 1 }}
+                                            />
+                                        </div>
                                     </div>
                                 )}
 
@@ -415,16 +446,16 @@ export default function BookingPage() {
                                         {q.type === 'textarea' ? (
                                             <textarea
                                                 className="input"
-                                                value={answers[q.id] || ''}
-                                                onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+                                                value={form.answers[q.id] || ''}
+                                                onChange={(e) => setForm({ ...form, answers: { ...form.answers, [q.id]: e.target.value } })}
                                                 required={q.required}
                                                 rows={3}
                                             />
                                         ) : (
                                             <input
                                                 className="input"
-                                                value={answers[q.id] || ''}
-                                                onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+                                                value={form.answers[q.id] || ''}
+                                                onChange={(e) => setForm({ ...form, answers: { ...form.answers, [q.id]: e.target.value } })}
                                                 required={q.required}
                                             />
                                         )}
@@ -436,8 +467,8 @@ export default function BookingPage() {
                                     <textarea
                                         className="input"
                                         placeholder="Anything you'd like to share before the meeting..."
-                                        value={formData.notes}
-                                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                        value={form.notes}
+                                        onChange={(e) => setForm({ ...form, notes: e.target.value })}
                                         rows={3}
                                         style={{ resize: 'vertical' }}
                                     />

@@ -5,7 +5,18 @@ import { useRouter } from 'next/navigation';
 
 const COLORS = ['#ff9500', '#0069ff', '#8b5cf6', '#00a854', '#e11d48', '#0d9488', '#f59e0b', '#6366f1'];
 
-export default function CreateEventTypePage() {
+const COUNTRY_CODES = [
+    { code: '+1', flag: '🇺🇸', label: 'US (+1)' },
+    { code: '+44', flag: '🇬🇧', label: 'UK (+44)' },
+    { code: '+91', flag: '🇮🇳', label: 'IN (+91)' },
+    { code: '+1', flag: '🇨🇦', label: 'CA (+1)' },
+    { code: '+61', flag: '🇦🇺', label: 'AU (+61)' },
+    { code: '+49', flag: '🇩🇪', label: 'DE (+49)' },
+    { code: '+33', flag: '🇫🇷', label: 'FR (+33)' },
+    { code: '+971', flag: '🇦🇪', label: 'AE (+971)' },
+];
+
+export default function CreateEventType() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({
@@ -16,6 +27,7 @@ export default function CreateEventTypePage() {
         color: '#ff9500',
         locationType: 'none',
         location: '',
+        countryCode: '+1',
         phoneCallSource: 'host',
         bufferTimeBefore: 0,
         bufferTimeAfter: 0,
@@ -44,6 +56,7 @@ export default function CreateEventTypePage() {
             // Reset phone source if switching to phone
             if (name === 'locationType' && value === 'phone') {
                 newState.phoneCallSource = 'host';
+                newState.countryCode = '+1';
             }
 
             return newState;
@@ -208,20 +221,30 @@ export default function CreateEventTypePage() {
 
                                 {form.phoneCallSource === 'host' && (
                                     <div style={{ marginTop: '16px' }}>
-                                        <div style={{ position: 'relative' }}>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <select
+                                                name="countryCode"
+                                                className="input"
+                                                value={form.countryCode}
+                                                onChange={handleChange}
+                                                style={{ width: '90px', padding: '8px 4px', fontSize: '0.875rem', flexShrink: 0 }}
+                                            >
+                                                {COUNTRY_CODES.map(c => (
+                                                    <option key={`${c.flag}-${c.code}`} value={c.code}>{c.flag} {c.code}</option>
+                                                ))}
+                                            </select>
                                             <input
                                                 name="location"
                                                 className="input"
                                                 placeholder="Enter your phone number"
-                                                value={form.location}
+                                                value={form.location || ''}
                                                 onChange={handleChange}
                                                 required
-                                                style={{ paddingLeft: '40px' }}
+                                                style={{ flex: 1 }}
                                             />
-                                            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '1.2rem' }}>🇺🇸</span>
                                         </div>
-                                        <p style={{ fontSize: '0.75rem', color: '#d93025', marginTop: '4px' }}>
-                                            A valid phone number is required.
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                            Include your area code (e.g. 555-0123)
                                         </p>
                                     </div>
                                 )}
