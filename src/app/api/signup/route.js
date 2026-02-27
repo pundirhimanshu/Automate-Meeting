@@ -89,8 +89,17 @@ export async function POST(request) {
         });
 
         // Send verification email
-        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-        const verifyUrl = `${baseUrl}/api/auth/verify?token=${verificationToken}`;
+        const host = request.headers.get('host');
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const detectedBaseUrl = `${protocol}://${host}`;
+        const baseUrl = (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost'))
+            ? process.env.NEXTAUTH_URL
+            : detectedBaseUrl;
+
+        const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+        const verifyUrl = `${cleanBaseUrl}/api/auth/verify?token=${verificationToken}`;
+
+        console.log(`[SIGNUP] Generated verification URL: ${verifyUrl}`);
         await sendVerificationEmail({ email, name, verifyUrl });
 
         return NextResponse.json(
