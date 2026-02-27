@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const COLORS = ['#ff9500', '#0069ff', '#8b5cf6', '#00a854', '#e11d48', '#0d9488', '#f59e0b', '#6366f1'];
 
-export default function SchedulingPage() {
+function SchedulingContent() {
     const { data: session } = useSession();
     const [eventTypes, setEventTypes] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -1433,5 +1433,13 @@ export default function SchedulingPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function SchedulingPage() {
+    return (
+        <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }}></div></div>}>
+            <SchedulingContent />
+        </Suspense>
     );
 }
