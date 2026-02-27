@@ -1,10 +1,19 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Create a transporter using Gmail SMTP
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
+
+const EMAIL_FROM = process.env.EMAIL_FROM || `Automate Meetings <${process.env.GMAIL_USER}>`;
 
 export async function sendBookingConfirmation({ booking, eventType, host, inviteeName, inviteeEmail, startTime }) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY is missing. Email will not be sent.');
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
+    console.warn('Gmail credentials missing. Email will not be sent.');
     return;
   }
 
@@ -22,12 +31,11 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
   });
 
   try {
-    console.log(`[EMAIL] Attempting to send confirmation emails...`);
-    console.log(`[EMAIL] Host: ${host.email}, Invitee: ${inviteeEmail}`);
+    console.log(`[EMAIL] Attempting to send confirmation emails via Nodemailer...`);
 
     // Send to Host
-    const hostResult = await resend.emails.send({
-      from: 'Automate Meetings <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from: EMAIL_FROM,
       to: host.email,
       subject: `New Booking: ${inviteeName} - ${eventType.title}`,
       html: `
@@ -46,15 +54,9 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
       `,
     });
 
-    if (hostResult.error) {
-      console.error('[EMAIL] Host email failed:', hostResult.error);
-    } else {
-      console.log('[EMAIL] Host email sent:', hostResult.data.id);
-    }
-
     // Send to Invitee
-    const inviteeResult = await resend.emails.send({
-      from: 'Automate Meetings <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from: EMAIL_FROM,
       to: inviteeEmail,
       subject: `Confirmed: ${eventType.title} with ${host.name}`,
       html: `
@@ -72,25 +74,18 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
       `,
     });
 
-    if (inviteeResult.error) {
-      console.error('[EMAIL] Invitee email failed:', inviteeResult.error);
-    } else {
-      console.log('[EMAIL] Invitee email sent:', inviteeResult.data.id);
-    }
+    console.log('[EMAIL] Confirmation emails sent successfully');
   } catch (error) {
-    console.error('[EMAIL] Unexpected error in email utility:', error);
+    console.error('[EMAIL] Error sending confirmation email:', error);
   }
 }
 
 export async function sendTeamInvitation({ email, teamName, inviterName, inviteLink }) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY is missing. Email will not be sent.');
-    return;
-  }
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
 
   try {
-    const result = await resend.emails.send({
-      from: 'Automate Meetings <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from: EMAIL_FROM,
       to: email,
       subject: `Join ${teamName} on Automate Meetings`,
       html: `
@@ -108,26 +103,18 @@ export async function sendTeamInvitation({ email, teamName, inviterName, inviteL
         </div>
       `,
     });
-
-    if (result.error) {
-      console.error('[EMAIL] Invitation failed:', result.error);
-    } else {
-      console.log('[EMAIL] Invitation sent:', result.data.id);
-    }
+    console.log('[EMAIL] Team invitation sent');
   } catch (error) {
-    console.error('[EMAIL] Invitation error:', error);
+    console.error('[EMAIL] Team invitation error:', error);
   }
 }
 
 export async function sendVerificationEmail({ email, name, verifyUrl }) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY is missing. Verification email will not be sent.');
-    return;
-  }
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
 
   try {
-    const result = await resend.emails.send({
-      from: 'Automate Meetings <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from: EMAIL_FROM,
       to: email,
       subject: 'Verify your email — Automate Meetings',
       html: `
@@ -145,12 +132,7 @@ export async function sendVerificationEmail({ email, name, verifyUrl }) {
         </div>
       `,
     });
-
-    if (result.error) {
-      console.error('[EMAIL] Verification email failed:', result.error);
-    } else {
-      console.log('[EMAIL] Verification email sent:', result.data.id);
-    }
+    console.log('[EMAIL] Verification email sent');
   } catch (error) {
     console.error('[EMAIL] Verification email error:', error);
   }
