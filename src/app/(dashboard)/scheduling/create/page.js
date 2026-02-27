@@ -14,6 +14,7 @@ export default function CreateEventTypePage() {
         duration: 30,
         type: 'one-on-one',
         color: '#ff9500',
+        locationType: 'none',
         location: '',
         bufferTimeBefore: 0,
         bufferTimeAfter: 0,
@@ -152,15 +153,43 @@ export default function CreateEventTypePage() {
 
                         <div className="input-group">
                             <label>Location</label>
-                            <select name="location" className="input" value={form.location} onChange={handleChange}>
-                                <option value="">No location set</option>
-                                <option value="Google Meet">Google Meet</option>
-                                <option value="Zoom">Zoom</option>
-                                <option value="Microsoft Teams">Microsoft Teams</option>
-                                <option value="Phone Call">Phone Call</option>
-                                <option value="In Person">In Person</option>
+                            <select name="locationType" className="input" value={form.locationType} onChange={handleChange}>
+                                <option value="none">No location set</option>
+                                <option value="google_meet">Google Meet</option>
+                                <option value="zoom">Zoom</option>
+                                <option value="teams">Microsoft Teams</option>
+                                <option value="phone">Phone Call</option>
+                                <option value="in_person">In Person</option>
                             </select>
                         </div>
+
+                        {form.locationType === 'phone' && (
+                            <div className="input-group">
+                                <label>Phone Number</label>
+                                <input
+                                    name="location"
+                                    className="input"
+                                    placeholder="Enter your phone number or 'Invitee will provide'"
+                                    value={form.location}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+                        )}
+
+                        {form.locationType === 'in_person' && (
+                            <div className="input-group">
+                                <label>Meeting Address</label>
+                                <input
+                                    name="location"
+                                    className="input"
+                                    placeholder="Enter physical address"
+                                    value={form.location}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+                        )}
 
                         <div className="input-group">
                             <label>Color</label>

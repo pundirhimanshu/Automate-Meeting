@@ -47,6 +47,7 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
           <p><strong>What:</strong> ${eventType.title}</p>
           <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
           <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
+          ${booking.location ? `<p><strong>Location:</strong> ${booking.location}</p>` : ''}
           ${booking.notes ? `<p><strong>Notes:</strong> ${booking.notes}</p>` : ''}
           <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
           <p style="color: #6a737d; font-size: 12px;">This is an automated notification from your Automate Meetings dashboard.</p>
@@ -67,7 +68,7 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
           <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
           <p><strong>What:</strong> ${eventType.title}</p>
           <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
-          <p><strong>Where:</strong> ${eventType.location || 'Video Call'}</p>
+          <p><strong>Where:</strong> ${booking.location || 'Video Call'}</p>
           <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
           <p style="color: #6a737d; font-size: 12px;">To manage this booking, please contact the host directly.</p>
         </div>

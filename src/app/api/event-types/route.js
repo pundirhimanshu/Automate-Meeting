@@ -38,7 +38,7 @@ export async function POST(request) {
         const body = await request.json();
         const {
             title, slug, description, duration, type, color,
-            location, bufferTimeBefore, bufferTimeAfter,
+            locationType, location, bufferTimeBefore, bufferTimeAfter,
             dateRangeType, dateRangeDays, dateRangeStart, dateRangeEnd,
             maxBookingsPerDay, minNotice, requiresPayment, price, currency,
             customQuestions,
@@ -66,6 +66,7 @@ export async function POST(request) {
                 duration: duration || 30,
                 type: type || 'one-on-one',
                 color: color || '#ff9500',
+                locationType: locationType || 'none',
                 location: location || '',
                 bufferTimeBefore: bufferTimeBefore || 0,
                 bufferTimeAfter: bufferTimeAfter || 0,

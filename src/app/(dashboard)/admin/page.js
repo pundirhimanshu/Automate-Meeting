@@ -170,6 +170,7 @@ function AdminContent() {
                     { id: 'branding', label: 'Branding' },
                     { id: 'users', label: 'Users' },
                     { id: 'security', label: 'Security' },
+                    { id: 'integrations', label: 'Integrations' },
                     { id: 'billing', label: 'Billing & Plans' },
                     { id: 'team', label: 'Team' },
                 ].map((tab) => (
@@ -593,6 +594,42 @@ function AdminContent() {
                             </table>
                         </div>
                     )}
+                </div>
+            )}
+            {activeTab === 'integrations' && (
+                <div className="settings-section">
+                    <h3>Integrations</h3>
+                    <p style={{ color: 'var(--text-tertiary)', marginBottom: '24px' }}>Connect your accounts to automate meeting link generation.</p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {/* Zoom */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ width: '48px', height: '48px', background: '#2D8CFF', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M14.5,14.5c0,1-0.8,1.8-1.8,1.8h-7.4C4.3,16.3,3.5,15.5,3.5,14.5v-7.4c0-1,0.8-1.8,1.8-1.8h7.4c1,0,1.8,0.8,1.8,1.8V14.5z M20.5,14.5L16.5,12l4-2.5V14.5z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 style={{ margin: 0 }}>Zoom</h4>
+                                    <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>Auto-create Zoom meeting links for bookings.</p>
+                                </div>
+                            </div>
+                            <button className="btn btn-secondary">Connect</button>
+                        </div>
+
+                        {/* Microsoft Teams */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ width: '48px', height: '48px', background: '#4B53BC', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12,12 c2.2,0,4-1.8,4-4s-1.8-4-4-4S8,5.8,8,8S9.8,12,12,12z M12,14c-2.7,0-8,1.3-8,4v2h16v-2C20,15.3,14.7,14,12,14z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 style={{ margin: 0 }}>Microsoft Teams</h4>
+                                    <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>Generate Teams meeting links for your events.</p>
+                                </div>
+                            </div>
+                            <button className="btn btn-secondary">Connect</button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

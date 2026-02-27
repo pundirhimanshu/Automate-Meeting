@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 import { sendBookingConfirmation } from '@/lib/email';
+import { createZoomMeeting } from '@/lib/integrations/zoom';
+import { createTeamsMeeting } from '@/lib/integrations/teams';
 
 export async function GET(request) {
     try {
@@ -160,6 +162,24 @@ export async function POST(request) {
             }
         }
 
+        // Generate dynamic meeting link if needed
+        let meetingLink = eventType.location || '';
+        if (eventType.locationType === 'zoom') {
+            meetingLink = await createZoomMeeting({
+                topic: `${inviteeName} & ${eventType.title}`,
+                startTime: new Date(startTime),
+                duration: eventType.duration,
+                userId: eventType.userId
+            });
+        } else if (eventType.locationType === 'teams') {
+            meetingLink = await createTeamsMeeting({
+                subject: `${inviteeName} & ${eventType.title}`,
+                startTime: new Date(startTime),
+                endTime: new Date(endTime),
+                userId: eventType.userId
+            });
+        }
+
         const booking = await prisma.booking.create({
             data: {
                 eventTypeId,
@@ -170,6 +190,7 @@ export async function POST(request) {
                 endTime: new Date(endTime),
                 timezone: timezone || 'UTC',
                 notes: notes || '',
+                location: meetingLink,
                 status: 'confirmed',
                 answers: answers?.length ? {
                     create: answers.map((a) => ({

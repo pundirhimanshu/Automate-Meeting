@@ -25,6 +25,7 @@ export default function EditEventTypePage() {
                     ...data.eventType,
                     maxBookingsPerDay: data.eventType.maxBookingsPerDay || '',
                     price: data.eventType.price || '',
+                    locationType: data.eventType.locationType || 'none',
                     customQuestions: data.eventType.customQuestions || [],
                 });
             }
@@ -80,6 +81,7 @@ export default function EditEventTypePage() {
                     duration: parseInt(form.duration),
                     type: form.type,
                     color: form.color,
+                    locationType: form.locationType,
                     location: form.location,
                     bufferTimeBefore: parseInt(form.bufferTimeBefore),
                     bufferTimeAfter: parseInt(form.bufferTimeAfter),
@@ -179,15 +181,43 @@ export default function EditEventTypePage() {
                         </div>
                         <div className="input-group">
                             <label>Location</label>
-                            <select name="location" className="input" value={form.location || ''} onChange={handleChange}>
-                                <option value="">No location set</option>
-                                <option value="Google Meet">Google Meet</option>
-                                <option value="Zoom">Zoom</option>
-                                <option value="Microsoft Teams">Microsoft Teams</option>
-                                <option value="Phone Call">Phone Call</option>
-                                <option value="In Person">In Person</option>
+                            <select name="locationType" className="input" value={form.locationType || 'none'} onChange={handleChange}>
+                                <option value="none">No location set</option>
+                                <option value="google_meet">Google Meet</option>
+                                <option value="zoom">Zoom</option>
+                                <option value="teams">Microsoft Teams</option>
+                                <option value="phone">Phone Call</option>
+                                <option value="in_person">In Person</option>
                             </select>
                         </div>
+
+                        {form.locationType === 'phone' && (
+                            <div className="input-group">
+                                <label>Phone Number</label>
+                                <input
+                                    name="location"
+                                    className="input"
+                                    placeholder="Enter your phone number or 'Invitee will provide'"
+                                    value={form.location || ''}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+                        )}
+
+                        {form.locationType === 'in_person' && (
+                            <div className="input-group">
+                                <label>Meeting Address</label>
+                                <input
+                                    name="location"
+                                    className="input"
+                                    placeholder="Enter physical address"
+                                    value={form.location || ''}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+                        )}
                         <div className="input-group">
                             <label>Color</label>
                             <div style={{ display: 'flex', gap: '8px' }}>
