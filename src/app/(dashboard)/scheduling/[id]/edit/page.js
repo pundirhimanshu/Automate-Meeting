@@ -38,10 +38,19 @@ export default function EditEventTypePage() {
 
     const handleChange = (e) => {
         const { name, value, type: inputType, checked } = e.target;
-        setForm((prev) => ({
-            ...prev,
-            [name]: inputType === 'checkbox' ? checked : value,
-        }));
+        setForm((prev) => {
+            const newState = {
+                ...prev,
+                [name]: inputType === 'checkbox' ? checked : value,
+            };
+
+            // Clear location if type changes to a non-text type
+            if (name === 'locationType' && ['none', 'google_meet', 'zoom', 'teams'].includes(value)) {
+                newState.location = '';
+            }
+
+            return newState;
+        });
     };
 
     const addQuestion = () => {
@@ -202,20 +211,26 @@ export default function EditEventTypePage() {
                                     onChange={handleChange}
                                     required
                                 />
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                    This number will be shared with the invitee after they book.
+                                </p>
                             </div>
                         )}
 
                         {form.locationType === 'in_person' && (
                             <div className="input-group">
-                                <label>Meeting Address</label>
+                                <label>Meeting Address *</label>
                                 <input
                                     name="location"
                                     className="input"
-                                    placeholder="Enter physical address"
+                                    placeholder="e.g., 123 Main St, New York, NY"
                                     value={form.location || ''}
                                     onChange={handleChange}
                                     required
                                 />
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                    Provide a full address or specific meeting spot.
+                                </p>
                             </div>
                         )}
                         <div className="input-group">
