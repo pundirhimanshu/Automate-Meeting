@@ -4,8 +4,6 @@ import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 
 export async function POST(request) {
     try {
