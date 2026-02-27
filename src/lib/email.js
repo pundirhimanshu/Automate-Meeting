@@ -89,21 +89,25 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
   }
 }
 
-export async function sendTeamInvitation({ email, teamName, inviterName, inviteLink }) {
+export async function sendTeamInvitation({ email, teamName, inviterName, inviteLink, eventTitle }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+
+  const subject = eventTitle
+    ? `Join ${inviterName} for ${eventTitle} on Automate Meetings`
+    : `Join ${teamName || inviterName + "'s Team"} on Automate Meetings`;
 
   try {
     await transporter.sendMail({
       from: EMAIL_FROM,
       to: email,
-      subject: `Join ${teamName} on Automate Meetings`,
+      subject,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
           <h2 style="color: #0069ff;">Team Invitation</h2>
           <p>Hi there,</p>
-          <p><strong>${inviterName}</strong> has invited you to join their team <strong>${teamName}</strong> on <strong>Automate Meetings</strong>.</p>
+          <p><strong>${inviterName}</strong> has invited you to join ${eventTitle ? `their <strong>${eventTitle}</strong> event` : `their team <strong>${teamName || ''}</strong>`} on <strong>Automate Meetings</strong>.</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${inviteLink}" style="background-color: #0069ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Join Team</a>
+            <a href="${inviteLink}" style="background-color: #0069ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Join Now</a>
           </div>
           <p style="font-size: 0.8125rem; color: #6a737d;">If the button above doesn't work, copy and paste this link into your browser:</p>
           <p style="font-size: 0.8125rem; color: #0069ff; word-break: break-all;">${inviteLink}</p>

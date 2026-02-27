@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { sendTeamInvitation } from '@/lib/email';
+import crypto from 'crypto';
 
 export async function POST(request) {
     try {
@@ -14,7 +16,7 @@ export async function POST(request) {
             return NextResponse.json({ error: 'At least one email is required' }, { status: 400 });
         }
 
-        // If eventTypeId exists, fetch event type info for the invitation
+        // Fetch event type if provided
         let eventType = null;
         if (eventTypeId) {
             eventType = await prisma.eventType.findFirst({
@@ -22,34 +24,102 @@ export async function POST(request) {
             });
         }
 
-        // Store invitations (we'll track them as notifications for now)
-        const results = [];
-        for (const email of emails) {
-            // Check if invitee is an existing user
-            const invitee = await prisma.user.findUnique({ where: { email } });
+        // Ensure user has a team
+        let teamMember = await prisma.teamMember.findFirst({
+            where: { userId: session.user.id, role: 'owner' },
+            include: { team: true }
+        });
 
-            // Create a notification/invitation record
-            const notification = await prisma.notification.create({
+        if (!teamMember) {
+            const team = await prisma.team.create({
                 data: {
-                    userId: session.user.id,
-                    type: 'team_invite',
-                    title: `Team Invitation Sent`,
-                    message: `Invitation sent to ${email} for ${eventType?.title || type || 'event'} (${type || 'team'} meeting)`,
-                },
+                    name: `${session.user.name}'s Team`,
+                    slug: `${session.user.username || (session.user.name ? session.user.name.toLowerCase().replace(/\s+/g, '-') : 'team')}-team-${Math.random().toString(36).substring(7)}`,
+                    members: {
+                        create: {
+                            userId: session.user.id,
+                            role: 'owner'
+                        }
+                    }
+                }
+            });
+            teamMember = { team };
+        }
+
+        const teamId = teamMember.team.id;
+        const results = [];
+
+        for (const email of emails) {
+            const normalizedEmail = email.toLowerCase().trim();
+
+            // Check if already in team
+            const existingMember = await prisma.teamMember.findFirst({
+                where: {
+                    teamId,
+                    user: { email: normalizedEmail }
+                }
             });
 
-            results.push({
-                email,
-                status: 'invited',
-                isExistingUser: !!invitee,
-                notificationId: notification.id,
-            });
+            if (existingMember) {
+                results.push({ email: normalizedEmail, status: 'already_member' });
+                continue;
+            }
+
+            const userToInvite = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+            if (userToInvite) {
+                // Member exists, add to team and notify
+                await prisma.teamMember.create({
+                    data: {
+                        teamId,
+                        userId: userToInvite.id,
+                        role: 'member'
+                    }
+                });
+
+                await prisma.notification.create({
+                    data: {
+                        userId: userToInvite.id,
+                        type: 'team_invite',
+                        title: 'Added to Team',
+                        message: `${session.user.name} added you to their team: ${teamMember.team.name}`,
+                    }
+                });
+
+                results.push({ email: normalizedEmail, status: 'added' });
+            } else {
+                // Guest, create invitation and email
+                const token = crypto.randomBytes(32).toString('hex');
+
+                await prisma.invitation.upsert({
+                    where: { teamId_email: { teamId, email: normalizedEmail } },
+                    update: { token, status: 'pending' },
+                    create: {
+                        email: normalizedEmail,
+                        teamId,
+                        token,
+                        invitedBy: session.user.name,
+                    }
+                });
+
+                const inviteLink = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/signup?invite=${token}`;
+
+                await sendTeamInvitation({
+                    email: normalizedEmail,
+                    teamName: teamMember.team.name,
+                    inviterName: session.user.name,
+                    inviteLink,
+                    eventTitle: eventType?.title
+                });
+
+                results.push({ email: normalizedEmail, status: 'invited' });
+            }
         }
 
         return NextResponse.json({
             success: true,
-            invitations: results,
-            message: `${results.length} invitation(s) sent successfully`,
+            results,
+            message: `${results.length} invitation(s) processed`,
         });
     } catch (error) {
         console.error('Invite error:', error);
