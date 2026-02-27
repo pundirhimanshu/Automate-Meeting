@@ -172,20 +172,31 @@ export async function POST(request) {
                 meetingLink = `${eventType.countryCode || '+1'} ${eventType.location || ''}`.trim();
             }
         } else if (eventType.locationType === 'zoom') {
-            meetingLink = await createZoomMeeting({
-                topic: `${inviteeName} & ${eventType.title}`,
-                startTime: new Date(startTime),
-                duration: eventType.duration,
-                userId: eventType.userId
-            });
+            try {
+                meetingLink = await createZoomMeeting({
+                    topic: `${inviteeName} & ${eventType.title}`,
+                    startTime: new Date(startTime),
+                    duration: eventType.duration,
+                    userId: eventType.userId
+                });
+            } catch (zoomErr) {
+                console.error('[BOOKING] Zoom meeting creation failed:', zoomErr.message);
+                meetingLink = 'Zoom link unavailable — host has not connected Zoom';
+            }
         } else if (eventType.locationType === 'teams') {
-            meetingLink = await createTeamsMeeting({
-                subject: `${inviteeName} & ${eventType.title}`,
-                startTime: new Date(startTime),
-                endTime: new Date(endTime),
-                userId: eventType.userId
-            });
+            try {
+                meetingLink = await createTeamsMeeting({
+                    subject: `${inviteeName} & ${eventType.title}`,
+                    startTime: new Date(startTime),
+                    endTime: new Date(endTime),
+                    userId: eventType.userId
+                });
+            } catch (teamsErr) {
+                console.error('[BOOKING] Teams meeting creation failed:', teamsErr.message);
+                meetingLink = 'Teams link unavailable — host has not connected Teams';
+            }
         }
+
 
         const booking = await prisma.booking.create({
             data: {
