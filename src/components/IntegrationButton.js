@@ -11,7 +11,10 @@ export default function IntegrationButton({ provider, connected, connectUrl }) {
         if (!confirm(`Are you sure you want to disconnect ${provider}?`)) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/integrations/${provider}/disconnect`, { method: 'POST' });
+            const disconnectPath = provider === 'google_calendar' || provider === 'google_meet'
+                ? '/api/integrations/google/disconnect'
+                : `/api/integrations/${provider}/disconnect`;
+            const res = await fetch(disconnectPath, { method: 'POST' });
             if (res.ok) {
                 router.refresh();
             } else {

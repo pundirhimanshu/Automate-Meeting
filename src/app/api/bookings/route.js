@@ -195,6 +195,22 @@ export async function POST(request) {
                 console.error('[BOOKING] Teams meeting creation failed:', teamsErr.message);
                 meetingLink = 'Teams link unavailable — host has not connected Teams';
             }
+        } else if (eventType.locationType === 'google_meet') {
+            try {
+                const { createGoogleMeetEvent } = await import('@/lib/integrations/google');
+                const result = await createGoogleMeetEvent({
+                    title: `${inviteeName} & ${eventType.title}`,
+                    description: `Booking via Automate Meetings\n\nInvitee: ${inviteeName}\nEmail: ${inviteeEmail}${notes ? '\nNotes: ' + notes : ''}`,
+                    startTime: new Date(startTime),
+                    endTime: new Date(endTime),
+                    attendeeEmail: inviteeEmail,
+                    userId: eventType.userId,
+                });
+                meetingLink = result.meetLink || 'Google Meet link unavailable';
+            } catch (googleErr) {
+                console.error('[BOOKING] Google Meet creation failed:', googleErr.message);
+                meetingLink = 'Google Meet link unavailable — host has not connected Google Calendar';
+            }
         }
 
 

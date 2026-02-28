@@ -12,10 +12,10 @@ export default async function IntegrationsPage() {
     const isConnected = (provider) => userIntegrations.some(i => i.provider === provider);
 
     const integrations = [
-        { id: 'google_calendar', name: 'Google Calendar', desc: 'Two-way calendar sync', icon: '📅', connected: isConnected('google_calendar') },
+        { id: 'google_calendar', name: 'Google Calendar', desc: 'Two-way calendar sync', icon: '📅', connected: isConnected('google_calendar'), connectUrl: '/api/integrations/google/connect' },
         { id: 'zoom', name: 'Zoom', desc: 'Auto-create Zoom meetings', icon: '🎥', connected: isConnected('zoom'), connectUrl: '/api/integrations/zoom/connect' },
         { id: 'teams', name: 'Microsoft Teams', desc: 'Teams meeting links', icon: '💼', connected: isConnected('teams') },
-        { id: 'google_meet', name: 'Google Meet', desc: 'Google Meet integration', icon: '📹', connected: isConnected('google_meet') },
+        { id: 'google_meet', name: 'Google Meet', desc: 'Google Meet integration', icon: '📹', connected: isConnected('google_calendar'), connectUrl: isConnected('google_calendar') ? null : '/api/integrations/google/connect' },
         { id: 'stripe', name: 'Stripe', desc: 'Collect payments', icon: '💳', connected: isConnected('stripe') },
         { id: 'slack', name: 'Slack', desc: 'Booking notifications', icon: '💬', connected: isConnected('slack') },
         { id: 'outlook', name: 'Outlook', desc: 'Outlook calendar sync', icon: '📧', connected: isConnected('outlook') },
