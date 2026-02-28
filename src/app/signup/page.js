@@ -58,7 +58,7 @@ export default function SignupPage() {
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>📧</div>
                     <h1 style={{ marginBottom: '8px' }}>Check your email</h1>
                     <p className="subtitle" style={{ marginBottom: '24px', lineHeight: 1.6 }}>
-                        We've sent a verification link to <strong>{formData.email}</strong>. 
+                        We've sent a verification link to <strong>{formData.email}</strong>.
                         Please click the link in the email to verify your account.
                     </p>
                     <div style={{ padding: '16px', background: '#f0f9ff', borderRadius: '8px', fontSize: '0.875rem', color: '#0c4a6e', marginBottom: '20px' }}>
@@ -83,7 +83,7 @@ export default function SignupPage() {
                 <h1>Create your account</h1>
                 <p className="subtitle">Start scheduling in minutes</p>
 
-                <button className="btn-google" type="button">
+                <button className="btn-google" type="button" onClick={() => signIn('google', { callbackUrl: '/scheduling' })}>
                     <svg width="18" height="18" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
