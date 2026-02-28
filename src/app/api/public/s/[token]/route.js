@@ -12,7 +12,7 @@ export async function GET(request, { params }) {
                 eventType: {
                     include: {
                         user: {
-                            select: { id: true, name: true, username: true, brandColor: true, timezone: true },
+                            select: { id: true, name: true, username: true, brandColor: true, timezone: true, logo: true },
                         },
                         customQuestions: { orderBy: { order: 'asc' } },
                     },

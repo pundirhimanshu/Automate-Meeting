@@ -13,6 +13,7 @@ export async function GET(request, { params }) {
                 name: true,
                 username: true,
                 brandColor: true,
+                logo: true,
                 timezone: true,
                 eventTypes: {
                     where: { isActive: true },

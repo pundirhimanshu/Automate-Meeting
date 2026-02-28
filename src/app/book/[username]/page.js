@@ -49,9 +49,13 @@ export default function UserBookingLandingPage() {
             <div style={{ maxWidth: '600px', width: '100%' }}>
                 {/* User Header */}
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <div className="avatar avatar-xl" style={{ margin: '0 auto 12px', background: userData.brandColor }}>
-                        {userData.name.charAt(0).toUpperCase()}
-                    </div>
+                    {userData.logo ? (
+                        <img src={userData.logo} alt={`${userData.name} logo`} style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'contain', margin: '0 auto 12px', display: 'block' }} />
+                    ) : (
+                        <div className="avatar avatar-xl" style={{ margin: '0 auto 12px', background: userData.brandColor }}>
+                            {userData.name.charAt(0).toUpperCase()}
+                        </div>
+                    )}
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{userData.name}</h1>
                     <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
                         Select an event type to schedule a meeting

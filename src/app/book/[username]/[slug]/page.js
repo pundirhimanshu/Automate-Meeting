@@ -256,6 +256,9 @@ export default function BookingPage() {
                     </button>
 
                     <div className="booking-host-info">
+                        {data.host.logo && (
+                            <img src={data.host.logo} alt={`${data.host.name} logo`} style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'contain', marginBottom: '8px' }} />
+                        )}
                         <div className="booking-host-name">{data.host.name}</div>
                         <div className="booking-event-title">{data.eventType.title}</div>
                     </div>

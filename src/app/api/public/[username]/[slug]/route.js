@@ -50,6 +50,7 @@ export async function GET(request, { params }) {
                 username: user.username,
                 timezone: user.timezone,
                 brandColor: user.brandColor,
+                logo: user.logo,
             },
             eventType: {
                 id: eventType.id,

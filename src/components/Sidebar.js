@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -109,29 +109,7 @@ const bottomItems = [
 
 export default function Sidebar() {
     const [collapsed, setCollapsed] = useState(false);
-    const [logo, setLogo] = useState(null);
     const pathname = usePathname();
-
-    useEffect(() => {
-        fetchLogo();
-        // Listen for logo/profile updates from Admin page
-        window.addEventListener('logo-updated', fetchLogo);
-        window.addEventListener('profile-updated', fetchLogo);
-        return () => {
-            window.removeEventListener('logo-updated', fetchLogo);
-            window.removeEventListener('profile-updated', fetchLogo);
-        };
-    }, []);
-
-    const fetchLogo = async () => {
-        try {
-            const res = await fetch('/api/user');
-            if (res.ok) {
-                const data = await res.json();
-                setLogo(data.user?.logo);
-            }
-        } catch (e) { }
-    };
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -139,23 +117,15 @@ export default function Sidebar() {
             <div className="sidebar-logo">
                 {!collapsed && (
                     <div className="logo-container">
-                        {logo ? (
-                            <img src={logo} alt="Logo" className="sidebar-custom-logo" />
-                        ) : (
-                            <span className="logo-text">
-                                <span className="logo-icon">C</span>
-                                Automate Meetings
-                            </span>
-                        )}
+                        <span className="logo-text">
+                            <span className="logo-icon">C</span>
+                            Automate Meetings
+                        </span>
                     </div>
                 )}
                 {collapsed && (
                     <div className="logo-icon-collapsed">
-                        {logo ? (
-                            <img src={logo} alt="Logo" style={{ width: '24px', height: '24px', borderRadius: '4px', objectFit: 'contain' }} />
-                        ) : (
-                            <span className="logo-icon" style={{ margin: '0 auto' }}>C</span>
-                        )}
+                        <span className="logo-icon" style={{ margin: '0 auto' }}>C</span>
                     </div>
                 )}
                 <button
