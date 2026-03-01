@@ -1,3 +1,7 @@
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import IntegrationButton from '@/components/IntegrationButton';
 import { getUserSubscription } from '@/lib/subscription';
 
 export default async function IntegrationsPage() {
