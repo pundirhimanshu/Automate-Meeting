@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const COLORS = ['#ff9500', '#0069ff', '#8b5cf6', '#00a854', '#e11d48', '#0d9488', '#f59e0b', '#6366f1'];
@@ -19,6 +19,11 @@ const COUNTRY_CODES = [
 export default function CreateEventType() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [userPlan, setUserPlan] = useState('free');
+
+    useEffect(() => {
+        fetch('/api/subscription').then(r => r.json()).then(d => setUserPlan(d.plan || 'free')).catch(() => { });
+    }, []);
     const [form, setForm] = useState({
         title: '',
         description: '',
@@ -184,8 +189,12 @@ export default function CreateEventType() {
                             <select name="locationType" className="input" value={form.locationType} onChange={handleChange}>
                                 <option value="none">No location set</option>
                                 <option value="google_meet">Google Meet</option>
-                                <option value="zoom">Zoom</option>
-                                <option value="teams">Microsoft Teams</option>
+                                {['pro', 'enterprise'].includes(userPlan) ? (
+                                    <option value="zoom">Zoom</option>
+                                ) : (
+                                    <option value="zoom" disabled>Zoom (Pro Plan)</option>
+                                )}
+                                <option value="teams" disabled>Microsoft Teams (Coming Soon)</option>
                                 <option value="phone">Phone Call</option>
                                 <option value="in_person">In Person</option>
                             </select>

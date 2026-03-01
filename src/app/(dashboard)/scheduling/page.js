@@ -40,6 +40,7 @@ function SchedulingContent() {
     const [showAddOverride, setShowAddOverride] = useState(false);
     const [newOverride, setNewOverride] = useState({ date: '', mode: 'blocked', startTime: '09:00', endTime: '17:00' });
     const [teamMembers, setTeamMembers] = useState([]);
+    const [userPlan, setUserPlan] = useState('free');
 
     // Single-use link drawer state
     const [sulDrawerOpen, setSulDrawerOpen] = useState(false);
@@ -96,6 +97,7 @@ function SchedulingContent() {
         fetchSchedules();
         fetchTeamMembers();
         fetchUser();
+        fetch('/api/subscription').then(r => r.json()).then(d => setUserPlan(d.plan || 'free')).catch(() => { });
         window.addEventListener('logo-updated', fetchUser);
         window.addEventListener('profile-updated', fetchUser);
         // Re-fetch event types when user navigates back to this page
@@ -826,8 +828,12 @@ function SchedulingContent() {
                                                 <select name="locationType" className="input" value={form.locationType} onChange={handleChange}>
                                                     <option value="none">No location set</option>
                                                     <option value="google_meet">Google Meet</option>
-                                                    <option value="zoom">Zoom</option>
-                                                    <option value="teams">Microsoft Teams</option>
+                                                    {['pro', 'enterprise'].includes(userPlan) ? (
+                                                        <option value="zoom">Zoom</option>
+                                                    ) : (
+                                                        <option value="zoom" disabled>Zoom (Pro Plan)</option>
+                                                    )}
+                                                    <option value="teams" disabled>Microsoft Teams (Coming Soon)</option>
                                                     <option value="phone">Phone Call</option>
                                                     <option value="in_person">In Person</option>
                                                 </select>
