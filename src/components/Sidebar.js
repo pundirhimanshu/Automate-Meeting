@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -109,7 +109,19 @@ const bottomItems = [
 
 export default function Sidebar() {
     const [collapsed, setCollapsed] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
     const pathname = usePathname();
+
+    useEffect(() => {
+        fetch('/api/subscription')
+            .then(r => r.json())
+            .then(d => { if (d.plan !== undefined) setIsOwner(true); })
+            .catch(() => { });
+    }, []);
+
+    const visibleBottomItems = bottomItems.filter(item =>
+        item.label !== 'Upgrade plan' || isOwner
+    );
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -177,7 +189,7 @@ export default function Sidebar() {
 
             {/* Bottom Nav */}
             <div className="sidebar-bottom">
-                {bottomItems.map((item) => (
+                {visibleBottomItems.map((item) => (
                     <Link
                         key={item.label}
                         href={item.href}
