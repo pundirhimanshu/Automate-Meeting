@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
-import { canCreateEventType } from '@/lib/plans';
+import { canCreateEventType, canUseIntegration, canUsePayments, canUseCoHosting } from '@/lib/plans';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,17 +38,8 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Plan enforcement: check event type limit
-        const [{ plan: userPlan }, eventTypeCount] = await Promise.all([
-            getUserSubscription(session.user.id),
-            prisma.eventType.count({ where: { userId: session.user.id } }),
-        ]);
-
-        if (!canCreateEventType(eventTypeCount, userPlan)) {
-            return NextResponse.json({
-                error: `You've reached the maximum event types for the ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} plan. Upgrade to create more.`,
-            }, { status: 403 });
-        }
+        // Plan enforcement: get user's effective plan
+        const { plan: userPlan } = await getUserSubscription(session.user.id);
 
         const body = await request.json();
         const {
@@ -56,8 +47,37 @@ export async function POST(request) {
             locationType, location, phoneCallSource, bufferTimeBefore, bufferTimeAfter,
             dateRangeType, dateRangeDays, dateRangeStart, dateRangeEnd,
             maxBookingsPerDay, minNotice, requiresPayment, price, currency,
-            customQuestions,
+            customQuestions, coHostIds,
         } = body;
+
+        // 1. Check event type limit
+        const eventTypeCount = await prisma.eventType.count({ where: { userId: session.user.id } });
+        if (!canCreateEventType(eventTypeCount, userPlan)) {
+            return NextResponse.json({
+                error: `You've reached the maximum event types for the ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} plan. Upgrade to create more.`,
+            }, { status: 403 });
+        }
+
+        // 2. Check integration access (Zoom/Teams)
+        if ((locationType === 'zoom' || locationType === 'teams') && !canUseIntegration(locationType, userPlan)) {
+            return NextResponse.json({
+                error: `${locationType.charAt(0).toUpperCase() + locationType.slice(1)} is not available on the ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} plan. Please upgrade.`,
+            }, { status: 403 });
+        }
+
+        // 3. Check Payments access
+        if (requiresPayment && !canUsePayments(userPlan)) {
+            return NextResponse.json({
+                error: `Collecting payments is not available on the ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} plan. Please upgrade.`,
+            }, { status: 403 });
+        }
+
+        // 4. Check Co-hosting access
+        if (coHostIds?.length > 0 && !canUseCoHosting(userPlan)) {
+            return NextResponse.json({
+                error: `Co-hosting is not available on the ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} plan. Please upgrade.`,
+            }, { status: 403 });
+        }
 
         if (!title) {
             return NextResponse.json({ error: 'Title is required' }, { status: 400 });

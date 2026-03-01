@@ -2,10 +2,12 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { sendTeamInvitation } from '@/lib/email';
+import { getUserSubscription } from '@/lib/subscription';
+import { getMaxTeamMembers } from '@/lib/plans';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
-import { sendTeamInvitation } from '@/lib/email';
-import crypto from 'crypto';
 
 export async function GET(request) {
     try {
@@ -94,6 +96,20 @@ export async function POST(request) {
         }
 
         const teamId = teamMember.team.id;
+
+        // Plan enforcement: check max team members
+        const [{ plan }, currentMembersCount, pendingInvitesCount] = await Promise.all([
+            getUserSubscription(session.user.id),
+            prisma.teamMember.count({ where: { teamId } }),
+            prisma.invitation.count({ where: { teamId, status: 'pending' } }),
+        ]);
+
+        const maxMembers = getMaxTeamMembers(plan);
+        if (maxMembers !== -1 && (currentMembersCount + pendingInvitesCount) >= maxMembers) {
+            return NextResponse.json({
+                error: `You've reached the maximum team members (${maxMembers}) for the ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan. Upgrade to invite more.`,
+            }, { status: 403 });
+        }
 
         // Check if user is already in the team
         const existingMember = await prisma.teamMember.findFirst({

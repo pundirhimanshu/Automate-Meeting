@@ -12,7 +12,10 @@ export const PLANS = {
             googleCalendar: true,
             googleMeet: true,
             zoom: false,
+            teams: false,
             customBranding: false,
+            payments: false,
+            coHosting: false,
             prioritySupport: false,
         },
     },
@@ -28,7 +31,10 @@ export const PLANS = {
             googleCalendar: true,
             googleMeet: true,
             zoom: true,
+            teams: true,
             customBranding: true,
+            payments: true,
+            coHosting: true,
             prioritySupport: false,
         },
     },
@@ -44,7 +50,10 @@ export const PLANS = {
             googleCalendar: true,
             googleMeet: true,
             zoom: true,
+            teams: true,
             customBranding: true,
+            payments: true,
+            coHosting: true,
             prioritySupport: true,
         },
     },
@@ -70,6 +79,7 @@ export function canUseIntegration(integration, plan) {
     const features = getPlanFeatures(plan);
     const integrationMap = {
         zoom: features.zoom,
+        teams: features.teams,
         google_calendar: features.googleCalendar,
         google_meet: features.googleMeet,
     };
@@ -78,6 +88,14 @@ export function canUseIntegration(integration, plan) {
 
 export function canUseBranding(plan) {
     return getPlanFeatures(plan).customBranding;
+}
+
+export function canUsePayments(plan) {
+    return getPlanFeatures(plan).payments;
+}
+
+export function canUseCoHosting(plan) {
+    return getPlanFeatures(plan).coHosting;
 }
 
 export function getMaxTeamMembers(plan) {

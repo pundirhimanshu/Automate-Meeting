@@ -140,9 +140,9 @@ export async function POST(request) {
         }
 
         // Plan enforcement: check integration access
-        if (eventType.locationType === 'zoom' && !canUseIntegration('zoom', hostPlan)) {
+        if ((eventType.locationType === 'zoom' || eventType.locationType === 'teams') && !canUseIntegration(eventType.locationType, hostPlan)) {
             return NextResponse.json({
-                error: 'Zoom is not available on the Free plan. The host needs to upgrade.',
+                error: `${eventType.locationType.charAt(0).toUpperCase() + eventType.locationType.slice(1)} is not available on the ${hostPlan.charAt(0).toUpperCase() + hostPlan.slice(1)} plan. The host needs to upgrade.`,
             }, { status: 403 });
         }
 

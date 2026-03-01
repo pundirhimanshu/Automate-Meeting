@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { getUserSubscription } from '@/lib/subscription';
+import { canUseBranding } from '@/lib/plans';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +12,14 @@ export async function POST(request) {
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Plan enforcement: check custom branding
+        const { plan } = await getUserSubscription(session.user.id);
+        if (!canUseBranding(plan)) {
+            return NextResponse.json({
+                error: `Custom branding is not available on the ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan. Please upgrade to Pro or Enterprise.`,
+            }, { status: 403 });
         }
 
         const formData = await request.formData();
