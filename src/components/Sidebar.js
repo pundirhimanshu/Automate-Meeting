@@ -115,7 +115,7 @@ export default function Sidebar() {
     useEffect(() => {
         fetch('/api/subscription')
             .then(r => r.json())
-            .then(d => { if (d.plan !== undefined) setIsOwner(true); })
+            .then(d => { if (d.isOwner) setIsOwner(true); })
             .catch(() => { });
     }, []);
 

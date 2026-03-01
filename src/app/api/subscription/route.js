@@ -8,15 +8,19 @@ export async function GET() {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const subscription = await prisma.subscription.findUnique({
-            where: { userId: session.user.id },
-        });
+        const [subscription, teamMembership] = await Promise.all([
+            prisma.subscription.findUnique({ where: { userId: session.user.id } }),
+            prisma.teamMember.findFirst({ where: { userId: session.user.id, role: 'member' } }),
+        ]);
+
+        const isOwner = !teamMembership;
 
         return NextResponse.json({
             plan: subscription?.plan || 'free',
             status: subscription?.status || 'active',
             validUntil: subscription?.validUntil || null,
             transactionId: subscription?.transactionId || null,
+            isOwner,
         });
     } catch (error) {
         console.error('[SUBSCRIPTION_GET_ERROR]', error);
