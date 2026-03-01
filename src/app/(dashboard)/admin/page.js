@@ -171,7 +171,6 @@ function AdminContent() {
                     { id: 'branding', label: 'Branding' },
                     { id: 'users', label: 'Users' },
                     { id: 'security', label: 'Security' },
-                    { id: 'billing', label: 'Billing & Plans' },
                     { id: 'team', label: 'Team' },
                 ].map((tab) => (
                     <button
