@@ -96,6 +96,8 @@ export async function GET(request) {
     }
 }
 
+import { getUserSubscription } from '@/lib/subscription';
+
 export async function POST(request) {
     try {
         const body = await request.json();
@@ -118,10 +120,7 @@ export async function POST(request) {
         }
 
         // Plan enforcement: check monthly booking limit
-        const subscription = await prisma.subscription.findUnique({
-            where: { userId: eventType.userId },
-        });
-        const hostPlan = (subscription?.status === 'active' ? subscription?.plan : 'free') || 'free';
+        const { plan: hostPlan } = await getUserSubscription(eventType.userId);
 
         const monthStart = new Date();
         monthStart.setDate(1);

@@ -6,6 +6,8 @@ import { canUseIntegration } from '@/lib/plans';
 
 export const dynamic = 'force-dynamic';
 
+import { getUserSubscription } from '@/lib/subscription';
+
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -14,10 +16,7 @@ export async function GET() {
         }
 
         // Plan enforcement: check if user can use Zoom
-        const subscription = await prisma.subscription.findUnique({
-            where: { userId: session.user.id },
-        });
-        const userPlan = (subscription?.status === 'active' ? subscription?.plan : 'free') || 'free';
+        const { plan: userPlan } = await getUserSubscription(session.user.id);
 
         if (!canUseIntegration('zoom', userPlan)) {
             return NextResponse.redirect(new URL('/subscription?upgrade=zoom', process.env.NEXTAUTH_URL));

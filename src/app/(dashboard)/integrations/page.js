@@ -1,16 +1,11 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import IntegrationButton from '@/components/IntegrationButton';
+import { getUserSubscription } from '@/lib/subscription';
 
 export default async function IntegrationsPage() {
     const session = await getServerSession(authOptions);
-    const [userIntegrations, subscription] = await Promise.all([
+    const [userIntegrations, { plan: userPlan }] = await Promise.all([
         prisma.integration.findMany({ where: { userId: session.user.id } }),
-        prisma.subscription.findUnique({ where: { userId: session.user.id } }),
+        getUserSubscription(session.user.id),
     ]);
-
-    const userPlan = (subscription?.status === 'active' ? subscription?.plan : 'free') || 'free';
     const isConnected = (provider) => userIntegrations.some(i => i.provider === provider);
 
     const integrations = [

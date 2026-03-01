@@ -1,7 +1,4 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getUserSubscription } from '@/lib/subscription';
 
 export async function GET() {
     try {
@@ -9,7 +6,7 @@ export async function GET() {
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const [subscription, teamMembership] = await Promise.all([
-            prisma.subscription.findUnique({ where: { userId: session.user.id } }),
+            getUserSubscription(session.user.id),
             prisma.teamMember.findFirst({ where: { userId: session.user.id, role: 'member' } }),
         ]);
 
@@ -19,7 +16,7 @@ export async function GET() {
             plan: subscription?.plan || 'free',
             status: subscription?.status || 'active',
             validUntil: subscription?.validUntil || null,
-            transactionId: subscription?.transactionId || null,
+            isInherited: subscription?.isInherited || false,
             isOwner,
         });
     } catch (error) {

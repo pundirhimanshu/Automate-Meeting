@@ -29,6 +29,8 @@ export async function GET(request) {
     }
 }
 
+import { getUserSubscription } from '@/lib/subscription';
+
 export async function POST(request) {
     try {
         const session = await getServerSession(authOptions);
@@ -37,11 +39,11 @@ export async function POST(request) {
         }
 
         // Plan enforcement: check event type limit
-        const [subscription, eventTypeCount] = await Promise.all([
-            prisma.subscription.findUnique({ where: { userId: session.user.id } }),
+        const [{ plan: userPlan }, eventTypeCount] = await Promise.all([
+            getUserSubscription(session.user.id),
             prisma.eventType.count({ where: { userId: session.user.id } }),
         ]);
-        const userPlan = (subscription?.status === 'active' ? subscription?.plan : 'free') || 'free';
+
         if (!canCreateEventType(eventTypeCount, userPlan)) {
             return NextResponse.json({
                 error: `You've reached the maximum event types for the ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} plan. Upgrade to create more.`,
