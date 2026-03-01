@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 import { sendBookingConfirmation } from '@/lib/email';
 import { createZoomMeeting } from '@/lib/integrations/zoom';
 import { createTeamsMeeting } from '@/lib/integrations/teams';
+import { canCreateBooking, canUseIntegration } from '@/lib/plans';
 
 export async function GET(request) {
     try {
@@ -114,6 +115,36 @@ export async function POST(request) {
 
         if (!eventType) {
             return NextResponse.json({ error: 'Event type not found' }, { status: 404 });
+        }
+
+        // Plan enforcement: check monthly booking limit
+        const subscription = await prisma.subscription.findUnique({
+            where: { userId: eventType.userId },
+        });
+        const hostPlan = (subscription?.status === 'active' ? subscription?.plan : 'free') || 'free';
+
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        monthStart.setHours(0, 0, 0, 0);
+        const monthlyBookings = await prisma.booking.count({
+            where: {
+                hostId: eventType.userId,
+                createdAt: { gte: monthStart },
+                status: { in: ['confirmed', 'pending'] },
+            },
+        });
+
+        if (!canCreateBooking(monthlyBookings, hostPlan)) {
+            return NextResponse.json({
+                error: 'This host has reached their monthly booking limit. Please contact them to upgrade their plan.',
+            }, { status: 403 });
+        }
+
+        // Plan enforcement: check integration access
+        if (eventType.locationType === 'zoom' && !canUseIntegration('zoom', hostPlan)) {
+            return NextResponse.json({
+                error: 'Zoom is not available on the Free plan. The host needs to upgrade.',
+            }, { status: 403 });
         }
 
         // Check for conflicts

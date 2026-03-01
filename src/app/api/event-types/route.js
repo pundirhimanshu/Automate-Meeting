@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { canCreateEventType } from '@/lib/plans';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,18 @@ export async function POST(request) {
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Plan enforcement: check event type limit
+        const [subscription, eventTypeCount] = await Promise.all([
+            prisma.subscription.findUnique({ where: { userId: session.user.id } }),
+            prisma.eventType.count({ where: { userId: session.user.id } }),
+        ]);
+        const userPlan = (subscription?.status === 'active' ? subscription?.plan : 'free') || 'free';
+        if (!canCreateEventType(eventTypeCount, userPlan)) {
+            return NextResponse.json({
+                error: `You've reached the maximum event types for the ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} plan. Upgrade to create more.`,
+            }, { status: 403 });
         }
 
         const body = await request.json();
