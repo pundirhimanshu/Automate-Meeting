@@ -20,9 +20,14 @@ function AdminContent() {
     const [teamLoading, setTeamLoading] = useState(false);
     const [inviteForm, setInviteForm] = useState({ email: '', role: 'member' });
     const [inviting, setInviting] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
 
     useEffect(() => {
         fetchUser();
+        fetch('/api/subscription')
+            .then(r => r.json())
+            .then(d => { if (d.isOwner) setIsOwner(true); })
+            .catch(() => { });
     }, []);
 
     useEffect(() => {
@@ -172,6 +177,7 @@ function AdminContent() {
                     { id: 'users', label: 'Users' },
                     { id: 'security', label: 'Security' },
                     { id: 'team', label: 'Team' },
+                    ...(isOwner ? [{ id: 'billing', label: 'Billing & Plans' }] : []),
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -565,6 +571,36 @@ function AdminContent() {
                             </table>
                         </div>
                     )}
+                </div>
+            )}
+            {activeTab === 'billing' && isOwner && (
+                <div className="settings-section">
+                    <h3>Billing & Subscription</h3>
+                    <p style={{ color: 'var(--text-tertiary)', marginBottom: '24px' }}>
+                        Manage your current plan, view invoices, and update payment methods.
+                    </p>
+
+                    <div style={{
+                        padding: '24px',
+                        background: 'var(--bg-page)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--border-color)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <h4 style={{ marginBottom: '4px' }}>Subscription Management</h4>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                    Update your plan or manage billing information.
+                                </p>
+                            </div>
+                            <a href="/subscription" className="btn btn-primary">
+                                Manage Subscription
+                            </a>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

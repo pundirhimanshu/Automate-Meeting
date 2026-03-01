@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function TopHeader() {
     const { data: session } = useSession();
@@ -10,12 +11,17 @@ export default function TopHeader() {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [logo, setLogo] = useState(null);
+    const [isOwner, setIsOwner] = useState(false);
     const notifRef = useRef(null);
     const profileRef = useRef(null);
 
     useEffect(() => {
         fetchNotifications();
         fetchUser();
+        fetch('/api/subscription')
+            .then(r => r.json())
+            .then(d => { if (d.isOwner) setIsOwner(true); })
+            .catch(() => { });
         window.addEventListener('logo-updated', fetchUser);
         window.addEventListener('profile-updated', fetchUser);
         // Refresh notifications when user navigates back to the tab
@@ -155,6 +161,15 @@ export default function TopHeader() {
                                 </svg>
                                 Profile Settings
                             </a>
+
+                            {isOwner && (
+                                <Link href="/subscription" className="dropdown-item">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" />
+                                    </svg>
+                                    Billing & Plans
+                                </Link>
+                            )}
 
                             <div className="dropdown-divider" />
                             <button className="dropdown-item" onClick={() => signOut({ callbackUrl: '/login' })} style={{ color: 'var(--danger)' }}>
