@@ -632,7 +632,7 @@ ol {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
+  height: 90px;
 }
 
 .sidebar-logo .logo-text {
@@ -659,20 +659,20 @@ ol {
 
 .sidebar-custom-logo {
   max-width: 140px;
-  max-height: 40px;
+  max-height: 48px;
   object-fit: contain;
   border-radius: 4px;
 }
 
 .sidebar-main-logo {
-  height: 48px;
-  max-width: 160px;
+  height: 64px;
+  max-width: 180px;
   object-fit: contain;
 }
 
 .sidebar-collapsed-logo {
-  width: 44px;
-  height: 44px;
+  width: 54px;
+  height: 54px;
   object-fit: contain;
   margin: 0 auto;
 }
