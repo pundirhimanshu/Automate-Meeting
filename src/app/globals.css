@@ -628,11 +628,11 @@ ol {
 }
 
 .sidebar-logo {
-  padding: 16px 20px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
+  height: 72px;
 }
 
 .sidebar-logo .logo-text {
@@ -659,22 +659,29 @@ ol {
 
 .sidebar-custom-logo {
   max-width: 140px;
-  max-height: 32px;
+  max-height: 40px;
   object-fit: contain;
   border-radius: 4px;
 }
 
 .sidebar-main-logo {
-  height: 32px;
-  max-width: 150px;
+  height: 48px;
+  max-width: 160px;
   object-fit: contain;
 }
 
 .sidebar-collapsed-logo {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   margin: 0 auto;
+}
+
+.logo-icon-collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
 }
 
 .logo-container {
