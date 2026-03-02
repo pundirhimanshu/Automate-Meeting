@@ -124,20 +124,24 @@ export default function Sidebar() {
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-            {/* Logo */}
             <div className="sidebar-logo">
                 {!collapsed && (
-                    <div className="logo-container">
-                        <span className="logo-text">
-                            <span className="logo-icon">C</span>
-                            Automate Meetings
-                        </span>
-                    </div>
+                    <Link href="/scheduling" className="logo-container">
+                        <img 
+                            src="/uploads/logos/Not Collapse.png" 
+                            alt="Logo" 
+                            className="sidebar-main-logo"
+                        />
+                    </Link>
                 )}
                 {collapsed && (
-                    <div className="logo-icon-collapsed">
-                        <span className="logo-icon" style={{ margin: '0 auto' }}>C</span>
-                    </div>
+                    <Link href="/scheduling" className="logo-icon-collapsed">
+                        <img 
+                            src="/uploads/logos/Collapse Logo.png" 
+                            alt="Logo" 
+                            className="sidebar-collapsed-logo"
+                        />
+                    </Link>
                 )}
                 <button
                     className="sidebar-collapse-btn"

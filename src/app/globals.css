@@ -664,6 +664,19 @@ ol {
   border-radius: 4px;
 }
 
+.sidebar-main-logo {
+  height: 32px;
+  max-width: 150px;
+  object-fit: contain;
+}
+
+.sidebar-collapsed-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
 .logo-container {
   display: flex;
   align-items: center;
