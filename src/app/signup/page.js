@@ -57,11 +57,11 @@ export default function SignupPage() {
                 <div className="auth-form-side">
                     <div className="auth-inner-form">
                         <div className="auth-card" style={{ textAlign: 'center' }}>
-                            <div className="auth-logo" style={{ marginBottom: '40px' }}>
+                            <div className="auth-logo" style={{ justifyContent: 'center', marginBottom: '48px' }}>
                                 <img 
                                     src="/uploads/logos/Not Collapse.png" 
                                     alt="Logo" 
-                                    style={{ height: '60px', width: 'auto', objectFit: 'contain' }} 
+                                    style={{ height: '110px', width: 'auto', objectFit: 'contain' }} 
                                 />
                             </div>
                             <h1 style={{ marginBottom: '8px' }}>Check your email</h1>
@@ -82,7 +82,8 @@ export default function SignupPage() {
                 <div className="auth-image-side">
                     <div className="auth-image-container">
                         <div className="auth-image-quote">
-                            "Your time,<br />perfectly scheduled."
+                            <div>"Your time,</div>
+                            <div className="auth-quote-indented">perfectly scheduled."</div>
                         </div>
                     </div>
                 </div>
@@ -95,11 +96,11 @@ export default function SignupPage() {
             <div className="auth-form-side">
                 <div className="auth-inner-form">
                     <div className="auth-card">
-                        <div className="auth-logo" style={{ justifyContent: 'flex-start', marginBottom: '40px' }}>
+                        <div className="auth-logo" style={{ justifyContent: 'center', marginBottom: '48px' }}>
                             <img 
                                 src="/uploads/logos/Not Collapse.png" 
                                 alt="Logo" 
-                                style={{ height: '60px', width: 'auto', objectFit: 'contain' }} 
+                                style={{ height: '110px', width: 'auto', objectFit: 'contain' }} 
                             />
                         </div>
                         
@@ -226,7 +227,8 @@ export default function SignupPage() {
             <div className="auth-image-side">
                 <div className="auth-image-container">
                     <div className="auth-image-quote">
-                        "Your time,<br />perfectly scheduled."
+                        <div>"Your time,</div>
+                        <div className="auth-quote-indented">perfectly scheduled."</div>
                     </div>
                 </div>
             </div>

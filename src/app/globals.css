@@ -1487,7 +1487,7 @@ ol {
 }
 
 .auth-form-side {
-  flex: 0 0 45%;
+  flex: 0 0 60%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1497,7 +1497,7 @@ ol {
 }
 
 .auth-inner-form {
-  max-width: 400px;
+  max-width: 440px;
   width: 100%;
 }
 
@@ -1523,12 +1523,22 @@ ol {
 
 .auth-image-quote {
   font-family: 'Roboto Flex', sans-serif;
-  font-size: 82px;
+  font-size: 48px;
   font-weight: 800;
   line-height: 1.1;
   color: #ffffff;
   max-width: 600px;
   letter-spacing: -2px;
+}
+
+.auth-image-quote div {
+  margin: 0;
+  padding: 0;
+}
+
+.auth-quote-indented {
+  padding-left: 1.5ch;
+  margin-top: -5px; /* Pull it slightly closer to match the tight line-height in image */
 }
 
 /* Original auth styles maintained but refined for split layout */
