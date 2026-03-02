@@ -56,7 +56,7 @@ export default function SignupPage() {
             <div className="auth-page">
                 <div className="auth-card" style={{ textAlign: 'center' }}>
                     <div className="auth-logo">
-                        <img src="/uploads/logos/Not Collapse.png" alt="Logo" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
+                        <img src="/uploads/logos/Not Collapse.png" alt="Logo" style={{ height: '120px', width: 'auto', objectFit: 'contain' }} />
                     </div>
                     <h1 style={{ marginBottom: '8px' }}>Check your email</h1>
                     <p className="subtitle" style={{ marginBottom: '24px', lineHeight: 1.6 }}>
@@ -79,7 +79,7 @@ export default function SignupPage() {
         <div className="auth-page">
             <div className="auth-card">
                 <div className="auth-logo">
-                    <img src="/uploads/logos/Not Collapse.png" alt="Logo" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
+                    <img src="/uploads/logos/Not Collapse.png" alt="Logo" style={{ height: '120px', width: 'auto', objectFit: 'contain' }} />
                 </div>
                 <h1>Create your account</h1>
                 <p className="subtitle">Start scheduling in minutes</p>

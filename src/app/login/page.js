@@ -43,7 +43,7 @@ function LoginForm() {
         <div className="auth-page">
             <div className="auth-card">
                 <div className="auth-logo">
-                    <img src="/uploads/logos/Not Collapse.png" alt="Logo" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
+                    <img src="/uploads/logos/Not Collapse.png" alt="Logo" style={{ height: '120px', width: 'auto', objectFit: 'contain' }} />
                 </div>
                 <h1>Welcome back</h1>
                 <p className="subtitle">Sign in to your account to continue</p>
