@@ -132,27 +132,34 @@ export const authOptions = {
             }
             return true;
         },
-        async jwt({ token, user, account }) {
+        async jwt({ token, user, account, trigger, session }) {
             if (user) {
-                // For credential login, user object already has our fields
-                if (account?.provider === 'credentials') {
-                    token.id = user.id;
-                    token.username = user.username;
-                    token.timezone = user.timezone;
-                    token.brandColor = user.brandColor;
-                } else if (account?.provider === 'google') {
-                    // For Google login, fetch from DB
-                    const dbUser = await prisma.user.findUnique({
-                        where: { email: user.email },
-                    });
-                    if (dbUser) {
-                        token.id = dbUser.id;
-                        token.username = dbUser.username;
-                        token.timezone = dbUser.timezone;
-                        token.brandColor = dbUser.brandColor;
-                    }
+                token.id = user.id;
+                token.username = user.username;
+                token.timezone = user.timezone;
+                token.brandColor = user.brandColor;
+            }
+
+            if (trigger === 'update' && session) {
+                if (session.name) token.name = session.name;
+                if (session.timezone) token.timezone = session.timezone;
+                if (session.brandColor) token.brandColor = session.brandColor;
+            }
+
+            // Sync with DB if needed (only for Google or periodically)
+            if (account?.provider === 'google' || !token.username) {
+                const dbUser = await prisma.user.findUnique({
+                    where: { email: token.email },
+                });
+                if (dbUser) {
+                    token.id = dbUser.id;
+                    token.username = dbUser.username;
+                    token.timezone = dbUser.timezone;
+                    token.brandColor = dbUser.brandColor;
+                    token.name = dbUser.name;
                 }
             }
+
             return token;
         },
         async session({ session, token }) {
@@ -161,6 +168,7 @@ export const authOptions = {
                 session.user.username = token.username;
                 session.user.timezone = token.timezone;
                 session.user.brandColor = token.brandColor;
+                session.user.name = token.name;
             }
             return session;
         },

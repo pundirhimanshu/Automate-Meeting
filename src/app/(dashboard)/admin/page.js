@@ -57,11 +57,22 @@ function AdminContent() {
                 body: JSON.stringify(form),
             });
             if (res.ok) {
+                const data = await res.json();
+                // Update local user state
+                setUser(data.user);
+                // Trigger session update for global components (like TopHeader)
+                await update({
+                    name: data.user.name,
+                    timezone: data.user.timezone,
+                    brandColor: data.user.brandColor
+                });
                 setSaved(true);
                 setTimeout(() => setSaved(false), 2000);
                 window.dispatchEvent(new CustomEvent('profile-updated'));
             }
-        } catch (e) { } finally {
+        } catch (e) {
+            console.error('Save error:', e);
+        } finally {
             setSaving(false);
         }
     };
