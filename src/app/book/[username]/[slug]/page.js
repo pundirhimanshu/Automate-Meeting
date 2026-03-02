@@ -223,7 +223,7 @@ export default function BookingPage() {
                         </div>
                     </div>
                     <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
-                        Powered by <strong style={{ color: 'var(--primary)' }}>Automate Meetings</strong>
+                        Powered by <strong style={{ color: 'var(--primary)' }}>Scheduler</strong>
                     </div>
                 </div>
             </div>

@@ -24,7 +24,7 @@ export async function POST(request) {
         console.log(`[TEST-EMAIL] Triggering test email for ${user.email}`);
 
         // Mock data for test
-        const mockBooking = { id: 'test-id', notes: 'This is a test email from the Automate Meetings setup helper.' };
+        const mockBooking = { id: 'test-id', notes: 'This is a test email from the Scheduler setup helper.' };
         const mockEventType = { title: 'Integration Test Meeting', location: 'Dashboard' };
 
         await sendBookingConfirmation({

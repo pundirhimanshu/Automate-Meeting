@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const EMAIL_FROM = process.env.EMAIL_FROM || `Automate Meetings <${process.env.GMAIL_USER}>`;
+const EMAIL_FROM = process.env.EMAIL_FROM || `Scheduler <${process.env.GMAIL_USER}>`;
 
 export async function sendBookingConfirmation({ booking, eventType, host, inviteeName, inviteeEmail, startTime }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
@@ -42,7 +42,7 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
           <h2 style="color: #0069ff;">New Meeting Booked!</h2>
           <p>Hi ${host.name},</p>
-          <p>A new meeting has been scheduled via <strong>Automate Meetings</strong>.</p>
+          <p>A new meeting has been scheduled via <strong>Scheduler</strong>.</p>
           <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
           <p><strong>What:</strong> ${eventType.title}</p>
           <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
@@ -55,7 +55,7 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
           ` : ''}
           ${booking.notes ? `<p><strong>Notes:</strong> ${booking.notes}</p>` : ''}
           <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p style="color: #6a737d; font-size: 12px;">This is an automated notification from your Automate Meetings dashboard.</p>
+          <p style="color: #6a737d; font-size: 12px;">This is an automated notification from your Scheduler dashboard.</p>
         </div>
       `,
     });
@@ -93,8 +93,8 @@ export async function sendTeamInvitation({ email, teamName, inviterName, inviteL
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
 
   const subject = eventTitle
-    ? `Join ${inviterName} for ${eventTitle} on Automate Meetings`
-    : `Join ${teamName || inviterName + "'s Team"} on Automate Meetings`;
+    ? `Join ${inviterName} for ${eventTitle} on Scheduler`
+    : `Join ${teamName || inviterName + "'s Team"} on Scheduler`;
 
   try {
     await transporter.sendMail({
@@ -105,14 +105,14 @@ export async function sendTeamInvitation({ email, teamName, inviterName, inviteL
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
           <h2 style="color: #0069ff;">Team Invitation</h2>
           <p>Hi there,</p>
-          <p><strong>${inviterName}</strong> has invited you to join ${eventTitle ? `their <strong>${eventTitle}</strong> event` : `their team <strong>${teamName || ''}</strong>`} on <strong>Automate Meetings</strong>.</p>
+          <p><strong>${inviterName}</strong> has invited you to join ${eventTitle ? `their <strong>${eventTitle}</strong> event` : `their team <strong>${teamName || ''}</strong>`} on <strong>Scheduler</strong>.</p>
           <div style="margin: 30px 0; text-align: center;">
             <a href="${inviteLink}" style="background-color: #0069ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Join Now</a>
           </div>
           <p style="font-size: 0.8125rem; color: #6a737d;">If the button above doesn't work, copy and paste this link into your browser:</p>
           <p style="font-size: 0.8125rem; color: #0069ff; word-break: break-all;">${inviteLink}</p>
           <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p style="color: #6a737d; font-size: 12px;">This invitation was sent by Automate Meetings on behalf of ${inviterName}.</p>
+          <p style="color: #6a737d; font-size: 12px;">This invitation was sent by Scheduler on behalf of ${inviterName}.</p>
         </div>
       `,
     });
@@ -129,12 +129,12 @@ export async function sendVerificationEmail({ email, name, verifyUrl }) {
     await transporter.sendMail({
       from: EMAIL_FROM,
       to: email,
-      subject: 'Verify your email — Automate Meetings',
+      subject: 'Verify your email — Scheduler',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
           <h2 style="color: #0069ff;">Verify Your Email</h2>
           <p>Hi ${name},</p>
-          <p>Thank you for signing up for <strong>Automate Meetings</strong>! Please verify your email address by clicking the button below:</p>
+          <p>Thank you for signing up for <strong>Scheduler</strong>! Please verify your email address by clicking the button below:</p>
           <div style="margin: 30px 0; text-align: center;">
             <a href="${verifyUrl}" style="background-color: #0069ff; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Verify Email</a>
           </div>

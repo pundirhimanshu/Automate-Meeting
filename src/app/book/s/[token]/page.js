@@ -122,8 +122,6 @@ export default function SingleUseLinkBookingPage() {
                 const result = await res.json();
                 setBookedData(result.booking);
                 setStep('confirmed');
-                // Mark single-use link as used
-                await fetch(`/api/public/s/${params.token}/mark-used`, { method: 'POST' });
             } else {
                 const errData = await res.json();
                 setSubmitError(errData.error || 'Failed to book.');
@@ -168,7 +166,7 @@ export default function SingleUseLinkBookingPage() {
                         </div>
                     </div>
                     <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
-                        Powered by <strong style={{ color: 'var(--primary)' }}>Automate Meetings</strong>
+                        Powered by <strong style={{ color: 'var(--primary)' }}>Scheduler</strong>
                     </div>
                 </div>
             </div>

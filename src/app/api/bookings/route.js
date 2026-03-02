@@ -103,7 +103,7 @@ export async function POST(request) {
         const body = await request.json();
         const {
             eventTypeId, inviteeName, inviteeEmail, startTime, endTime,
-            timezone, notes, answers, inviteePhone,
+            timezone, notes, answers, inviteePhone, singleUseToken,
         } = body;
 
         if (!eventTypeId || !inviteeName || !inviteeEmail || !startTime || !endTime) {
@@ -144,6 +144,23 @@ export async function POST(request) {
             return NextResponse.json({
                 error: `${eventType.locationType.charAt(0).toUpperCase() + eventType.locationType.slice(1)} is not available on the ${hostPlan.charAt(0).toUpperCase() + hostPlan.slice(1)} plan. The host needs to upgrade.`,
             }, { status: 403 });
+        }
+
+        // Single-use link validation
+        if (singleUseToken) {
+            const link = await prisma.singleUseLink.findUnique({
+                where: { token: singleUseToken }
+            });
+
+            if (!link || link.isUsed) {
+                return NextResponse.json({
+                    error: 'This Link is only for single use Link Go and try to Book other meeting'
+                }, { status: 410 });
+            }
+
+            if (link.expiresAt && new Date() > new Date(link.expiresAt)) {
+                return NextResponse.json({ error: 'This link has expired' }, { status: 410 });
+            }
         }
 
         // Check for conflicts
@@ -230,7 +247,7 @@ export async function POST(request) {
                 const { createGoogleMeetEvent } = await import('@/lib/integrations/google');
                 const result = await createGoogleMeetEvent({
                     title: `${inviteeName} & ${eventType.title}`,
-                    description: `Booking via Automate Meetings\n\nInvitee: ${inviteeName}\nEmail: ${inviteeEmail}${notes ? '\nNotes: ' + notes : ''}`,
+                    description: `Booking via Scheduler\n\nInvitee: ${inviteeName}\nEmail: ${inviteeEmail}${notes ? '\nNotes: ' + notes : ''}`,
                     startTime: new Date(startTime),
                     endTime: new Date(endTime),
                     attendeeEmail: inviteeEmail,
@@ -244,29 +261,45 @@ export async function POST(request) {
         }
 
 
-        const booking = await prisma.booking.create({
-            data: {
-                eventTypeId,
-                hostId: eventType.userId,
-                inviteeName,
-                inviteeEmail,
-                startTime: new Date(startTime),
-                endTime: new Date(endTime),
-                timezone: timezone || 'UTC',
-                notes: notes || '',
-                location: meetingLink,
-                status: 'confirmed',
-                answers: answers?.length ? {
-                    create: answers.map((a) => ({
-                        questionId: a.questionId,
-                        answer: a.answer,
-                    })),
-                } : undefined,
-            },
-            include: {
-                eventType: { select: { title: true } },
-            },
-        });
+        const bookingData = {
+            eventTypeId,
+            hostId: eventType.userId,
+            inviteeName,
+            inviteeEmail,
+            startTime: new Date(startTime),
+            endTime: new Date(endTime),
+            timezone: timezone || 'UTC',
+            notes: notes || '',
+            location: meetingLink,
+            status: 'confirmed',
+            answers: answers?.length ? {
+                create: answers.map((a) => ({
+                    questionId: a.questionId,
+                    answer: a.answer,
+                })),
+            } : undefined,
+        };
+
+        let booking;
+        if (singleUseToken) {
+            // Use transaction for atomic booking + token invalidation
+            const [newBooking] = await prisma.$transaction([
+                prisma.booking.create({
+                    data: bookingData,
+                    include: { eventType: { select: { title: true } } },
+                }),
+                prisma.singleUseLink.update({
+                    where: { token: singleUseToken },
+                    data: { isUsed: true },
+                }),
+            ]);
+            booking = newBooking;
+        } else {
+            booking = await prisma.booking.create({
+                data: bookingData,
+                include: { eventType: { select: { title: true } } },
+            });
+        }
 
         // Create notification for host
         await prisma.notification.create({

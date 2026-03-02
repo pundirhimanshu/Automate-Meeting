@@ -78,7 +78,7 @@ export default function AdminSubscriptionsPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                     <div>
                         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>🔐 Subscription Verification</h1>
-                        <p style={{ fontSize: '0.875rem', color: '#888', marginTop: '4px' }}>Admin Panel — Automate Meetings</p>
+                        <p style={{ fontSize: '0.875rem', color: '#888', marginTop: '4px' }}>Admin Panel — Scheduler</p>
                     </div>
                     <button
                         onClick={fetchSubscriptions}

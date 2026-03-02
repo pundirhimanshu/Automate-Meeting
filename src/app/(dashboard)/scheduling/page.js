@@ -1498,7 +1498,7 @@ function SchedulingContent() {
                                 onClick={() => {
                                     if (sulCopiedLink) {
                                         const subject = encodeURIComponent(`Book a meeting: ${sulEventType.title}`);
-                                        const body = encodeURIComponent(`Hi${sulContact.name ? ' ' + sulContact.name : ''},\n\nPlease use this link to book a meeting:\n${sulCopiedLink}\n\nNote: This is a single-use link and can only be used once.\n\nBest,\n${session?.user?.name || 'Automate Meetings'}`);
+                                        const body = encodeURIComponent(`Hi${sulContact.name ? ' ' + sulContact.name : ''},\n\nPlease use this link to book a meeting:\n${sulCopiedLink}\n\nNote: This is a single-use link and can only be used once.\n\nBest,\n${session?.user?.name || 'Scheduler'}`);
                                         window.open(`mailto:${sulContact.email || ''}?subject=${subject}&body=${body}`);
                                     }
                                 }}

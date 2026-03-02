@@ -25,7 +25,7 @@ export async function GET(request, { params }) {
         }
 
         if (link.isUsed) {
-            return NextResponse.json({ error: 'This link has already been used' }, { status: 410 });
+            return NextResponse.json({ error: 'This Link is only for single use Link Go and try to Book other meeting' }, { status: 410 });
         }
 
         if (link.expiresAt && new Date() > new Date(link.expiresAt)) {

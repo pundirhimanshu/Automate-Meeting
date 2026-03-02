@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-    title: 'Automate Meetings — Scheduling Made Easy',
+    title: 'Scheduler — Scheduling Made Easy',
     description: 'A powerful scheduling platform to share availability, book meetings, and automate workflows.',
 };
 

@@ -94,7 +94,7 @@ const bottomItems = [
     },
     {
         label: 'Help',
-        href: '#',
+        href: '/help',
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
@@ -127,18 +127,18 @@ export default function Sidebar() {
             <div className="sidebar-logo">
                 {!collapsed && (
                     <Link href="/scheduling" className="logo-container">
-                        <img 
-                            src="/uploads/logos/Not Collapse.png" 
-                            alt="Logo" 
+                        <img
+                            src="/uploads/logos/Not Collapse.png"
+                            alt="Logo"
                             className="sidebar-main-logo"
                         />
                     </Link>
                 )}
                 {collapsed && (
                     <Link href="/scheduling" className="logo-icon-collapsed">
-                        <img 
-                            src="/uploads/logos/Collapse Logo.png" 
-                            alt="Logo" 
+                        <img
+                            src="/uploads/logos/Collapse Logo.png"
+                            alt="Logo"
                             className="sidebar-collapsed-logo"
                         />
                     </Link>
