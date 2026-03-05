@@ -205,6 +205,7 @@ export default function MeetingsPage() {
             pending: { cls: 'badge-warning', label: 'Pending' },
             cancelled: { cls: 'badge-danger', label: 'Cancelled' },
             completed: { cls: 'badge-success', label: 'Completed' },
+            rescheduled: { cls: 'badge-primary', label: 'Rescheduled' },
         };
         const s = map[status] || { cls: 'badge-primary', label: status };
         return <span className={`badge ${s.cls}`}>{s.label}</span>;
@@ -217,7 +218,7 @@ export default function MeetingsPage() {
             </div>
 
             <div className="tabs" style={{ marginBottom: '16px' }}>
-                {['upcoming', 'past', 'cancelled'].map((tab) => (
+                {['upcoming', 'past', 'cancelled', 'rescheduled'].map((tab) => (
                     <button key={tab} className={`tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
                         {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </button>
@@ -325,6 +326,7 @@ export default function MeetingsPage() {
                                         </>
                                     )}
                                     {b.status === 'completed' && <span className="badge badge-success">Completed</span>}
+                                    {b.status === 'rescheduled' && <span className="badge badge-primary">Rescheduled</span>}
                                 </div>
                             </div>
                         );
@@ -431,6 +433,26 @@ export default function MeetingsPage() {
                                     <div className="drawer-section-title">Cancellation Reason</div>
                                     <div style={{ padding: '12px 16px', background: '#fce4ec', borderRadius: 'var(--radius-md)', fontSize: '0.875rem', color: 'var(--danger)', lineHeight: 1.6 }}>
                                         {selectedBooking.cancelReason}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Rescheduled Details */}
+                            {selectedBooking.status === 'rescheduled' && selectedBooking.rescheduledFromStart && (
+                                <div className="drawer-section">
+                                    <div className="drawer-section-title">Rescheduled From</div>
+                                    <div style={{ padding: '12px 16px', background: '#e0f2fe', borderRadius: 'var(--radius-md)', fontSize: '0.875rem', color: 'var(--primary)', lineHeight: 1.8 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                                            <span style={{ textDecoration: 'line-through', opacity: 0.7 }}>{new Date(selectedBooking.rescheduledFromStart).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                            <span style={{ textDecoration: 'line-through', opacity: 0.7 }}>{new Date(selectedBooking.rescheduledFromStart).toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit', hour12: true })} - {new Date(selectedBooking.rescheduledFromEnd).toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                                        </div>
+                                        <div style={{ marginTop: '8px', fontWeight: 600, color: 'var(--primary)' }}>
+                                            → Rescheduled to {formatDate(selectedBooking.startTime).full} at {formatTime(selectedBooking.startTime, selectedBooking.endTime)}
+                                        </div>
                                     </div>
                                 </div>
                             )}

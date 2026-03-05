@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { sendBookingCancellation } from '@/lib/email';
+import { sendBookingCancellation, sendBookingReschedule } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,9 +56,11 @@ export async function PUT(request, { params }) {
             await prisma.booking.update({
                 where: { id: params.id },
                 data: {
+                    rescheduledFromStart: booking.startTime,
+                    rescheduledFromEnd: booking.endTime,
                     startTime: new Date(startTime),
                     endTime: new Date(endTime),
-                    status: 'confirmed',
+                    status: 'rescheduled',
                 },
             });
 
@@ -70,6 +72,19 @@ export async function PUT(request, { params }) {
                     message: `${booking.inviteeName} rescheduled "${booking.eventType.title}" to ${new Date(startTime).toLocaleDateString()}`,
                     bookingId: booking.id,
                 },
+            });
+
+            // Send reschedule emails to invitee and host
+            await sendBookingReschedule({
+                booking,
+                eventType: booking.eventType,
+                host: booking.eventType.user,
+                inviteeName: booking.inviteeName,
+                inviteeEmail: booking.inviteeEmail,
+                originalStartTime: booking.startTime,
+                originalEndTime: booking.endTime,
+                newStartTime: new Date(startTime),
+                newEndTime: new Date(endTime),
             });
 
             return NextResponse.json({ message: 'Booking rescheduled' });

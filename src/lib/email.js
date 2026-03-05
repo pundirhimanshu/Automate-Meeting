@@ -214,3 +214,75 @@ export async function sendBookingCancellation({ booking, eventType, host, invite
     console.error('[EMAIL] Error sending cancellation email:', error);
   }
 }
+
+export async function sendBookingReschedule({ booking, eventType, host, inviteeName, inviteeEmail, originalStartTime, originalEndTime, newStartTime, newEndTime }) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+
+  const fmtDate = (d) => new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+  const oldDate = fmtDate(originalStartTime);
+  const oldTime = `${fmtTime(originalStartTime)} - ${fmtTime(originalEndTime)}`;
+  const newDate = fmtDate(newStartTime);
+  const newTime = `${fmtTime(newStartTime)} - ${fmtTime(newEndTime)}`;
+
+  try {
+    // Send to Invitee (the person who originally booked)
+    await transporter.sendMail({
+      from: EMAIL_FROM,
+      to: inviteeEmail,
+      subject: `Rescheduled: ${eventType.title} with ${host.name}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+          <h2 style="color: #0069ff;">Meeting Rescheduled</h2>
+          <p>Hi ${inviteeName},</p>
+          <p>Your meeting with <strong>${host.name}</strong> has been rescheduled to a new date and time.</p>
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p><strong>What:</strong> ${eventType.title}</p>
+          <div style="padding: 12px 16px; background: #fce4ec; border-radius: 6px; margin: 12px 0;">
+            <p style="margin: 0 0 4px; color: #d73a49; font-weight: 600;">Previous Time (Cancelled):</p>
+            <p style="margin: 0; text-decoration: line-through; color: #6a737d;">${oldDate} at ${oldTime}</p>
+          </div>
+          <div style="padding: 12px 16px; background: #e6f4ea; border-radius: 6px; margin: 12px 0;">
+            <p style="margin: 0 0 4px; color: #28a745; font-weight: 600;">New Time:</p>
+            <p style="margin: 0; color: #24292e; font-weight: 600;">${newDate} at ${newTime}</p>
+          </div>
+          ${booking.location ? `<p><strong>${eventType.locationType === 'phone' ? 'Phone Number' : eventType.locationType === 'in_person' ? 'Meeting Address' : 'Where'}:</strong> ${booking.location}</p>` : ''}
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p style="color: #6a737d; font-size: 12px;">This is an automated notification from Scheduler. If you have questions, please contact ${host.name} directly.</p>
+        </div>
+      `,
+    });
+
+    // Send to Host
+    await transporter.sendMail({
+      from: EMAIL_FROM,
+      to: host.email,
+      subject: `Rescheduled: ${inviteeName} - ${eventType.title}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+          <h2 style="color: #0069ff;">Meeting Rescheduled</h2>
+          <p>Hi ${host.name},</p>
+          <p>You have rescheduled the following meeting via <strong>Scheduler</strong>.</p>
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p><strong>What:</strong> ${eventType.title}</p>
+          <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
+          <div style="padding: 12px 16px; background: #fce4ec; border-radius: 6px; margin: 12px 0;">
+            <p style="margin: 0 0 4px; color: #d73a49; font-weight: 600;">Previous Time:</p>
+            <p style="margin: 0; text-decoration: line-through; color: #6a737d;">${oldDate} at ${oldTime}</p>
+          </div>
+          <div style="padding: 12px 16px; background: #e6f4ea; border-radius: 6px; margin: 12px 0;">
+            <p style="margin: 0 0 4px; color: #28a745; font-weight: 600;">New Time:</p>
+            <p style="margin: 0; color: #24292e; font-weight: 600;">${newDate} at ${newTime}</p>
+          </div>
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p style="color: #6a737d; font-size: 12px;">This is an automated notification from your Scheduler dashboard.</p>
+        </div>
+      `,
+    });
+
+    console.log('[EMAIL] Reschedule emails sent successfully');
+  } catch (error) {
+    console.error('[EMAIL] Error sending reschedule email:', error);
+  }
+}

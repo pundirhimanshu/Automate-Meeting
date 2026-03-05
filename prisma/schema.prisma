@@ -130,6 +130,8 @@ model Booking {
   notes         String?
   cancelReason  String?
   location      String?
+  rescheduledFromStart DateTime?
+  rescheduledFromEnd   DateTime?
   answers       BookingAnswer[]
   notifications Notification[]
   createdAt     DateTime      @default(now())

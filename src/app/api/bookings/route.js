@@ -58,6 +58,14 @@ export async function GET(request) {
                 ],
                 status: 'cancelled',
             };
+        } else if (status === 'rescheduled') {
+            where = {
+                OR: [
+                    { hostId: session.user.id },
+                    { eventType: { coHosts: { some: { id: session.user.id } } } }
+                ],
+                status: 'rescheduled',
+            };
         }
 
         // Add search filter
