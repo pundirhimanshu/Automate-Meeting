@@ -16,6 +16,14 @@ export default function MeetingsPage() {
     // Detail drawer
     const [selectedBooking, setSelectedBooking] = useState(null);
 
+    // Reschedule state
+    const [rescheduleBooking, setRescheduleBooking] = useState(null);
+    const [rescheduleDate, setRescheduleDate] = useState(null);
+    const [rescheduleTime, setRescheduleTime] = useState(null);
+    const [rescheduleMonth, setRescheduleMonth] = useState(new Date());
+    const [rescheduleLoading, setRescheduleLoading] = useState(false);
+    const [rescheduleAvail, setRescheduleAvail] = useState(null); // { availabilities, dateOverrides, existingBookings, duration, bufferBefore, bufferAfter, minNotice }
+
     useEffect(() => {
         fetchEventTypes();
     }, []);
@@ -71,6 +79,107 @@ export default function MeetingsPage() {
         } catch (e) { }
         setCancelModal(null);
         setCancelReason('');
+    };
+
+    const openRescheduleModal = async (booking) => {
+        setRescheduleBooking(booking);
+        setRescheduleDate(null);
+        setRescheduleTime(null);
+        setRescheduleMonth(new Date());
+        setRescheduleAvail(null);
+        // Fetch host availability and existing bookings
+        try {
+            const [availRes, bookingsRes] = await Promise.all([
+                fetch('/api/availability'),
+                fetch('/api/bookings?status=upcoming'),
+            ]);
+            const availData = availRes.ok ? await availRes.json() : {};
+            const bookingsData = bookingsRes.ok ? await bookingsRes.json() : {};
+            const defaultSchedule = availData.schedules?.find(s => s.isDefault) || availData.schedules?.[0];
+            setRescheduleAvail({
+                availabilities: defaultSchedule?.availabilities || [],
+                dateOverrides: defaultSchedule?.dateOverrides || [],
+                existingBookings: (bookingsData.bookings || []).filter(b => b.id !== booking.id),
+                duration: booking.eventType?.duration || 30,
+                bufferBefore: 0,
+                bufferAfter: 0,
+                minNotice: 60,
+            });
+        } catch (e) { console.error(e); }
+    };
+
+    const closeRescheduleModal = () => {
+        setRescheduleBooking(null);
+        setRescheduleDate(null);
+        setRescheduleTime(null);
+        setRescheduleAvail(null);
+    };
+
+    const handleReschedule = async () => {
+        if (!rescheduleBooking || !rescheduleTime) return;
+        setRescheduleLoading(true);
+        try {
+            const res = await fetch(`/api/bookings/${rescheduleBooking.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'reschedule',
+                    startTime: rescheduleTime.start.toISOString(),
+                    endTime: rescheduleTime.end.toISOString(),
+                }),
+            });
+            if (res.ok) {
+                closeRescheduleModal();
+                if (selectedBooking?.id === rescheduleBooking.id) setSelectedBooking(null);
+                fetchBookings();
+            }
+        } catch (e) { console.error(e); }
+        finally { setRescheduleLoading(false); }
+    };
+
+    // Reschedule calendar helpers
+    const getRescheduleDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    const getRescheduleFirstDay = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+
+    const isRescheduleDateAvailable = (date) => {
+        if (!rescheduleAvail) return false;
+        const now = new Date(); now.setHours(0, 0, 0, 0);
+        if (date < now) return false;
+        const dateStr = date.toISOString().split('T')[0];
+        const override = rescheduleAvail.dateOverrides?.find(d => new Date(d.date).toISOString().split('T')[0] === dateStr);
+        if (override?.isBlocked) return false;
+        const dayOfWeek = date.getDay();
+        return rescheduleAvail.availabilities?.some(a => a.dayOfWeek === dayOfWeek);
+    };
+
+    const getRescheduleTimeSlots = (date) => {
+        if (!rescheduleAvail || !date) return [];
+        const dayOfWeek = date.getDay();
+        const dayAvails = rescheduleAvail.availabilities?.filter(a => a.dayOfWeek === dayOfWeek) || [];
+        const duration = rescheduleAvail.duration || 30;
+        const slots = [];
+        dayAvails.forEach(avail => {
+            const [startH, startM] = avail.startTime.split(':').map(Number);
+            const [endH, endM] = avail.endTime.split(':').map(Number);
+            const startMin = startH * 60 + startM;
+            const endMin = endH * 60 + endM;
+            for (let m = startMin; m + duration <= endMin; m += 30) {
+                const slotStart = new Date(date); slotStart.setHours(Math.floor(m / 60), m % 60, 0, 0);
+                const slotEnd = new Date(slotStart); slotEnd.setMinutes(slotEnd.getMinutes() + duration);
+                if (slotStart.getTime() < Date.now() + (rescheduleAvail.minNotice || 0) * 60000) continue;
+                const hasConflict = rescheduleAvail.existingBookings?.some(b => {
+                    const bStart = new Date(b.startTime); const bEnd = new Date(b.endTime);
+                    return slotStart < bEnd && slotEnd > bStart;
+                });
+                if (!hasConflict) {
+                    slots.push({
+                        start: slotStart, end: slotEnd,
+                        label: slotStart.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                    });
+                }
+            }
+        });
+        return slots;
     };
 
     const formatDate = (dateStr) => {
@@ -202,11 +311,19 @@ export default function MeetingsPage() {
                                         </div>
                                     )}
                                 </div>
-                                <div style={{ display: 'flex', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
                                     {b.status === 'confirmed' && activeTab === 'upcoming' && (
                                         <button className="btn btn-secondary btn-sm" onClick={() => setCancelModal(b.id)}>Cancel</button>
                                     )}
-                                    {b.status === 'cancelled' && <span className="badge badge-danger">Cancelled</span>}
+                                    {b.status === 'cancelled' && (
+                                        <>
+                                            <span className="badge badge-danger">Cancelled</span>
+                                            <button className="btn btn-primary btn-sm" onClick={() => openRescheduleModal(b)} style={{ gap: '4px' }}>
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+                                                Reschedule
+                                            </button>
+                                        </>
+                                    )}
                                     {b.status === 'completed' && <span className="badge badge-success">Completed</span>}
                                 </div>
                             </div>
@@ -340,6 +457,18 @@ export default function MeetingsPage() {
                                 </button>
                             </div>
                         )}
+                        {selectedBooking.status === 'cancelled' && (
+                            <div className="drawer-footer">
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => openRescheduleModal(selectedBooking)}
+                                    style={{ gap: '6px' }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+                                    Reschedule Meeting
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </>
             )}
@@ -364,6 +493,114 @@ export default function MeetingsPage() {
                         <div className="modal-footer">
                             <button className="btn btn-secondary" onClick={() => setCancelModal(null)}>Keep Meeting</button>
                             <button className="btn btn-danger" onClick={handleCancel}>Cancel Meeting</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== RESCHEDULE MODAL ===== */}
+            {rescheduleBooking && (
+                <div className="modal-overlay" onClick={closeRescheduleModal} style={{ zIndex: 300 }}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '560px', width: '90vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+                        <div className="modal-header">
+                            <h2>Reschedule Meeting</h2>
+                            <button className="btn-icon btn-ghost" onClick={closeRescheduleModal}>✕</button>
+                        </div>
+                        <div className="modal-body" style={{ flex: 1, overflow: 'auto' }}>
+                            {/* Booking info */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', background: 'var(--bg-page)', borderRadius: 'var(--radius-md)', marginBottom: '20px' }}>
+                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: rescheduleBooking.eventType?.color || '#ff9500' }} />
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{rescheduleBooking.eventType?.title || 'Meeting'}</div>
+                                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>with {rescheduleBooking.inviteeName} • {rescheduleBooking.eventType?.duration || 30} min</div>
+                                </div>
+                            </div>
+
+                            {!rescheduleAvail ? (
+                                <div style={{ padding: '40px', textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }}></div></div>
+                            ) : (
+                                <>
+                                    {/* Mini Calendar */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                            <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{rescheduleMonth.toLocaleDateString('en', { month: 'long', year: 'numeric' })}</span>
+                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                                <button type="button" className="btn-icon btn-ghost" onClick={() => setRescheduleMonth(new Date(rescheduleMonth.getFullYear(), rescheduleMonth.getMonth() - 1))}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
+                                                </button>
+                                                <button type="button" className="btn-icon btn-ghost" onClick={() => setRescheduleMonth(new Date(rescheduleMonth.getFullYear(), rescheduleMonth.getMonth() + 1))}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
+                                            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i} style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-tertiary)', padding: '4px 0' }}>{d}</div>)}
+                                            {Array.from({ length: getRescheduleFirstDay(rescheduleMonth) }, (_, i) => <div key={`e-${i}`} />)}
+                                            {Array.from({ length: getRescheduleDaysInMonth(rescheduleMonth) }, (_, i) => {
+                                                const day = i + 1;
+                                                const date = new Date(rescheduleMonth.getFullYear(), rescheduleMonth.getMonth(), day);
+                                                const available = isRescheduleDateAvailable(date);
+                                                const isSelected = rescheduleDate?.toDateString() === date.toDateString();
+                                                const isToday = date.toDateString() === new Date().toDateString();
+                                                return (
+                                                    <button
+                                                        key={day} type="button" disabled={!available}
+                                                        onClick={() => { setRescheduleDate(date); setRescheduleTime(null); }}
+                                                        style={{
+                                                            width: '36px', height: '36px', borderRadius: '50%', border: 'none', cursor: available ? 'pointer' : 'default',
+                                                            background: isSelected ? 'var(--primary)' : 'transparent',
+                                                            color: isSelected ? '#fff' : !available ? 'var(--text-disabled, #ccc)' : isToday ? 'var(--primary)' : 'var(--text-primary)',
+                                                            fontWeight: isToday || isSelected ? 700 : 400, fontSize: '0.8125rem',
+                                                            opacity: available ? 1 : 0.35, margin: '0 auto',
+                                                            transition: 'all 0.15s',
+                                                        }}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Time Slots */}
+                                    {rescheduleDate && (
+                                        <div>
+                                            <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '10px' }}>
+                                                {rescheduleDate.toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                            </div>
+                                            {(() => {
+                                                const slots = getRescheduleTimeSlots(rescheduleDate);
+                                                if (slots.length === 0) return <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>No available time slots for this date.</p>;
+                                                return (
+                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                                                        {slots.map((slot, i) => (
+                                                            <button
+                                                                key={i} type="button"
+                                                                onClick={() => setRescheduleTime(slot)}
+                                                                style={{
+                                                                    padding: '10px 8px', borderRadius: 'var(--radius-md)', fontSize: '0.8125rem', fontWeight: 500, cursor: 'pointer',
+                                                                    border: `1.5px solid ${rescheduleTime?.label === slot.label ? 'var(--primary)' : 'var(--border-color)'}`,
+                                                                    background: rescheduleTime?.label === slot.label ? 'var(--primary)' : 'var(--bg-card)',
+                                                                    color: rescheduleTime?.label === slot.label ? '#fff' : 'var(--text-primary)',
+                                                                    transition: 'all 0.15s',
+                                                                }}
+                                                            >
+                                                                {slot.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={closeRescheduleModal}>Cancel</button>
+                            <button className="btn btn-primary" disabled={!rescheduleTime || rescheduleLoading} onClick={handleReschedule}>
+                                {rescheduleLoading ? 'Rescheduling...' : 'Confirm Reschedule'}
+                            </button>
                         </div>
                     </div>
                 </div>
