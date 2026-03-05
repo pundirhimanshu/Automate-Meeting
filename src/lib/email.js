@@ -11,23 +11,27 @@ const transporter = nodemailer.createTransport({
 
 const EMAIL_FROM = process.env.EMAIL_FROM || `Scheduler <${process.env.GMAIL_USER}>`;
 
-export async function sendBookingConfirmation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, manageUrl }) {
+export async function sendBookingConfirmation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, manageUrl, timezone }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
     console.warn('Gmail credentials missing. Email will not be sent.');
     return;
   }
+
+  const tz = timezone || booking?.timezone || 'UTC';
 
   const formattedDate = new Date(startTime).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: tz,
   });
 
   const formattedTime = new Date(startTime).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
+    timeZone: tz,
   });
 
   try {
@@ -157,20 +161,24 @@ export async function sendVerificationEmail({ email, name, verifyUrl }) {
   }
 }
 
-export async function sendBookingCancellation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, cancelReason }) {
+export async function sendBookingCancellation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, cancelReason, timezone }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+
+  const tz = timezone || booking?.timezone || 'UTC';
 
   const formattedDate = new Date(startTime).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: tz,
   });
 
   const formattedTime = new Date(startTime).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
+    timeZone: tz,
   });
 
   try {
@@ -221,11 +229,13 @@ export async function sendBookingCancellation({ booking, eventType, host, invite
   }
 }
 
-export async function sendBookingReschedule({ booking, eventType, host, inviteeName, inviteeEmail, originalStartTime, originalEndTime, newStartTime, newEndTime }) {
+export async function sendBookingReschedule({ booking, eventType, host, inviteeName, inviteeEmail, originalStartTime, originalEndTime, newStartTime, newEndTime, timezone }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
 
-  const fmtDate = (d) => new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  const tz = timezone || booking?.timezone || 'UTC';
+
+  const fmtDate = (d) => new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: tz });
+  const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz });
 
   const oldDate = fmtDate(originalStartTime);
   const oldTime = `${fmtTime(originalStartTime)} - ${fmtTime(originalEndTime)}`;

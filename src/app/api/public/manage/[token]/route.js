@@ -133,6 +133,7 @@ export async function PUT(request, { params }) {
                 inviteeEmail: booking.inviteeEmail,
                 startTime: booking.startTime,
                 cancelReason: cancelReason || 'Cancelled by invitee',
+                timezone: booking.timezone,
             });
 
             return NextResponse.json({ message: 'Booking cancelled successfully' });
@@ -192,6 +193,7 @@ export async function PUT(request, { params }) {
                 originalEndTime: booking.endTime,
                 newStartTime: new Date(startTime),
                 newEndTime: new Date(endTime),
+                timezone: booking.timezone,
             });
 
             return NextResponse.json({ message: 'Booking rescheduled successfully' });

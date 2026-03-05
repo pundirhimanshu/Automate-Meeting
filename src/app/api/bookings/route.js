@@ -333,6 +333,7 @@ export async function POST(request) {
             inviteeEmail,
             startTime,
             manageUrl,
+            timezone: timezone || 'UTC',
         });
 
         return NextResponse.json({ booking }, { status: 201 });

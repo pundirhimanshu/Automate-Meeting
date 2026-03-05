@@ -43,6 +43,7 @@ export async function PUT(request, { params }) {
                 inviteeEmail: booking.inviteeEmail,
                 startTime: booking.startTime,
                 cancelReason: cancelReason || '',
+                timezone: booking.timezone,
             });
 
             return NextResponse.json({ message: 'Booking cancelled' });
@@ -85,6 +86,7 @@ export async function PUT(request, { params }) {
                 originalEndTime: booking.endTime,
                 newStartTime: new Date(startTime),
                 newEndTime: new Date(endTime),
+                timezone: booking.timezone,
             });
 
             return NextResponse.json({ message: 'Booking rescheduled' });
