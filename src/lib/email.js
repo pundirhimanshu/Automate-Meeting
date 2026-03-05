@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 
 const EMAIL_FROM = process.env.EMAIL_FROM || `Scheduler <${process.env.GMAIL_USER}>`;
 
-export async function sendBookingConfirmation({ booking, eventType, host, inviteeName, inviteeEmail, startTime }) {
+export async function sendBookingConfirmation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, manageUrl }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
     console.warn('Gmail credentials missing. Email will not be sent.');
     return;
@@ -77,8 +77,14 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
           eventType.locationType === 'in_person' ? 'Meeting Address' :
             'Where'
         }:</strong> ${booking.location || 'Video Call'}</p>
+          ${manageUrl ? `
+          <div style="margin: 24px 0; text-align: center;">
+            <a href="${manageUrl}" style="background-color: #0069ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Manage Booking</a>
+          </div>
+          <p style="font-size: 0.8125rem; color: #6a737d; text-align: center;">Need to cancel or reschedule? Click the button above.</p>
+          ` : ''}
           <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p style="color: #6a737d; font-size: 12px;">To manage this booking, please contact the host directly.</p>
+          <p style="color: #6a737d; font-size: 12px;">This is an automated notification from Scheduler.</p>
         </div>
       `,
     });

@@ -126,6 +126,7 @@ model Booking {
   startTime     DateTime
   endTime       DateTime
   status        String        @default("confirmed")
+  manageToken   String?       @unique @default(uuid())
   timezone      String        @default("UTC")
   notes         String?
   cancelReason  String?

@@ -320,6 +320,10 @@ export async function POST(request) {
             },
         });
 
+        // Generate manage URL for invitee self-service
+        const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
+        const manageUrl = booking.manageToken ? `${origin}/book/manage/${booking.manageToken}` : '';
+
         // Send confirmation emails
         await sendBookingConfirmation({
             booking,
@@ -328,6 +332,7 @@ export async function POST(request) {
             inviteeName,
             inviteeEmail,
             startTime,
+            manageUrl,
         });
 
         return NextResponse.json({ booking }, { status: 201 });
