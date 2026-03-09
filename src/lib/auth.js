@@ -84,45 +84,45 @@ export const authOptions = {
                             });
                         }
                         // Continue to invitation check below
-                    }
+                    } else {
+                        // Create new user from Google profile
+                        const name = user.name || 'User';
+                        let username = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
 
-                    // Create new user from Google profile
-                    const name = user.name || 'User';
-                    let username = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+                        // Ensure unique username
+                        let finalUsername = username;
+                        let counter = 1;
+                        while (await prisma.user.findUnique({ where: { username: finalUsername } })) {
+                            finalUsername = `${username}${counter}`;
+                            counter++;
+                        }
 
-                    // Ensure unique username
-                    let finalUsername = username;
-                    let counter = 1;
-                    while (await prisma.user.findUnique({ where: { username: finalUsername } })) {
-                        finalUsername = `${username}${counter}`;
-                        counter++;
-                    }
-
-                    // Create the user
-                    await prisma.user.create({
-                        data: {
-                            name,
-                            email: user.email,
-                            username: finalUsername,
-                            authProvider: 'google',
-                            emailVerified: true,
-                            avatar: user.image || null,
-                            timezone: 'Asia/Kolkata',
-                            schedules: {
-                                create: {
-                                    name: 'Working Hours',
-                                    isDefault: true,
-                                    availabilities: {
-                                        create: [1, 2, 3, 4, 5].map((day) => ({
-                                            dayOfWeek: day,
-                                            startTime: '09:00',
-                                            endTime: '17:00',
-                                        })),
+                        // Create the user
+                        await prisma.user.create({
+                            data: {
+                                name,
+                                email: user.email,
+                                username: finalUsername,
+                                authProvider: 'google',
+                                emailVerified: true,
+                                avatar: user.image || null,
+                                timezone: 'Asia/Kolkata',
+                                schedules: {
+                                    create: {
+                                        name: 'Working Hours',
+                                        isDefault: true,
+                                        availabilities: {
+                                            create: [1, 2, 3, 4, 5].map((day) => ({
+                                                dayOfWeek: day,
+                                                startTime: '09:00',
+                                                endTime: '17:00',
+                                            })),
+                                        },
                                     },
                                 },
                             },
-                        },
-                    });
+                        });
+                    }
 
                     // Continue to invitation check below
                 } catch (error) {
