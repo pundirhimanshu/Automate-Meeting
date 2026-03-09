@@ -83,7 +83,7 @@ export const authOptions = {
                                 },
                             });
                         }
-                        return true;
+                        // Continue to invitation check below
                     }
 
                     // Create new user from Google profile
@@ -124,7 +124,7 @@ export const authOptions = {
                         },
                     });
 
-                    return true;
+                    // Continue to invitation check below
                 } catch (error) {
                     console.error('[GOOGLE_SIGNIN_ERROR]', error);
                     return false;
