@@ -10,6 +10,7 @@ function LoginForm() {
     const searchParams = useSearchParams();
     const verified = searchParams.get('verified');
     const verifyError = searchParams.get('error');
+    const passwordReset = searchParams.get('reset');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -45,13 +46,13 @@ function LoginForm() {
                 <div className="auth-inner-form">
                     <div className="auth-card">
                         <div className="auth-logo" style={{ justifyContent: 'center', marginBottom: '48px' }}>
-                            <img 
-                                src="/uploads/logos/Not Collapse.png" 
-                                alt="Logo" 
-                                style={{ height: '110px', width: 'auto', objectFit: 'contain' }} 
+                            <img
+                                src="/uploads/logos/Not Collapse.png"
+                                alt="Logo"
+                                style={{ height: '110px', width: 'auto', objectFit: 'contain' }}
                             />
                         </div>
-                        
+
                         <h1>Welcome back</h1>
                         <p className="subtitle">Sign in to your account to continue</p>
 
@@ -92,6 +93,19 @@ function LoginForm() {
                                     fontSize: '0.8125rem',
                                 }}>
                                     Your email is already verified. Please sign in.
+                                </div>
+                            )}
+                            {passwordReset === 'true' && (
+                                <div style={{
+                                    padding: '12px 14px',
+                                    background: '#dcfce7',
+                                    borderRadius: '8px',
+                                    color: '#166534',
+                                    fontSize: '0.8125rem',
+                                    display: 'flex', alignItems: 'center', gap: '8px',
+                                }}>
+                                    <span style={{ fontSize: '1.1rem' }}>🔑</span>
+                                    <span><strong>Password reset!</strong> You can now sign in with your new password.</span>
                                 </div>
                             )}
                             {verifyError && (
@@ -143,6 +157,10 @@ function LoginForm() {
                                 />
                             </div>
 
+                            <div style={{ textAlign: 'right', marginTop: '-4px' }}>
+                                <Link href="/forgot-password" style={{ fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 500 }}>Forgot password?</Link>
+                            </div>
+
                             <button
                                 type="submit"
                                 className="btn btn-primary btn-lg w-full"
@@ -167,7 +185,7 @@ function LoginForm() {
                     </div>
                 </div>
             </div>
-            
+
             <div className="auth-image-side">
                 <div className="auth-image-container">
                     <div className="auth-image-quote">

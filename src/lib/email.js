@@ -302,3 +302,33 @@ export async function sendBookingReschedule({ booking, eventType, host, inviteeN
     console.error('[EMAIL] Error sending reschedule email:', error);
   }
 }
+
+export async function sendPasswordResetEmail({ email, name, resetUrl }) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+
+  try {
+    await transporter.sendMail({
+      from: EMAIL_FROM,
+      to: email,
+      subject: 'Reset your password — Scheduler',
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+          <h2 style="color: #0069ff;">Reset Your Password</h2>
+          <p>Hi ${name},</p>
+          <p>We received a request to reset the password for your <strong>Scheduler</strong> account. Click the button below to set a new password:</p>
+          <div style="margin: 30px 0; text-align: center;">
+            <a href="${resetUrl}" style="background-color: #0069ff; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Reset Password</a>
+          </div>
+          <p style="font-size: 0.8125rem; color: #6a737d;">This link will expire in <strong>1 hour</strong>.</p>
+          <p style="font-size: 0.8125rem; color: #6a737d;">If the button above doesn't work, copy and paste this link into your browser:</p>
+          <p style="font-size: 0.8125rem; color: #0069ff; word-break: break-all;">${resetUrl}</p>
+          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+          <p style="color: #6a737d; font-size: 12px;">If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+        </div>
+      `,
+    });
+    console.log('[EMAIL] Password reset email sent');
+  } catch (error) {
+    console.error('[EMAIL] Password reset email error:', error);
+  }
+}
