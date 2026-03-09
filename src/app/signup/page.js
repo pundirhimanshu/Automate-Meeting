@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function SignupPage() {
+function SignupForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const inviteToken = searchParams.get('invite');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -30,7 +32,7 @@ export default function SignupPage() {
             const res = await fetch('/api/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({ ...formData, invite: inviteToken }),
             });
 
             const data = await res.json();
@@ -58,10 +60,10 @@ export default function SignupPage() {
                     <div className="auth-inner-form">
                         <div className="auth-card" style={{ textAlign: 'center' }}>
                             <div className="auth-logo" style={{ justifyContent: 'center', marginBottom: '48px' }}>
-                                <img 
-                                    src="/uploads/logos/Not Collapse.png" 
-                                    alt="Logo" 
-                                    style={{ height: '110px', width: 'auto', objectFit: 'contain' }} 
+                                <img
+                                    src="/uploads/logos/Not Collapse.png"
+                                    alt="Logo"
+                                    style={{ height: '110px', width: 'auto', objectFit: 'contain' }}
                                 />
                             </div>
                             <h1 style={{ marginBottom: '8px' }}>Check your email</h1>
@@ -97,17 +99,17 @@ export default function SignupPage() {
                 <div className="auth-inner-form">
                     <div className="auth-card">
                         <div className="auth-logo" style={{ justifyContent: 'center', marginBottom: '48px' }}>
-                            <img 
-                                src="/uploads/logos/Not Collapse.png" 
-                                alt="Logo" 
-                                style={{ height: '110px', width: 'auto', objectFit: 'contain' }} 
+                            <img
+                                src="/uploads/logos/Not Collapse.png"
+                                alt="Logo"
+                                style={{ height: '110px', width: 'auto', objectFit: 'contain' }}
                             />
                         </div>
-                        
+
                         <h1>Create your account</h1>
                         <p className="subtitle">Start scheduling in minutes</p>
 
-                        <button className="btn-google" type="button" onClick={() => signIn('google', { callbackUrl: '/scheduling' })}>
+                        <button className="btn-google" type="button" onClick={() => signIn('google', { callbackUrl: inviteToken ? `/scheduling?invite=${inviteToken}` : '/scheduling' })}>
                             <svg width="18" height="18" viewBox="0 0 24 24">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -223,7 +225,7 @@ export default function SignupPage() {
                     </div>
                 </div>
             </div>
-            
+
             <div className="auth-image-side">
                 <div className="auth-image-container">
                     <div className="auth-image-quote">
@@ -233,5 +235,13 @@ export default function SignupPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function SignupPage() {
+    return (
+        <Suspense fallback={<div className="auth-page"><div className="auth-card"><div className="spinner" style={{ margin: '40px auto' }}></div></div></div>}>
+            <SignupForm />
+        </Suspense>
     );
 }

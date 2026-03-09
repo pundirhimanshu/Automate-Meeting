@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { name, email, password, timezone } = body;
+        const { name, email, password, timezone, invite } = body;
 
         if (!name || !email || !password) {
             return NextResponse.json(
@@ -89,6 +89,34 @@ export async function POST(request) {
                 userId: user.id,
             },
         });
+
+        // Auto-accept invitation if invite token is provided
+        if (invite) {
+            try {
+                const invitation = await prisma.invitation.findUnique({
+                    where: { token: invite },
+                });
+
+                if (invitation && invitation.status === 'pending') {
+                    await prisma.teamMember.create({
+                        data: {
+                            teamId: invitation.teamId,
+                            userId: user.id,
+                            role: invitation.role || 'member',
+                        },
+                    });
+
+                    await prisma.invitation.update({
+                        where: { id: invitation.id },
+                        data: { status: 'accepted' },
+                    });
+
+                    console.log(`[SIGNUP] Auto-accepted invitation for ${email} to team ${invitation.teamId}`);
+                }
+            } catch (invErr) {
+                console.error('[SIGNUP] Error auto-accepting invitation:', invErr);
+            }
+        }
 
         // Send verification email
         const host = request.headers.get('host');

@@ -130,6 +130,45 @@ export const authOptions = {
                     return false;
                 }
             }
+
+            // After any successful sign-in, auto-accept pending invitations
+            if (user?.email) {
+                try {
+                    const pendingInvitations = await prisma.invitation.findMany({
+                        where: { email: user.email, status: 'pending' },
+                    });
+
+                    for (const invitation of pendingInvitations) {
+                        const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+                        if (!dbUser) continue;
+
+                        // Check if already a team member
+                        const existingMember = await prisma.teamMember.findFirst({
+                            where: { teamId: invitation.teamId, userId: dbUser.id },
+                        });
+
+                        if (!existingMember) {
+                            await prisma.teamMember.create({
+                                data: {
+                                    teamId: invitation.teamId,
+                                    userId: dbUser.id,
+                                    role: invitation.role || 'member',
+                                },
+                            });
+                        }
+
+                        await prisma.invitation.update({
+                            where: { id: invitation.id },
+                            data: { status: 'accepted' },
+                        });
+
+                        console.log(`[AUTH] Auto-accepted invitation for ${user.email} to team ${invitation.teamId}`);
+                    }
+                } catch (invErr) {
+                    console.error('[AUTH] Error auto-accepting invitations:', invErr);
+                }
+            }
+
             return true;
         },
         async jwt({ token, user, account, trigger, session }) {
