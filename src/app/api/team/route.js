@@ -16,8 +16,8 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Find the user's team.
-        const teamMember = await prisma.teamMember.findFirst({
+        // Find all teams the user belongs to.
+        const userTeams = await prisma.teamMember.findMany({
             where: { userId: session.user.id },
             include: {
                 team: {
@@ -33,26 +33,50 @@ export async function GET(request) {
             }
         });
 
-        if (!teamMember) {
+        if (!userTeams || userTeams.length === 0) {
             return NextResponse.json({ members: [], invitations: [] });
         }
 
-        // Format pending invitations to look like members in the UI if needed
-        const pendingInvites = teamMember.team.invitations.map(inv => ({
-            id: inv.id,
-            role: inv.role,
-            status: 'pending',
-            user: {
-                name: inv.email.split('@')[0],
-                email: inv.email,
-                id: null,
-                isPending: true
-            }
-        }));
+        // Use the first team as the primary team object for the response, 
+        // prioritizing one where the user is an owner if available.
+        const primaryTeamMember = userTeams.find(tm => tm.role === 'owner') || userTeams[0];
+        const primaryTeam = primaryTeamMember.team;
+
+        // Consolidate unique active members from all teams
+        const memberMap = new Map();
+        userTeams.forEach(tm => {
+            tm.team.members.forEach(m => {
+                if (!memberMap.has(m.userId)) {
+                    memberMap.set(m.userId, m);
+                }
+            });
+        });
+        const allMembers = Array.from(memberMap.values());
+
+        // Consolidate pending invitations from all teams
+        const inviteMap = new Map();
+        userTeams.forEach(tm => {
+            tm.team.invitations.forEach(inv => {
+                if (!inviteMap.has(inv.email)) {
+                    inviteMap.set(inv.email, {
+                        id: inv.id,
+                        role: inv.role,
+                        status: 'pending',
+                        user: {
+                            name: inv.email.split('@')[0],
+                            email: inv.email,
+                            id: null,
+                            isPending: true
+                        }
+                    });
+                }
+            });
+        });
+        const allPendingInvites = Array.from(inviteMap.values());
 
         return NextResponse.json({
-            team: teamMember.team,
-            members: [...teamMember.team.members, ...pendingInvites]
+            team: primaryTeam,
+            members: [...allMembers, ...allPendingInvites]
         });
     } catch (error) {
         console.error('CRITICAL ERROR in /api/team GET:', error);

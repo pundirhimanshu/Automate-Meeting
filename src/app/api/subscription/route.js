@@ -9,12 +9,12 @@ export async function GET() {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const [subscription, teamMembership] = await Promise.all([
+        const [subscription, ownerMembership] = await Promise.all([
             getUserSubscription(session.user.id),
-            prisma.teamMember.findFirst({ where: { userId: session.user.id, role: 'member' } }),
+            prisma.teamMember.findFirst({ where: { userId: session.user.id, role: 'owner' } }),
         ]);
 
-        const isOwner = !teamMembership;
+        const isOwner = !!ownerMembership;
 
         return NextResponse.json({
             plan: subscription?.plan || 'free',

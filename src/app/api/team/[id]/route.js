@@ -14,28 +14,38 @@ export async function DELETE(request, { params }) {
 
         const { id } = params; // This is the userId to remove (or teamMemberId)
 
-        // Find the team where the current user is the owner
-        const ownerMember = await prisma.teamMember.findFirst({
-            where: { userId: session.user.id, role: 'owner' },
-            include: { team: true }
+        // Find all teams where the current user is an owner
+        const ownedTeams = await prisma.teamMember.findMany({
+            where: { userId: session.user.id, role: 'owner' }
         });
 
-        if (!ownerMember) {
+        if (ownedTeams.length === 0) {
             return NextResponse.json({ error: 'Only team owners can remove members' }, { status: 403 });
         }
 
-        // Check if trying to remove the owner
-        if (id === session.user.id) {
-            return NextResponse.json({ error: 'You cannot remove yourself from your own team' }, { status: 400 });
+        const ownedTeamIds = ownedTeams.map(t => t.teamId);
+
+        // Find the specific membership record to delete that belongs to one of the owner's teams
+        const memberToDelete = await prisma.teamMember.findFirst({
+            where: {
+                userId: id,
+                teamId: { in: ownedTeamIds }
+            }
+        });
+
+        if (!memberToDelete) {
+            return NextResponse.json({ error: 'Member not found in any of your teams' }, { status: 404 });
+        }
+
+        // Check if trying to remove the owner (redundant check but safe)
+        if (memberToDelete.userId === session.user.id && memberToDelete.role === 'owner') {
+            return NextResponse.json({ error: 'You cannot remove yourself as owner' }, { status: 400 });
         }
 
         // Remove the member
         await prisma.teamMember.delete({
             where: {
-                teamId_userId: {
-                    teamId: ownerMember.teamId,
-                    userId: id
-                }
+                id: memberToDelete.id
             }
         });
 
