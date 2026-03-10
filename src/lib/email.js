@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 
 const EMAIL_FROM = process.env.EMAIL_FROM || `Scheduler <${process.env.GMAIL_USER}>`;
 
-export async function sendBookingConfirmation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, manageUrl, timezone }) {
+export async function sendBookingConfirmation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, manageUrl, timezone, coHosts = [] }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
     console.warn('Gmail credentials missing. Email will not be sent.');
     return;
@@ -37,32 +37,40 @@ export async function sendBookingConfirmation({ booking, eventType, host, invite
   try {
     console.log(`[EMAIL] Attempting to send confirmation emails via Nodemailer...`);
 
-    // Send to Host
-    await transporter.sendMail({
-      from: EMAIL_FROM,
-      to: host.email,
-      subject: `New Booking: ${inviteeName} - ${eventType.title}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
-          <h2 style="color: #0069ff;">New Meeting Booked!</h2>
-          <p>Hi ${host.name},</p>
-          <p>A new meeting has been scheduled via <strong>Scheduler</strong>.</p>
-          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p><strong>What:</strong> ${eventType.title}</p>
-          <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
-          <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
-          ${booking.location ? `
-            <p><strong>${eventType.locationType === 'phone' ? 'Phone Number' :
-            eventType.locationType === 'in_person' ? 'Meeting Address' :
-              'Location'
-          }:</strong> ${booking.location}</p>
-          ` : ''}
-          ${booking.notes ? `<p><strong>Notes:</strong> ${booking.notes}</p>` : ''}
-          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p style="color: #6a737d; font-size: 12px;">This is an automated notification from your Scheduler dashboard.</p>
-        </div>
-      `,
-    });
+    // Prepare recipients (Main Host + Co-Hosts)
+    const hostRecipients = [
+      { email: host.email, name: host.name },
+      ...(coHosts || []).map(ch => ({ email: ch.email, name: ch.name }))
+    ];
+
+    // Send to Hosts
+    for (const recipient of hostRecipients) {
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: recipient.email,
+        subject: `New Booking: ${inviteeName} - ${eventType.title}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+            <h2 style="color: #0069ff;">New Meeting Booked!</h2>
+            <p>Hi ${recipient.name},</p>
+            <p>A new meeting has been scheduled via <strong>Scheduler</strong>.</p>
+            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+            <p><strong>What:</strong> ${eventType.title}</p>
+            <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
+            <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
+            ${booking.location ? `
+              <p><strong>${eventType.locationType === 'phone' ? 'Phone Number' :
+              eventType.locationType === 'in_person' ? 'Meeting Address' :
+                'Location'
+            }:</strong> ${booking.location}</p>
+            ` : ''}
+            ${booking.notes ? `<p><strong>Notes:</strong> ${booking.notes}</p>` : ''}
+            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+            <p style="color: #6a737d; font-size: 12px;">This is an automated notification from your Scheduler dashboard.</p>
+          </div>
+        `,
+      });
+    }
 
     // Send to Invitee
     await transporter.sendMail({
@@ -161,7 +169,7 @@ export async function sendVerificationEmail({ email, name, verifyUrl }) {
   }
 }
 
-export async function sendBookingCancellation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, cancelReason, timezone }) {
+export async function sendBookingCancellation({ booking, eventType, host, inviteeName, inviteeEmail, startTime, cancelReason, timezone, coHosts = [] }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
 
   const tz = timezone || booking?.timezone || 'UTC';
@@ -182,26 +190,34 @@ export async function sendBookingCancellation({ booking, eventType, host, invite
   });
 
   try {
-    // Send to Host
-    await transporter.sendMail({
-      from: EMAIL_FROM,
-      to: host.email,
-      subject: `Cancelled: ${inviteeName} - ${eventType.title}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
-          <h2 style="color: #d73a49;">Meeting Cancelled</h2>
-          <p>Hi ${host.name},</p>
-          <p>The following meeting has been cancelled by the invitee.</p>
-          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p><strong>What:</strong> ${eventType.title}</p>
-          <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
-          <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
-          ${cancelReason ? `<p><strong>Reason for cancellation:</strong> ${cancelReason}</p>` : ''}
-          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p style="color: #6a737d; font-size: 12px;">This time slot is now available again in your schedule.</p>
-        </div>
-      `,
-    });
+    // Prepare recipients
+    const hostRecipients = [
+      { email: host.email, name: host.name },
+      ...(coHosts || []).map(ch => ({ email: ch.email, name: ch.name }))
+    ];
+
+    // Send to Hosts
+    for (const recipient of hostRecipients) {
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: recipient.email,
+        subject: `Cancelled: ${inviteeName} - ${eventType.title}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+            <h2 style="color: #d73a49;">Meeting Cancelled</h2>
+            <p>Hi ${recipient.name},</p>
+            <p>The following meeting has been cancelled by the invitee.</p>
+            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+            <p><strong>What:</strong> ${eventType.title}</p>
+            <p><strong>When:</strong> ${formattedDate} at ${formattedTime}</p>
+            <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
+            ${cancelReason ? `<p><strong>Reason for cancellation:</strong> ${cancelReason}</p>` : ''}
+            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+            <p style="color: #6a737d; font-size: 12px;">This time slot is now available again in your schedule.</p>
+          </div>
+        `,
+      });
+    }
 
     // Send to Invitee
     await transporter.sendMail({
@@ -229,7 +245,7 @@ export async function sendBookingCancellation({ booking, eventType, host, invite
   }
 }
 
-export async function sendBookingReschedule({ booking, eventType, host, inviteeName, inviteeEmail, originalStartTime, originalEndTime, newStartTime, newEndTime, timezone }) {
+export async function sendBookingReschedule({ booking, eventType, host, inviteeName, inviteeEmail, originalStartTime, originalEndTime, newStartTime, newEndTime, timezone, coHosts = [] }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
 
   const tz = timezone || booking?.timezone || 'UTC';
@@ -270,32 +286,40 @@ export async function sendBookingReschedule({ booking, eventType, host, inviteeN
       `,
     });
 
-    // Send to Host
-    await transporter.sendMail({
-      from: EMAIL_FROM,
-      to: host.email,
-      subject: `Rescheduled: ${inviteeName} - ${eventType.title}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
-          <h2 style="color: #0069ff;">Meeting Rescheduled</h2>
-          <p>Hi ${host.name},</p>
-          <p>You have rescheduled the following meeting via <strong>Scheduler</strong>.</p>
-          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p><strong>What:</strong> ${eventType.title}</p>
-          <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
-          <div style="padding: 12px 16px; background: #fce4ec; border-radius: 6px; margin: 12px 0;">
-            <p style="margin: 0 0 4px; color: #d73a49; font-weight: 600;">Previous Time:</p>
-            <p style="margin: 0; text-decoration: line-through; color: #6a737d;">${oldDate} at ${oldTime}</p>
+    // Prepare recipients
+    const hostRecipients = [
+      { email: host.email, name: host.name },
+      ...(coHosts || []).map(ch => ({ email: ch.email, name: ch.name }))
+    ];
+
+    // Send to Hosts
+    for (const recipient of hostRecipients) {
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: recipient.email,
+        subject: `Rescheduled: ${inviteeName} - ${eventType.title}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+            <h2 style="color: #0069ff;">Meeting Rescheduled</h2>
+            <p>Hi ${recipient.name},</p>
+            <p>You have rescheduled the following meeting via <strong>Scheduler</strong>.</p>
+            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+            <p><strong>What:</strong> ${eventType.title}</p>
+            <p><strong>Who:</strong> ${inviteeName} (${inviteeEmail})</p>
+            <div style="padding: 12px 16px; background: #fce4ec; border-radius: 6px; margin: 12px 0;">
+              <p style="margin: 0 0 4px; color: #d73a49; font-weight: 600;">Previous Time:</p>
+              <p style="margin: 0; text-decoration: line-through; color: #6a737d;">${oldDate} at ${oldTime}</p>
+            </div>
+            <div style="padding: 12px 16px; background: #e6f4ea; border-radius: 6px; margin: 12px 0;">
+              <p style="margin: 0 0 4px; color: #28a745; font-weight: 600;">New Time:</p>
+              <p style="margin: 0; color: #24292e; font-weight: 600;">${newDate} at ${newTime}</p>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
+            <p style="color: #6a737d; font-size: 12px;">This is an automated notification from your Scheduler dashboard.</p>
           </div>
-          <div style="padding: 12px 16px; background: #e6f4ea; border-radius: 6px; margin: 12px 0;">
-            <p style="margin: 0 0 4px; color: #28a745; font-weight: 600;">New Time:</p>
-            <p style="margin: 0; color: #24292e; font-weight: 600;">${newDate} at ${newTime}</p>
-          </div>
-          <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0;" />
-          <p style="color: #6a737d; font-size: 12px;">This is an automated notification from your Scheduler dashboard.</p>
-        </div>
-      `,
-    });
+        `,
+      });
+    }
 
     console.log('[EMAIL] Reschedule emails sent successfully');
   } catch (error) {

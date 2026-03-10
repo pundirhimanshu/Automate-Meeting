@@ -97,7 +97,7 @@ export async function PUT(request, { params }) {
 
         const booking = await prisma.booking.findUnique({
             where: { manageToken: token },
-            include: { eventType: { include: { user: true } } },
+            include: { eventType: { include: { user: true, coHosts: true } } },
         });
 
         if (!booking) {
@@ -114,6 +114,7 @@ export async function PUT(request, { params }) {
                 data: { status: 'cancelled', cancelReason: cancelReason || 'Cancelled by invitee' },
             });
 
+            // Notify Host
             await prisma.notification.create({
                 data: {
                     userId: booking.hostId,
@@ -124,11 +125,27 @@ export async function PUT(request, { params }) {
                 },
             });
 
-            // Send cancellation emails to both parties
+            // Notify Co-hosts
+            if (booking.eventType.coHosts && booking.eventType.coHosts.length > 0) {
+                await Promise.all(booking.eventType.coHosts.map(coHost =>
+                    prisma.notification.create({
+                        data: {
+                            userId: coHost.id,
+                            type: 'booking_cancelled',
+                            title: 'Booking Cancelled by Invitee (Co-host)',
+                            message: `${booking.inviteeName} cancelled "${booking.eventType.title}" with you and ${booking.eventType.user.name} for ${new Date(booking.startTime).toLocaleDateString()}`,
+                            bookingId: booking.id,
+                        },
+                    })
+                ));
+            }
+
+            // Send cancellation emails to all parties
             await sendBookingCancellation({
                 booking,
                 eventType: booking.eventType,
                 host: booking.eventType.user,
+                coHosts: booking.eventType.coHosts,
                 inviteeName: booking.inviteeName,
                 inviteeEmail: booking.inviteeEmail,
                 startTime: booking.startTime,
@@ -172,6 +189,7 @@ export async function PUT(request, { params }) {
                 },
             });
 
+            // Notify Host
             await prisma.notification.create({
                 data: {
                     userId: booking.hostId,
@@ -182,11 +200,27 @@ export async function PUT(request, { params }) {
                 },
             });
 
-            // Send reschedule emails to both parties
+            // Notify Co-hosts
+            if (booking.eventType.coHosts && booking.eventType.coHosts.length > 0) {
+                await Promise.all(booking.eventType.coHosts.map(coHost =>
+                    prisma.notification.create({
+                        data: {
+                            userId: coHost.id,
+                            type: 'booking_rescheduled',
+                            title: 'Booking Rescheduled by Invitee (Co-host)',
+                            message: `${booking.inviteeName} rescheduled "${booking.eventType.title}" with you and ${booking.eventType.user.name} to ${new Date(startTime).toLocaleDateString()}`,
+                            bookingId: booking.id,
+                        },
+                    })
+                ));
+            }
+
+            // Send reschedule emails to all parties
             await sendBookingReschedule({
                 booking,
                 eventType: booking.eventType,
                 host: booking.eventType.user,
+                coHosts: booking.eventType.coHosts,
                 inviteeName: booking.inviteeName,
                 inviteeEmail: booking.inviteeEmail,
                 originalStartTime: booking.startTime,

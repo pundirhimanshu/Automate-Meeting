@@ -320,6 +320,21 @@ export async function POST(request) {
             },
         });
 
+        // Create notifications for co-hosts
+        if (eventType.coHosts && eventType.coHosts.length > 0) {
+            await Promise.all(eventType.coHosts.map(coHost =>
+                prisma.notification.create({
+                    data: {
+                        userId: coHost.id,
+                        type: 'booking_confirmed',
+                        title: 'New Booking (Co-host)',
+                        message: `${inviteeName} booked "${eventType.title}" with you and ${eventType.user.name} for ${new Date(startTime).toLocaleDateString()}`,
+                        bookingId: booking.id,
+                    },
+                })
+            ));
+        }
+
         // Generate manage URL for invitee self-service
         const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
         const manageUrl = booking.manageToken ? `${origin}/book/manage/${booking.manageToken}` : '';
@@ -329,6 +344,7 @@ export async function POST(request) {
             booking,
             eventType,
             host: eventType.user,
+            coHosts: eventType.coHosts, // Modified: Added coHosts
             inviteeName,
             inviteeEmail,
             startTime,
