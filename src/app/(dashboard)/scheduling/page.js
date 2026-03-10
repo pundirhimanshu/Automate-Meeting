@@ -28,6 +28,8 @@ function SchedulingContent() {
     const [menuOpen, setMenuOpen] = useState(null);
     const [typeFilter, setTypeFilter] = useState('');
     const [showTypeFilter, setShowTypeFilter] = useState(false);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [deleting, setDeleting] = useState(false);
 
     // Availability state
     const [schedules, setSchedules] = useState([]);
@@ -459,8 +461,38 @@ function SchedulingContent() {
         try {
             await fetch(`/api/event-types/${id}`, { method: 'DELETE' });
             setEventTypes((prev) => prev.filter((et) => et.id !== id));
+            setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
         } catch (e) { }
         setMenuOpen(null);
+    };
+
+    const toggleSelect = (id) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleBulkDelete = async () => {
+        if (!selectedIds.length) return;
+        if (!confirm(`Are you sure you want to delete ${selectedIds.length} event types?`)) return;
+
+        setDeleting(true);
+        try {
+            const res = await fetch('/api/event-types/bulk-delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: selectedIds }),
+            });
+
+            if (res.ok) {
+                setEventTypes(prev => prev.filter(et => !selectedIds.includes(et.id)));
+                setSelectedIds([]);
+            }
+        } catch (e) {
+            console.error('Bulk delete failed:', e);
+        } finally {
+            setDeleting(false);
+        }
     };
 
     const filtered = eventTypes.filter((et) => {
@@ -573,8 +605,13 @@ function SchedulingContent() {
             ) : (
                 <div>
                     {filtered.map((et) => (
-                        <div key={et.id} className="event-type-card" style={{ borderLeftColor: et.color, opacity: et.isActive ? 1 : 0.5 }}>
-                            <input type="checkbox" className="checkbox event-checkbox" />
+                        <div key={et.id} className={`event-type-card ${selectedIds.includes(et.id) ? 'selected' : ''}`} style={{ borderLeftColor: et.color, opacity: et.isActive ? 1 : 0.5 }}>
+                            <input
+                                type="checkbox"
+                                className="checkbox event-checkbox"
+                                checked={selectedIds.includes(et.id)}
+                                onChange={() => toggleSelect(et.id)}
+                            />
                             <div className="event-info">
                                 <div className="event-title">
                                     <span style={{ cursor: 'pointer' }} onClick={() => openEditDrawer(et.id)}>{et.title}</span>
@@ -1580,6 +1617,32 @@ function SchedulingContent() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* ===== BULK ACTIONS BAR ===== */}
+            {selectedIds.length > 0 && (
+                <div className="bulk-actions-bar">
+                    <div className="bulk-actions-info">
+                        <span className="selection-count">{selectedIds.length} selected</span>
+                        <button className="btn-link" onClick={() => setSelectedIds([])} style={{ fontSize: '0.875rem', fontWeight: 500 }}>Clear selection</button>
+                    </div>
+                    <div className="bulk-actions-area">
+                        <button
+                            className="btn btn-danger"
+                            onClick={handleBulkDelete}
+                            disabled={deleting}
+                            style={{ gap: '8px', padding: '8px 20px' }}
+                        >
+                            {deleting ? (
+                                <div className="spinner-sm"></div>
+                            ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                </svg>
+                            )}
+                            Delete
+                        </button>
                     </div>
                 </div>
             )}
