@@ -47,7 +47,7 @@ export async function POST(request) {
             locationType, location, phoneCallSource, bufferTimeBefore, bufferTimeAfter,
             dateRangeType, dateRangeDays, dateRangeStart, dateRangeEnd,
             maxBookingsPerDay, minNotice, requiresPayment, price, currency,
-            customQuestions, coHostIds,
+            customQuestions, coHostIds, inviteeLimit,
         } = body;
 
         // 1. Check event type limit
@@ -115,6 +115,8 @@ export async function POST(request) {
                 requiresPayment: requiresPayment || false,
                 price: price || null,
                 currency: currency || 'USD',
+                inviteeLimit: inviteeLimit ? parseInt(inviteeLimit) : 1,
+                roundRobinIndex: 0,
                 userId: session.user.id,
                 coHosts: body.coHostIds?.length ? {
                     connect: body.coHostIds.map(id => ({ id }))

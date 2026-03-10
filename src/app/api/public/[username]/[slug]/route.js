@@ -24,7 +24,10 @@ export async function GET(request, { params }) {
 
         const eventType = await prisma.eventType.findFirst({
             where: { userId: user.id, slug, isActive: true },
-            include: { customQuestions: { orderBy: { order: 'asc' } } },
+            include: {
+                customQuestions: { orderBy: { order: 'asc' } },
+                coHosts: { select: { id: true, name: true, email: true, username: true, logo: true } }
+            },
         });
 
         if (!eventType) {
@@ -33,19 +36,22 @@ export async function GET(request, { params }) {
 
         // Get existing bookings for conflict checking
         const now = new Date();
+        const hostIds = [user.id, ...(eventType.coHosts?.map(ch => ch.id) || [])];
+
         const futureBookings = await prisma.booking.findMany({
             where: {
-                hostId: user.id,
+                hostId: { in: hostIds },
                 startTime: { gte: now },
-                status: { in: ['confirmed', 'pending'] },
+                status: { in: ['confirmed', 'pending', 'rescheduled'] },
             },
-            select: { startTime: true, endTime: true },
+            select: { id: true, startTime: true, endTime: true, hostId: true, eventTypeId: true },
         });
 
         const schedule = user.schedules[0] || null;
 
         return NextResponse.json({
             host: {
+                id: user.id,
                 name: user.name,
                 username: user.username,
                 timezone: user.timezone,
@@ -73,6 +79,8 @@ export async function GET(request, { params }) {
                 requiresPayment: eventType.requiresPayment,
                 price: eventType.price,
                 currency: eventType.currency,
+                inviteeLimit: eventType.inviteeLimit,
+                coHosts: eventType.coHosts,
             },
             availability: schedule ? schedule.availabilities : [],
             dateOverrides: schedule ? schedule.dateOverrides : [],

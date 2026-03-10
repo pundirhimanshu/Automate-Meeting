@@ -83,6 +83,7 @@ export default function BookingPage() {
         const duration = data.eventType.duration || 30;
         const bufferBefore = data.eventType.bufferTimeBefore || 0;
         const bufferAfter = data.eventType.bufferTimeAfter || 0;
+        const inviteeLimit = data.eventType.inviteeLimit || 1;
         const slots = [];
 
         dayAvails.forEach((avail) => {
@@ -98,30 +99,68 @@ export default function BookingPage() {
                 const slotEnd = new Date(slotStart);
                 slotEnd.setMinutes(slotEnd.getMinutes() + duration);
 
-                // Check buffer zones
+                // Buffer zones for checking conflicts
                 const bufStart = new Date(slotStart);
                 bufStart.setMinutes(bufStart.getMinutes() - bufferBefore);
                 const bufEnd = new Date(slotEnd);
                 bufEnd.setMinutes(bufEnd.getMinutes() + bufferAfter);
 
-                // Check min notice
+                // Min notice check
                 const now = new Date();
                 if (slotStart.getTime() < now.getTime() + (data.eventType.minNotice || 0) * 60000) {
                     continue;
                 }
 
-                // Check conflicts with existing bookings
-                const hasConflict = data.existingBookings?.some((b) => {
-                    const bStart = new Date(b.startTime);
-                    const bEnd = new Date(b.endTime);
-                    return bufStart < bEnd && bufEnd > bStart;
-                });
+                let available = false;
+                let spotsLeft = null;
 
-                if (!hasConflict) {
+                if (data.eventType.type === 'group') {
+                    // Group: Check how many people booked this specific slot
+                    const bookingsInSlot = data.existingBookings?.filter((b) => {
+                        const bStart = new Date(b.startTime);
+                        const bEnd = new Date(b.endTime);
+                        return bStart.getTime() === slotStart.getTime();
+                    }) || [];
+
+                    spotsLeft = inviteeLimit - bookingsInSlot.length;
+                    available = spotsLeft > 0;
+                } else if (data.eventType.type === 'collective') {
+                    // Collective: ALL hosts must be free
+                    const hostIds = [data.host.id, ...(data.eventType.coHosts?.map(ch => ch.id) || [])];
+                    const hasConflict = data.existingBookings?.some((b) => {
+                        const bStart = new Date(b.startTime);
+                        const bEnd = new Date(b.endTime);
+                        return hostIds.includes(b.hostId) && bufStart < bEnd && bufEnd > bStart;
+                    });
+                    available = !hasConflict;
+                } else if (data.eventType.type === 'round-robin') {
+                    // Round Robin: AT LEAST ONE host must be free
+                    const hostIds = [data.host.id, ...(data.eventType.coHosts?.map(ch => ch.id) || [])];
+                    // Group bookings by hostId for this slot
+                    const busyHosts = new Set(data.existingBookings?.filter((b) => {
+                        const bStart = new Date(b.startTime);
+                        const bEnd = new Date(b.endTime);
+                        return bufStart < bEnd && bufEnd > bStart;
+                    }).map(b => b.hostId));
+
+                    available = hostIds.some(hId => !busyHosts.has(hId));
+                } else {
+                    // One-on-one: Only the owner
+                    const hasConflict = data.existingBookings?.some((b) => {
+                        if (b.hostId !== data.host.id) return false;
+                        const bStart = new Date(b.startTime);
+                        const bEnd = new Date(b.endTime);
+                        return bufStart < bEnd && bufEnd > bStart;
+                    });
+                    available = !hasConflict;
+                }
+
+                if (available) {
                     slots.push({
                         start: slotStart,
                         end: slotEnd,
                         label: slotStart.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                        spotsLeft,
                     });
                 }
             }
@@ -256,10 +295,18 @@ export default function BookingPage() {
                     </button>
 
                     <div className="booking-host-info">
-                        {data.host.logo && (
-                            <img src={data.host.logo} alt={`${data.host.name} logo`} style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'contain', marginBottom: '8px' }} />
-                        )}
-                        <div className="booking-host-name">{data.host.name}</div>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                            {data.host.logo && (
+                                <img src={data.host.logo} alt={data.host.name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'contain', border: '2px solid var(--border-light)' }} />
+                            )}
+                            {data.eventType.coHosts?.map(ch => (
+                                <img key={ch.id} src={ch.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(ch.name)}&background=random`} alt={ch.name} title={ch.name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'contain', border: '2px solid var(--border-light)', marginLeft: '-12px' }} />
+                            ))}
+                        </div>
+                        <div className="booking-host-name">
+                            {data.host.name}
+                            {data.eventType.coHosts?.length > 0 && ` & ${data.eventType.coHosts.length} others`}
+                        </div>
                         <div className="booking-event-title">{data.eventType.title}</div>
                     </div>
 
@@ -368,11 +415,24 @@ export default function BookingPage() {
                                             type="button"
                                             className={`time-slot ${selectedTime?.label === slot.label ? 'selected' : ''}`}
                                             onClick={() => handleTimeSelect(slot)}
-                                            style={{ borderColor: brandColor, color: selectedTime?.label === slot.label ? 'white' : brandColor, background: selectedTime?.label === slot.label ? brandColor : 'white' }}
-                                            onMouseEnter={(e) => { e.target.style.background = brandColor; e.target.style.color = 'white'; }}
-                                            onMouseLeave={(e) => { if (selectedTime?.label !== slot.label) { e.target.style.background = 'white'; e.target.style.color = brandColor; } }}
+                                            style={{
+                                                borderColor: brandColor,
+                                                color: selectedTime?.label === slot.label ? 'white' : brandColor,
+                                                background: selectedTime?.label === slot.label ? brandColor : 'white',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '2px',
+                                                padding: '12px 8px'
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = brandColor; e.currentTarget.style.color = 'white'; }}
+                                            onMouseLeave={(e) => { if (selectedTime?.label !== slot.label) { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = brandColor; } }}
                                         >
-                                            {slot.label}
+                                            <span style={{ fontWeight: 600 }}>{slot.label}</span>
+                                            {slot.spotsLeft !== null && (
+                                                <span style={{ fontSize: '0.7rem', opacity: 0.8 }}>
+                                                    {slot.spotsLeft} spots left
+                                                </span>
+                                            )}
                                         </button>
                                     ))}
                                 </div>

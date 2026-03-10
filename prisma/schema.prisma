@@ -74,6 +74,8 @@ model EventType {
   requiresPayment Boolean          @default(false)
   price           Float?
   currency        String?          @default("USD")
+  inviteeLimit    Int              @default(1)
+  roundRobinIndex Int              @default(0)
   userId          String
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   coHosts         User[]           @relation("CoHosts")

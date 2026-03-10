@@ -171,27 +171,83 @@ export async function POST(request) {
             }
         }
 
-        // Check for conflicts
-        const conflict = await prisma.booking.findFirst({
-            where: {
-                hostId: eventType.userId,
-                status: { in: ['confirmed', 'pending'] },
-                OR: [
-                    {
-                        AND: [
-                            { startTime: { lte: new Date(startTime) } },
-                            { endTime: { gt: new Date(startTime) } },
+        // Check for conflicts based on Event Type
+        let conflict = false;
+        let assignedHostId = eventType.userId;
+
+        if (eventType.type === 'one-on-one' || eventType.type === 'collective') {
+            // Collective: Check all hosts (owner + co-hosts)
+            const hostIdsToDelta = [eventType.userId, ...eventType.coHosts.map(ch => ch.id)];
+
+            const existingBookings = await prisma.booking.findMany({
+                where: {
+                    hostId: { in: hostIdsToDelta },
+                    status: { in: ['confirmed', 'pending'] },
+                    OR: [
+                        { AND: [{ startTime: { lte: new Date(startTime) } }, { endTime: { gt: new Date(startTime) } }] },
+                        { AND: [{ startTime: { lt: new Date(endTime) } }, { endTime: { gte: new Date(endTime) } }] },
+                    ],
+                }
+            });
+
+            if (existingBookings.length > 0) {
+                conflict = true;
+            }
+        } else if (eventType.type === 'group') {
+            // Group: Check how many people already booked this specific slot
+            const groupBookingsCount = await prisma.booking.count({
+                where: {
+                    eventTypeId: eventType.id,
+                    startTime: new Date(startTime),
+                    endTime: new Date(endTime),
+                    status: { in: ['confirmed', 'pending'] },
+                }
+            });
+
+            if (groupBookingsCount >= (eventType.inviteeLimit || 1)) {
+                conflict = true;
+            }
+        } else if (eventType.type === 'round-robin') {
+            // Round Robin: Find an available host from the pool
+            const hostPool = [eventType.userId, ...eventType.coHosts.map(ch => ch.id)];
+            const totalHosts = hostPool.length;
+
+            // Try hosts starting from the one at roundRobinIndex
+            const startIndex = eventType.roundRobinIndex % totalHosts;
+            let foundHost = null;
+
+            for (let i = 0; i < totalHosts; i++) {
+                const checkIndex = (startIndex + i) % totalHosts;
+                const candidateHostId = hostPool[checkIndex];
+
+                const hostConflict = await prisma.booking.findFirst({
+                    where: {
+                        hostId: candidateHostId,
+                        status: { in: ['confirmed', 'pending'] },
+                        OR: [
+                            { AND: [{ startTime: { lte: new Date(startTime) } }, { endTime: { gt: new Date(startTime) } }] },
+                            { AND: [{ startTime: { lt: new Date(endTime) } }, { endTime: { gte: new Date(endTime) } }] },
                         ],
-                    },
-                    {
-                        AND: [
-                            { startTime: { lt: new Date(endTime) } },
-                            { endTime: { gte: new Date(endTime) } },
-                        ],
-                    },
-                ],
-            },
-        });
+                    }
+                });
+
+                if (!hostConflict) {
+                    foundHost = candidateHostId;
+                    break;
+                }
+            }
+
+            if (foundHost) {
+                assignedHostId = foundHost;
+                // Update rotation index for next time
+                await prisma.eventType.update({
+                    where: { id: eventType.id },
+                    data: { roundRobinIndex: { increment: 1 } }
+                });
+            } else {
+                conflict = true;
+            }
+        }
 
         if (conflict) {
             return NextResponse.json({ error: 'Time slot is no longer available' }, { status: 409 });
@@ -271,7 +327,7 @@ export async function POST(request) {
 
         const bookingData = {
             eventTypeId,
-            hostId: eventType.userId,
+            hostId: assignedHostId,
             inviteeName,
             inviteeEmail,
             startTime: new Date(startTime),
@@ -294,7 +350,7 @@ export async function POST(request) {
             const [newBooking] = await prisma.$transaction([
                 prisma.booking.create({
                     data: bookingData,
-                    include: { eventType: { select: { title: true } } },
+                    include: { eventType: { select: { title: true, type: true } }, host: true },
                 }),
                 prisma.singleUseLink.update({
                     where: { token: singleUseToken },
@@ -305,35 +361,39 @@ export async function POST(request) {
         } else {
             booking = await prisma.booking.create({
                 data: bookingData,
-                include: { eventType: { select: { title: true } } },
+                include: { eventType: { select: { title: true, type: true } }, host: true },
             });
         }
 
-        // Create notification for host
-        await prisma.notification.create({
-            data: {
-                userId: eventType.userId,
-                type: 'booking_confirmed',
-                title: 'New Booking',
-                message: `${inviteeName} booked "${eventType.title}" for ${new Date(startTime).toLocaleDateString()}`,
-                bookingId: booking.id,
-            },
-        });
+        // --- Notification & Email Logic ---
 
-        // Create notifications for co-hosts
-        if (eventType.coHosts && eventType.coHosts.length > 0) {
-            await Promise.all(eventType.coHosts.map(coHost =>
-                prisma.notification.create({
-                    data: {
-                        userId: coHost.id,
-                        type: 'booking_confirmed',
-                        title: 'New Booking (Co-host)',
-                        message: `${inviteeName} booked "${eventType.title}" with you and ${eventType.user.name} for ${new Date(startTime).toLocaleDateString()}`,
-                        bookingId: booking.id,
-                    },
-                })
-            ));
+        // Define who gets notified as a host
+        let hostRecipients = [];
+        if (eventType.type === 'round-robin') {
+            // Only the assigned host
+            hostRecipients = [booking.host];
+        } else if (eventType.type === 'collective' || eventType.type === 'group') {
+            // Owner and all co-hosts
+            hostRecipients = [eventType.user, ...eventType.coHosts];
+        } else {
+            // One-on-one: Only the owner
+            hostRecipients = [eventType.user];
         }
+
+        // Create in-app notifications
+        await Promise.all(hostRecipients.map(recipient =>
+            prisma.notification.create({
+                data: {
+                    userId: recipient.id,
+                    type: 'booking_confirmed',
+                    title: 'New Booking',
+                    message: eventType.type === 'collective'
+                        ? `${inviteeName} booked "${eventType.title}" with the team`
+                        : `${inviteeName} booked "${eventType.title}"`,
+                    bookingId: booking.id,
+                },
+            })
+        ));
 
         // Generate manage URL for invitee self-service
         const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
@@ -343,8 +403,8 @@ export async function POST(request) {
         await sendBookingConfirmation({
             booking,
             eventType,
-            host: eventType.user,
-            coHosts: eventType.coHosts, // Modified: Added coHosts
+            host: booking.host, // The primary host for this booking
+            coHosts: hostRecipients.filter(r => r.id !== booking.hostId), // Everyone else gets co-host treatment in the email
             inviteeName,
             inviteeEmail,
             startTime,

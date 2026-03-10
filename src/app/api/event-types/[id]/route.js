@@ -45,6 +45,7 @@ export async function PUT(request, { params }) {
             bufferTimeBefore, bufferTimeAfter, dateRangeType,
             dateRangeDays, maxBookingsPerDay, minNotice, isActive,
             isSingleUse, requiresPayment, price, customQuestions,
+            inviteeLimit, coHostIds,
         } = body;
 
         // Plan enforcement: check integration, payments, and co-hosting
@@ -92,9 +93,10 @@ export async function PUT(request, { params }) {
                 ...(isSingleUse !== undefined && { isSingleUse }),
                 ...(requiresPayment !== undefined && { requiresPayment }),
                 ...(price !== undefined && { price }),
-                ...(body.coHostIds !== undefined && {
+                ...(inviteeLimit !== undefined && { inviteeLimit: parseInt(inviteeLimit) }),
+                ...(coHostIds !== undefined && {
                     coHosts: {
-                        set: body.coHostIds.map(id => ({ id }))
+                        set: coHostIds.map(id => ({ id }))
                     }
                 }),
             },

@@ -97,7 +97,10 @@ export async function PUT(request, { params }) {
 
         const booking = await prisma.booking.findUnique({
             where: { manageToken: token },
-            include: { eventType: { include: { user: true, coHosts: true } } },
+            include: {
+                eventType: { include: { user: true, coHosts: true } },
+                host: true
+            },
         });
 
         if (!booking) {
@@ -108,44 +111,41 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ error: 'This booking is already cancelled' }, { status: 400 });
         }
 
+        // --- Notification Logic Helper ---
+        let hostRecipients = [];
+        if (booking.eventType.type === 'round-robin') {
+            hostRecipients = [booking.host];
+        } else if (booking.eventType.type === 'collective' || booking.eventType.type === 'group') {
+            hostRecipients = [booking.eventType.user, ...booking.eventType.coHosts];
+        } else {
+            hostRecipients = [booking.eventType.user];
+        }
+
         if (action === 'cancel') {
             await prisma.booking.update({
                 where: { manageToken: token },
                 data: { status: 'cancelled', cancelReason: cancelReason || 'Cancelled by invitee' },
             });
 
-            // Notify Host
-            await prisma.notification.create({
-                data: {
-                    userId: booking.hostId,
-                    type: 'booking_cancelled',
-                    title: 'Booking Cancelled by Invitee',
-                    message: `${booking.inviteeName} cancelled "${booking.eventType.title}" for ${new Date(booking.startTime).toLocaleDateString()}`,
-                    bookingId: booking.id,
-                },
-            });
+            // Notify all relevant hosts
+            await Promise.all(hostRecipients.map(recipient =>
+                prisma.notification.create({
+                    data: {
+                        userId: recipient.id,
+                        type: 'booking_cancelled',
+                        title: 'Booking Cancelled by Invitee',
+                        message: `${booking.inviteeName} cancelled "${booking.eventType.title}" for ${new Date(booking.startTime).toLocaleDateString()}`,
+                        bookingId: booking.id,
+                    },
+                })
+            ));
 
-            // Notify Co-hosts
-            if (booking.eventType.coHosts && booking.eventType.coHosts.length > 0) {
-                await Promise.all(booking.eventType.coHosts.map(coHost =>
-                    prisma.notification.create({
-                        data: {
-                            userId: coHost.id,
-                            type: 'booking_cancelled',
-                            title: 'Booking Cancelled by Invitee (Co-host)',
-                            message: `${booking.inviteeName} cancelled "${booking.eventType.title}" with you and ${booking.eventType.user.name} for ${new Date(booking.startTime).toLocaleDateString()}`,
-                            bookingId: booking.id,
-                        },
-                    })
-                ));
-            }
-
-            // Send cancellation emails to all parties
+            // Send cancellation email
             await sendBookingCancellation({
                 booking,
                 eventType: booking.eventType,
-                host: booking.eventType.user,
-                coHosts: booking.eventType.coHosts,
+                host: booking.host,
+                coHosts: hostRecipients.filter(r => r.id !== booking.hostId),
                 inviteeName: booking.inviteeName,
                 inviteeEmail: booking.inviteeEmail,
                 startTime: booking.startTime,
@@ -161,18 +161,52 @@ export async function PUT(request, { params }) {
                 return NextResponse.json({ error: 'New time is required' }, { status: 400 });
             }
 
-            // Check for conflicts
-            const conflict = await prisma.booking.findFirst({
-                where: {
-                    hostId: booking.hostId,
-                    status: { in: ['confirmed', 'pending', 'rescheduled'] },
-                    id: { not: booking.id },
-                    OR: [
-                        { AND: [{ startTime: { lte: new Date(startTime) } }, { endTime: { gt: new Date(startTime) } }] },
-                        { AND: [{ startTime: { lt: new Date(endTime) } }, { endTime: { gte: new Date(endTime) } }] },
-                    ],
-                },
-            });
+            // --- Specialized Conflict Check ---
+            let conflict = false;
+            if (booking.eventType.type === 'group') {
+                // Group: Check if the new slot is full
+                const groupBookingsCount = await prisma.booking.count({
+                    where: {
+                        eventTypeId: booking.eventTypeId,
+                        startTime: new Date(startTime),
+                        endTime: new Date(endTime),
+                        status: { in: ['confirmed', 'pending', 'rescheduled'] },
+                        id: { not: booking.id },
+                    }
+                });
+                if (groupBookingsCount >= (booking.eventType.inviteeLimit || 1)) {
+                    conflict = true;
+                }
+            } else if (booking.eventType.type === 'collective') {
+                // Collective: All hosts must be free
+                const hostIds = [booking.eventType.userId, ...booking.eventType.coHosts.map(ch => ch.id)];
+                const hostConflict = await prisma.booking.findFirst({
+                    where: {
+                        hostId: { in: hostIds },
+                        status: { in: ['confirmed', 'pending', 'rescheduled'] },
+                        id: { not: booking.id },
+                        OR: [
+                            { AND: [{ startTime: { lte: new Date(startTime) } }, { endTime: { gt: new Date(startTime) } }] },
+                            { AND: [{ startTime: { lt: new Date(endTime) } }, { endTime: { gte: new Date(endTime) } }] },
+                        ],
+                    }
+                });
+                if (hostConflict) conflict = true;
+            } else {
+                // One-on-one or Round Robin: The assigned host must be free
+                const hostConflict = await prisma.booking.findFirst({
+                    where: {
+                        hostId: booking.hostId,
+                        status: { in: ['confirmed', 'pending', 'rescheduled'] },
+                        id: { not: booking.id },
+                        OR: [
+                            { AND: [{ startTime: { lte: new Date(startTime) } }, { endTime: { gt: new Date(startTime) } }] },
+                            { AND: [{ startTime: { lt: new Date(endTime) } }, { endTime: { gte: new Date(endTime) } }] },
+                        ],
+                    }
+                });
+                if (hostConflict) conflict = true;
+            }
 
             if (conflict) {
                 return NextResponse.json({ error: 'This time slot is no longer available' }, { status: 409 });
@@ -189,38 +223,25 @@ export async function PUT(request, { params }) {
                 },
             });
 
-            // Notify Host
-            await prisma.notification.create({
-                data: {
-                    userId: booking.hostId,
-                    type: 'booking_rescheduled',
-                    title: 'Booking Rescheduled by Invitee',
-                    message: `${booking.inviteeName} rescheduled "${booking.eventType.title}" to ${new Date(startTime).toLocaleDateString()}`,
-                    bookingId: booking.id,
-                },
-            });
+            // Notify all relevant hosts
+            await Promise.all(hostRecipients.map(recipient =>
+                prisma.notification.create({
+                    data: {
+                        userId: recipient.id,
+                        type: 'booking_rescheduled',
+                        title: 'Booking Rescheduled by Invitee',
+                        message: `${booking.inviteeName} rescheduled "${booking.eventType.title}" to ${new Date(startTime).toLocaleDateString()}`,
+                        bookingId: booking.id,
+                    },
+                })
+            ));
 
-            // Notify Co-hosts
-            if (booking.eventType.coHosts && booking.eventType.coHosts.length > 0) {
-                await Promise.all(booking.eventType.coHosts.map(coHost =>
-                    prisma.notification.create({
-                        data: {
-                            userId: coHost.id,
-                            type: 'booking_rescheduled',
-                            title: 'Booking Rescheduled by Invitee (Co-host)',
-                            message: `${booking.inviteeName} rescheduled "${booking.eventType.title}" with you and ${booking.eventType.user.name} to ${new Date(startTime).toLocaleDateString()}`,
-                            bookingId: booking.id,
-                        },
-                    })
-                ));
-            }
-
-            // Send reschedule emails to all parties
+            // Send reschedule emails
             await sendBookingReschedule({
                 booking,
                 eventType: booking.eventType,
-                host: booking.eventType.user,
-                coHosts: booking.eventType.coHosts,
+                host: booking.host,
+                coHosts: hostRecipients.filter(r => r.id !== booking.hostId),
                 inviteeName: booking.inviteeName,
                 inviteeEmail: booking.inviteeEmail,
                 originalStartTime: booking.startTime,

@@ -20,9 +20,11 @@ export default function CreateEventType() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [userPlan, setUserPlan] = useState('free');
+    const [teamMembers, setTeamMembers] = useState([]);
 
     useEffect(() => {
         fetch('/api/subscription').then(r => r.json()).then(d => setUserPlan(d.plan || 'free')).catch(() => { });
+        fetch('/api/team').then(r => r.json()).then(d => setTeamMembers(d.members || [])).catch(() => { });
     }, []);
     const [form, setForm] = useState({
         title: '',
@@ -43,6 +45,8 @@ export default function CreateEventType() {
         requiresPayment: false,
         price: '',
         customQuestions: [],
+        inviteeLimit: 1,
+        coHostIds: [],
     });
 
     const handleChange = (e) => {
@@ -183,6 +187,59 @@ export default function CreateEventType() {
                                 </select>
                             </div>
                         </div>
+
+                        {form.type === 'group' && (
+                            <div className="input-group">
+                                <label>Invitee Limit (Group)</label>
+                                <input
+                                    name="inviteeLimit"
+                                    type="number"
+                                    className="input"
+                                    placeholder="Number of people who can attend"
+                                    value={form.inviteeLimit}
+                                    onChange={handleChange}
+                                    min={2}
+                                    required
+                                />
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                    Allow multiple people to sign up for the same time slot.
+                                </p>
+                            </div>
+                        )}
+
+                        {(form.type === 'collective' || form.type === 'round-robin') && (
+                            <div className="input-group">
+                                <label>Add Co-hosts</label>
+                                <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
+                                    {form.type === 'collective'
+                                        ? "This event is only available when everyone is free."
+                                        : "Bookings will rotate between you and these hosts."}
+                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                                    {teamMembers.length === 0 ? (
+                                        <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>No team members available. Invite them in the Admin Center first.</p>
+                                    ) : (
+                                        teamMembers
+                                            .filter(m => !m.user.isPending)
+                                            .map((member) => (
+                                                <label key={member.user.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.875rem', cursor: 'pointer' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={form.coHostIds.includes(member.user.id)}
+                                                        onChange={(e) => {
+                                                            const ids = e.target.checked
+                                                                ? [...form.coHostIds, member.user.id]
+                                                                : form.coHostIds.filter(id => id !== member.user.id);
+                                                            setForm({ ...form, coHostIds: ids });
+                                                        }}
+                                                    />
+                                                    {member.user.name} ({member.user.email})
+                                                </label>
+                                            ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="input-group">
                             <label>Location</label>
