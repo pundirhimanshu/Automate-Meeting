@@ -9,12 +9,15 @@ export async function GET() {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const [subscription, ownerMembership] = await Promise.all([
+        const [subscription, memberships] = await Promise.all([
             getUserSubscription(session.user.id),
-            prisma.teamMember.findFirst({ where: { userId: session.user.id, role: 'owner' } }),
+            prisma.teamMember.findMany({ where: { userId: session.user.id } }),
         ]);
 
-        const isOwner = !!ownerMembership;
+        // A user is an owner if:
+        // 1. They have an explicit 'owner' role in at least one team.
+        // 2. OR they are NOT a 'member' of any team (independent user).
+        const isOwner = memberships.length === 0 || memberships.some(m => m.role === 'owner');
 
         return NextResponse.json({
             plan: subscription?.plan || 'free',
