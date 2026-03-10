@@ -113,10 +113,9 @@ export async function PUT(request, { params }) {
 
         // --- Notification Logic Helper ---
         let hostRecipients = [];
-        if (booking.eventType.type === 'round-robin') {
-            hostRecipients = [booking.host];
-        } else if (booking.eventType.type === 'collective' || booking.eventType.type === 'group') {
-            hostRecipients = [booking.eventType.user, ...booking.eventType.coHosts];
+        if (booking.eventType.type === 'round-robin' || booking.eventType.type === 'collective' || booking.eventType.type === 'group') {
+            const rawRecipients = [booking.eventType.user, ...booking.eventType.coHosts];
+            hostRecipients = Array.from(new Map(rawRecipients.map(r => [r.id, r])).values());
         } else {
             hostRecipients = [booking.eventType.user];
         }

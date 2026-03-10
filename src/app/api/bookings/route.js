@@ -367,16 +367,12 @@ export async function POST(request) {
 
         // --- Notification & Email Logic ---
 
-        // Define who gets notified as a host
+        // --- Notification Logic Helper ---
         let hostRecipients = [];
-        if (eventType.type === 'round-robin') {
-            // Only the assigned host
-            hostRecipients = [booking.host];
-        } else if (eventType.type === 'collective' || eventType.type === 'group') {
-            // Owner and all co-hosts
-            hostRecipients = [eventType.user, ...eventType.coHosts];
+        if (eventType.type === 'round-robin' || eventType.type === 'collective' || eventType.type === 'group') {
+            const rawRecipients = [eventType.user, ...eventType.coHosts];
+            hostRecipients = Array.from(new Map(rawRecipients.map(r => [r.id, r])).values());
         } else {
-            // One-on-one: Only the owner
             hostRecipients = [eventType.user];
         }
 
