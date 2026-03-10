@@ -120,7 +120,7 @@ export async function POST(request) {
 
         const eventType = await prisma.eventType.findUnique({
             where: { id: eventTypeId },
-            include: { user: true },
+            include: { user: true, coHosts: true },
         });
 
         if (!eventType) {
