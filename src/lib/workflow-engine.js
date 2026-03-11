@@ -153,13 +153,15 @@ async function sendViaGmail(userId, to, subject, body) {
             accessToken = await refreshGoogleToken(integration);
         }
 
+        const subjectBase64 = Buffer.from(subject).toString('base64');
         const internalBody = [
             `To: ${to}`,
-            `Subject: ${subject}`,
-            'Content-Type: text/html; charset=utf8',
+            `From: ${integration.email}`,
+            `Subject: =?utf-8?B?${subjectBase64}?=`,
+            'Content-Type: text/html; charset=utf-8',
             '',
             body.replace(/\n/g, '<br>')
-        ].join('\n');
+        ].join('\r\n');
 
         const base64EncodedEmail = Buffer.from(internalBody).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
@@ -172,9 +174,15 @@ async function sendViaGmail(userId, to, subject, body) {
             body: JSON.stringify({ raw: base64EncodedEmail })
         });
 
-        return res.ok;
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            console.error('[WORKFLOWS] Gmail API error response:', JSON.stringify(errData, null, 2));
+            return false;
+        }
+
+        return true;
     } catch (err) {
-        console.error('[WORKFLOWS] Gmail API error:', err);
+        console.error('[WORKFLOWS] Unexpected Gmail API error:', err);
         return false;
     }
 }
