@@ -22,8 +22,8 @@ export async function triggerWorkflows(triggerType, bookingId) {
             where: { id: bookingId },
             include: {
                 host: true,
-                eventType: { include: { user: true } },
-                answers: { include: { question: true } } // Note: Check if question relation exists in schema
+                eventType: { include: { user: true, customQuestions: true } },
+                answers: true
             }
         });
 
@@ -95,7 +95,10 @@ async function sendWorkflowEmail(workflow, booking) {
         'Location': location || 'No location specified',
         'Event Description': eventType.description || '',
         'Host Full Name': host.name,
-        'Questions And Answers': (answers || []).map(a => `${a.question?.question || 'Question'}: ${a.answer}`).join('\n')
+        'Questions And Answers': (answers || []).map(a => {
+            const q = eventType.customQuestions?.find(cq => cq.id === a.questionId);
+            return `${q?.question || 'Question'}: ${a.answer}`;
+        }).join('\n')
     };
 
     let subject = workflow.subject;
