@@ -8,8 +8,10 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
+        const origin = process.env.NEXTAUTH_URL || `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`;
+
         if (!session) {
-            return NextResponse.redirect(new URL('/login', process.env.NEXTAUTH_URL));
+            return NextResponse.redirect(new URL('/login', origin));
         }
 
         const { searchParams } = new URL(request.url);
@@ -25,6 +27,8 @@ export async function GET(request) {
             return NextResponse.redirect(new URL('/integrations?error=no_code', process.env.NEXTAUTH_URL));
         }
 
+        const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${origin}/api/integrations/google/callback`;
+
         // Exchange code for tokens
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
@@ -33,7 +37,7 @@ export async function GET(request) {
                 code,
                 client_id: process.env.GOOGLE_CLIENT_ID,
                 client_secret: process.env.GOOGLE_CLIENT_SECRET,
-                redirect_uri: process.env.GOOGLE_CALENDAR_REDIRECT_URI,
+                redirect_uri: redirectUri,
                 grant_type: 'authorization_code',
             }),
         });

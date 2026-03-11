@@ -4,15 +4,17 @@ import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session) {
-            return NextResponse.redirect(new URL('/login', process.env.NEXTAUTH_URL));
+            const origin = process.env.NEXTAUTH_URL || `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`;
+            return NextResponse.redirect(new URL('/login', origin));
         }
 
         const clientId = process.env.GOOGLE_CLIENT_ID;
-        const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI;
+        const origin = process.env.NEXTAUTH_URL || `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`;
+        const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${origin}/api/integrations/google/callback`;
 
         if (!clientId || !redirectUri) {
             return NextResponse.json({ error: 'Google Calendar configuration missing' }, { status: 500 });

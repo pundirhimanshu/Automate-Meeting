@@ -12,8 +12,8 @@ export async function GET(request) {
         }
 
         const clientId = process.env.GOOGLE_CLIENT_ID;
-        // Use a dedicated env var for the Gmail redirect URI
-        const redirectUri = process.env.GOOGLE_GMAIL_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/integrations/gmail/callback`;
+        const origin = process.env.NEXTAUTH_URL || `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`;
+        const redirectUri = process.env.GOOGLE_GMAIL_REDIRECT_URI || `${origin}/api/integrations/gmail/callback`;
 
         // Scope for sending emails on the user's behalf
         const scopes = [
