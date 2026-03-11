@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { canCreateEventType, canUseIntegration, canUsePayments, canUseCoHosting } from '@/lib/plans';
+import { getUserSubscription } from '@/lib/subscription';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,8 +29,6 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
-
-import { getUserSubscription } from '@/lib/subscription';
 
 export async function POST(request) {
     try {

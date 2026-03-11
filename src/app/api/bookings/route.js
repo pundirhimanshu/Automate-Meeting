@@ -2,14 +2,14 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
-
-export const dynamic = 'force-dynamic';
 import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { createZoomMeeting } from '@/lib/integrations/zoom';
 import { createTeamsMeeting } from '@/lib/integrations/teams';
 import { canCreateBooking, canUseIntegration } from '@/lib/plans';
 import { getUserSubscription } from '@/lib/subscription';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
     try {
