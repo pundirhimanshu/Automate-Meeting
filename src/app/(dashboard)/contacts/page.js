@@ -26,7 +26,7 @@ export default function ContactsPage() {
     const [customFields, setCustomFields] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [columns, setColumns] = useState(DEFAULT_COLUMNS);
+    const [hiddenColumns, setHiddenColumns] = useState([]);
     const [showColumnsMenu, setShowColumnsMenu] = useState(false);
     const [contactFilter, setContactFilter] = useState('all'); // 'all' | 'with-meetings' | 'no-meetings'
     const [showContactFilter, setShowContactFilter] = useState(false);
@@ -53,7 +53,18 @@ export default function ContactsPage() {
     useEffect(() => {
         fetchContacts();
         fetchFields();
+        fetchColumns();
     }, []);
+
+    const fetchColumns = async () => {
+        try {
+            const res = await fetch('/api/contacts/columns');
+            if (res.ok) {
+                const data = await res.json();
+                setHiddenColumns(data.hiddenColumns || []);
+            }
+        } catch (e) { console.error('Failed to fetch columns:', e) }
+    };
 
     const fetchContacts = async () => {
         try {
@@ -190,8 +201,21 @@ export default function ContactsPage() {
         } catch (e) { }
     };
 
-    const toggleColumn = (id) => {
-        setColumns((prev) => prev.map((c) => (c.id === id ? { ...c, visible: !c.visible } : c)));
+    const toggleColumn = async (id) => {
+        const isHidden = hiddenColumns.includes(id);
+        const newHidden = isHidden
+            ? hiddenColumns.filter(colId => colId !== id)
+            : [...hiddenColumns, id];
+
+        setHiddenColumns(newHidden);
+
+        try {
+            await fetch('/api/contacts/columns', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hiddenColumns: newHidden })
+            });
+        } catch (e) { console.error('Failed to sync columns'); }
     };
 
     const formatDate = (date) => {
@@ -205,8 +229,8 @@ export default function ContactsPage() {
     };
 
     const allColumns = [
-        ...columns,
-        ...customFields.map((f) => ({ id: f.id, label: f.name, visible: true, custom: true, type: f.type })),
+        ...DEFAULT_COLUMNS.map(c => ({ ...c, visible: !hiddenColumns.includes(c.id) })),
+        ...customFields.map((f) => ({ id: f.id, label: f.name, visible: !hiddenColumns.includes(f.id), custom: true, type: f.type })),
     ];
 
     const visibleCols = allColumns.filter((c) => c.visible);

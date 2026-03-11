@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { sendBookingCancellation, sendBookingReschedule } from '@/lib/email';
+import { triggerWorkflows } from '@/lib/workflow-engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,6 +63,9 @@ export async function PUT(request, { params }) {
                 timezone: booking.timezone,
             });
 
+            // Trigger Workflows
+            triggerWorkflows('EVENT_CANCELED', booking.id).catch(e => console.error('Workflow trigger error:', e));
+
             return NextResponse.json({ message: 'Booking cancelled' });
         }
 
@@ -108,6 +112,9 @@ export async function PUT(request, { params }) {
                 newEndTime: new Date(endTime),
                 timezone: booking.timezone,
             });
+
+            // Trigger Workflows
+            triggerWorkflows('EVENT_RESCHEDULED', booking.id).catch(e => console.error('Workflow trigger error:', e));
 
             return NextResponse.json({ message: 'Booking rescheduled' });
         }

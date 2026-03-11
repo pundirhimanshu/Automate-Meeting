@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import IntegrationButton from '@/components/IntegrationButton';
 import { getUserSubscription } from '@/lib/subscription';
 
+export const dynamic = 'force-dynamic';
+
 export default async function IntegrationsPage() {
     const session = await getServerSession(authOptions);
     const [userIntegrations, { plan: userPlan }] = await Promise.all([
@@ -15,14 +17,22 @@ export default async function IntegrationsPage() {
     const integrations = [
         { id: 'google_calendar', name: 'Google Calendar', desc: 'Two-way calendar sync', icon: '📅', connected: isConnected('google_calendar'), connectUrl: '/api/integrations/google/connect' },
         { id: 'google_meet', name: 'Google Meet', desc: 'Google Meet integration', icon: '📹', connected: isConnected('google_calendar'), connectUrl: isConnected('google_calendar') ? null : '/api/integrations/google/connect' },
+        {
+            id: 'gmail',
+            name: 'Gmail',
+            desc: isConnected('gmail')
+                ? `Connected: ${userIntegrations.find(i => i.provider === 'gmail')?.email || 'Connected'}`
+                : 'Send workflow emails from your Gmail',
+            icon: '✉️',
+            connected: isConnected('gmail'),
+            connectUrl: '/api/integrations/gmail/connect'
+        },
         { id: 'zoom', name: 'Zoom', desc: 'Auto-create Zoom meetings', icon: '🎥', connected: isConnected('zoom'), connectUrl: '/api/integrations/zoom/connect', requiresPlan: 'pro' },
         { id: 'teams', name: 'Microsoft Teams', desc: 'Teams meeting links', icon: '💼', comingSoon: true },
         { id: 'stripe', name: 'Stripe', desc: 'Collect payments', icon: '💳', comingSoon: true },
         { id: 'slack', name: 'Slack', desc: 'Booking notifications', icon: '💬', comingSoon: true },
         { id: 'outlook', name: 'Outlook', desc: 'Outlook calendar sync', icon: '📧', comingSoon: true },
     ];
-
-    const planAllowsZoom = ['pro', 'enterprise'].includes(userPlan);
 
     return (
         <div>

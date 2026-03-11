@@ -19,10 +19,16 @@ export async function GET(request) {
                 id: true, name: true, email: true, username: true,
                 timezone: true, brandColor: true, avatar: true, logo: true,
                 createdAt: true,
+                integrations: {
+                    select: { provider: true, email: true }
+                }
             },
         });
 
-        return NextResponse.json({ user });
+        return NextResponse.json({
+            user,
+            integrations: user?.integrations || []
+        });
     } catch (error) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }

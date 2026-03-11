@@ -8,96 +8,100 @@ datasource db {
 }
 
 model User {
-  id             String         @id @default(uuid())
-  name           String
-  email          String         @unique
-  password       String?
-  authProvider   String         @default("credentials")
-  avatar         String?
-  timezone       String         @default("Asia/Kolkata")
-  username       String         @unique
-  brandColor     String         @default("#0069ff")
-  logo           String?
-  emailVerified  Boolean        @default(false)
-  verificationToken String?     @unique
-  resetPasswordToken  String?   @unique
+  id                   String         @id @default(uuid())
+  name                 String
+  email                String         @unique
+  password             String?
+  authProvider         String         @default("credentials")
+  avatar               String?
+  timezone             String         @default("Asia/Kolkata")
+  username             String         @unique
+  brandColor           String         @default("#0069ff")
+  logo                 String?
+  emailVerified        Boolean        @default(false)
+  verificationToken    String?        @unique
+  resetPasswordToken   String?        @unique
   resetPasswordExpires DateTime?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  eventTypes     EventType[]
-  schedules      Schedule[]
-  bookingsAsHost Booking[]      @relation("HostBookings")
-  notifications  Notification[]
-  teamMembers    TeamMember[]
-  contacts       Contact[]
-  integrations   Integration[]
-  coHostedEventTypes EventType[] @relation("CoHosts")
-  subscription   Subscription?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  eventTypes           EventType[]
+  schedules            Schedule[]
+  bookingsAsHost       Booking[]      @relation("HostBookings")
+  notifications        Notification[]
+  teamMembers          TeamMember[]
+  contacts             Contact[]
+  integrations         Integration[]
+  coHostedEventTypes   EventType[]    @relation("CoHosts")
+  subscription         Subscription?
+  hiddenContactCols    String?
+  workflows            Workflow[]
 }
 
 model Integration {
-  id           String   @id @default(uuid())
-  provider     String   // "zoom", "teams", "google_calendar", etc.
+  id           String    @id @default(uuid())
+  provider     String // "zoom", "teams", "google_calendar", etc.
   accessToken  String
   refreshToken String?
   expiresAt    DateTime?
+  email        String?   // Store the specific email for this integration (e.g. host's gmail)
   userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@unique([userId, provider])
 }
 
 model EventType {
-  id              String           @id @default(uuid())
-  title           String
-  slug            String
-  description     String?
-  duration        Int              @default(30)
-  type            String           @default("one-on-one")
-  color           String           @default("#ff9500")
-  locationType    String           @default("none") // "none", "in_person", "phone", "zoom", "teams"
-  location          String?          // Stores address, phone number, or join link
+  id                String           @id @default(uuid())
+  title             String
+  slug              String
+  description       String?
+  duration          Int              @default(30)
+  type              String           @default("one-on-one")
+  color             String           @default("#ff9500")
+  locationType      String           @default("none") // "none", "in_person", "phone", "zoom", "teams"
+  location          String? // Stores address, phone number, or join link
   countryCode       String?          @default("+1")
   phoneCallSource   String?          @default("host") // "host" or "invitee"
-  bufferTimeBefore Int             @default(0)
-  bufferTimeAfter  Int             @default(0)
-  dateRangeType   String           @default("indefinite")
-  dateRangeDays   Int?
-  dateRangeStart  DateTime?
-  dateRangeEnd    DateTime?
+  bufferTimeBefore  Int              @default(0)
+  bufferTimeAfter   Int              @default(0)
+  dateRangeType     String           @default("indefinite")
+  dateRangeDays     Int?
+  dateRangeStart    DateTime?
+  dateRangeEnd      DateTime?
   maxBookingsPerDay Int?
-  minNotice       Int              @default(60)
-  isActive        Boolean          @default(true)
-  isSingleUse     Boolean          @default(false)
-  requiresPayment Boolean          @default(false)
-  price           Float?
-  currency        String?          @default("USD")
-  inviteeLimit    Int              @default(1)
-  roundRobinIndex Int              @default(0)
-  userId          String
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coHosts         User[]           @relation("CoHosts")
-  bookings        Booking[]
-  customQuestions CustomQuestion[]
-  singleUseLinks  SingleUseLink[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  minNotice         Int              @default(60)
+  isActive          Boolean          @default(true)
+  isSingleUse       Boolean          @default(false)
+  requiresPayment   Boolean          @default(false)
+  price             Float?
+  currency          String?          @default("USD")
+  inviteeLimit      Int              @default(1)
+  roundRobinIndex   Int              @default(0)
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coHosts           User[]           @relation("CoHosts")
+  bookings          Booking[]
+  workflows         Workflow[]
+  customQuestions   CustomQuestion[]
+  singleUseLinks    SingleUseLink[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   @@unique([userId, slug])
 }
 
 model Schedule {
-  id            String         @id @default(uuid())
-  name          String         @default("Working Hours")
-  isDefault     Boolean        @default(false)
-  userId        String
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String         @id @default(uuid())
+  name           String         @default("Working Hours")
+  isDefault      Boolean        @default(false)
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   availabilities Availability[]
-  dateOverrides DateOverride[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  dateOverrides  DateOverride[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 model Availability {
@@ -120,38 +124,39 @@ model DateOverride {
 }
 
 model Booking {
-  id            String        @id @default(uuid())
-  eventTypeId   String
-  eventType     EventType     @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  hostId        String
-  host          User          @relation("HostBookings", fields: [hostId], references: [id], onDelete: Cascade)
-  inviteeName   String
-  inviteeEmail  String
-  startTime     DateTime
-  endTime       DateTime
-  status        String        @default("confirmed")
-  manageToken   String?       @unique @default(uuid())
-  timezone      String        @default("UTC")
-  notes         String?
-  cancelReason  String?
-  location      String?
+  id                   String          @id @default(uuid())
+  eventTypeId          String
+  eventType            EventType       @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  hostId               String
+  host                 User            @relation("HostBookings", fields: [hostId], references: [id], onDelete: Cascade)
+  inviteeName          String
+  inviteeEmail         String
+  startTime            DateTime
+  endTime              DateTime
+  status               String          @default("confirmed")
+  manageToken          String?         @unique @default(uuid())
+  timezone             String          @default("UTC")
+  notes                String?
+  cancelReason         String?
+  location             String?
   rescheduledFromStart DateTime?
   rescheduledFromEnd   DateTime?
-  answers       BookingAnswer[]
-  notifications Notification[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  executedWorkflows    String[]        @default([]) // Stores IDs of workflows that have already run for this booking
+  answers              BookingAnswer[]
+  notifications        Notification[]
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
 }
 
 model CustomQuestion {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   eventTypeId String
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   question    String
-  type        String   @default("text")
-  required    Boolean  @default(false)
+  type        String    @default("text")
+  required    Boolean   @default(false)
   options     String?
-  order       Int      @default(0)
+  order       Int       @default(0)
 }
 
 model BookingAnswer {
@@ -176,13 +181,13 @@ model Notification {
 }
 
 model Team {
-  id        String       @id @default(uuid())
-  name      String
-  slug      String       @unique
-  members   TeamMember[]
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  members     TeamMember[]
   invitations Invitation[]
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model TeamMember {
@@ -212,28 +217,28 @@ model Invitation {
 }
 
 model Contact {
-  id              String               @id @default(uuid())
-  name            String
-  email           String
-  phone           String?
-  company         String?
-  userId          String
-  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fieldValues     ContactFieldValue[]
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  id          String              @id @default(uuid())
+  name        String
+  email       String
+  phone       String?
+  company     String?
+  userId      String
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fieldValues ContactFieldValue[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 
   @@unique([userId, email])
 }
 
 model ContactCustomField {
-  id          String              @id @default(uuid())
-  name        String
-  type        String              @default("text")
-  userId      String
-  order       Int                 @default(0)
-  values      ContactFieldValue[]
-  createdAt   DateTime            @default(now())
+  id        String              @id @default(uuid())
+  name      String
+  type      String              @default("text")
+  userId    String
+  order     Int                 @default(0)
+  values    ContactFieldValue[]
+  createdAt DateTime            @default(now())
 }
 
 model ContactFieldValue {
@@ -248,28 +253,52 @@ model ContactFieldValue {
 }
 
 model SingleUseLink {
-  id            String    @id @default(uuid())
-  token         String    @unique @default(uuid())
-  eventTypeId   String
-  eventType     EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  userId        String
-  contactName   String?
-  contactEmail  String?
-  isUsed        Boolean   @default(false)
-  bookingId     String?
-  expiresAt     DateTime?
-  createdAt     DateTime  @default(now())
+  id           String    @id @default(uuid())
+  token        String    @unique @default(uuid())
+  eventTypeId  String
+  eventType    EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  userId       String
+  contactName  String?
+  contactEmail String?
+  isUsed       Boolean   @default(false)
+  bookingId    String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
 }
 
 model Subscription {
-  id              String    @id @default(uuid())
-  userId          String    @unique
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan            String    @default("free")
-  status          String    @default("active")
-  transactionId   String?
-  amount          Float?
-  validUntil      DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan          String    @default("free")
+  status        String    @default("active")
+  transactionId String?
+  amount        Float?
+  validUntil    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Workflow {
+  id          String      @id @default(uuid())
+  name        String
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventTypes  EventType[]
+  
+  // TRIGGER
+  trigger     String      // "BEFORE_EVENT", "AFTER_EVENT", "EVENT_BOOKED", "EVENT_CANCELED", "EVENT_RESCHEDULED"
+  timeValue   Int?        // e.g. 24
+  timeUnit    String?     // "MINUTES", "HOURS", "DAYS"
+
+  // ACTION
+  action      String      @default("SEND_EMAIL") // "SEND_EMAIL", "SEND_SMS" (future)
+  sendTo      String      // "HOST", "INVITEE", "SPECIFIC_EMAIL"
+  senderEmail String      @default("system") // "system" or specific connected gmail
+  subject     String
+  body        String
+
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }

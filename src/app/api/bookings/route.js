@@ -5,9 +5,11 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 import { sendBookingConfirmation } from '@/lib/email';
+import { triggerWorkflows } from '@/lib/workflow-engine';
 import { createZoomMeeting } from '@/lib/integrations/zoom';
 import { createTeamsMeeting } from '@/lib/integrations/teams';
 import { canCreateBooking, canUseIntegration } from '@/lib/plans';
+import { getUserSubscription } from '@/lib/subscription';
 
 export async function GET(request) {
     try {
@@ -104,7 +106,6 @@ export async function GET(request) {
     }
 }
 
-import { getUserSubscription } from '@/lib/subscription';
 
 export async function POST(request) {
     try {
@@ -365,6 +366,9 @@ export async function POST(request) {
             });
         }
 
+        // Trigger Workflows (Non-blocking)
+        triggerWorkflows('EVENT_BOOKED', booking.id).catch(e => console.error('Workflow trigger error:', e));
+
         // --- Notification & Email Logic ---
 
         // --- Notification Logic Helper ---
@@ -394,6 +398,39 @@ export async function POST(request) {
         // Generate manage URL for invitee self-service
         const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
         const manageUrl = booking.manageToken ? `${origin}/book/manage/${booking.manageToken}` : '';
+
+        // --- Auto-Add to Contacts ---
+        try {
+            let companyName = '';
+            if (answers?.length > 0) {
+                const companyAnswer = answers.find(a => a.questionId.toLowerCase().includes('company'));
+                if (companyAnswer) companyName = companyAnswer.answer;
+            }
+
+            await prisma.contact.upsert({
+                where: {
+                    userId_email: {
+                        userId: assignedHostId,
+                        email: inviteeEmail,
+                    }
+                },
+                update: {
+                    name: inviteeName,
+                    ...(inviteePhone && { phone: inviteePhone }),
+                    ...(companyName && { company: companyName }),
+                },
+                create: {
+                    name: inviteeName,
+                    email: inviteeEmail,
+                    phone: inviteePhone || null,
+                    company: companyName || null,
+                    userId: assignedHostId,
+                }
+            });
+        } catch (contactErr) {
+            console.error('[BOOKING] Failed to auto-add contact:', contactErr);
+        }
+        // ------------------------------
 
         // Send confirmation emails
         await sendBookingConfirmation({
