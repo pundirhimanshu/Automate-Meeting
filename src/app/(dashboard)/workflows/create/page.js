@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const TRIGGERS = [
@@ -20,7 +20,7 @@ const VARIABLES = [
     'Location', 'Event Description', 'Questions And Answers', 'Host Full Name'
 ];
 
-export default function CreateWorkflowPage() {
+function CreateWorkflowContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const dropdownRef = useRef(null);
@@ -398,5 +398,17 @@ export default function CreateWorkflowPage() {
                 </button>
             </div>
         </div>
+    );
+}
+
+export default function CreateWorkflowPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '100px' }}>
+                <div className="spinner" style={{ width: '40px', height: '40px' }} />
+            </div>
+        }>
+            <CreateWorkflowContent />
+        </Suspense>
     );
 }
