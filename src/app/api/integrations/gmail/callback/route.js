@@ -8,8 +8,10 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
+        const origin = process.env.NEXTAUTH_URL || `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`;
+
         if (!session) {
-            return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/login`);
+            return NextResponse.redirect(new URL('/login', origin));
         }
 
         const { searchParams } = new URL(request.url);
@@ -18,12 +20,12 @@ export async function GET(request) {
 
         if (error || !code) {
             console.error('Gmail OAuth error:', error);
-            return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/integrations?error=gmail_auth_failed`);
+            return NextResponse.redirect(new URL('/integrations?error=gmail_auth_failed', origin));
         }
 
         const clientId = process.env.GOOGLE_CLIENT_ID;
         const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-        const redirectUri = process.env.GOOGLE_GMAIL_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/integrations/gmail/callback`;
+        const redirectUri = process.env.GOOGLE_GMAIL_REDIRECT_URI || `${origin}/api/integrations/gmail/callback`;
 
         // Exchange code for tokens
         const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -42,7 +44,7 @@ export async function GET(request) {
 
         if (!tokenResponse.ok) {
             console.error('Failed to get Gmail tokens:', tokenData);
-            return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/integrations?error=gmail_token_failed`);
+            return NextResponse.redirect(new URL('/integrations?error=gmail_token_failed', origin));
         }
 
         const { access_token, refresh_token, expires_in } = tokenData;
@@ -78,9 +80,10 @@ export async function GET(request) {
             },
         });
 
-        return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/integrations?success=gmail_connected`);
+        return NextResponse.redirect(new URL('/integrations?success=gmail_connected', origin));
     } catch (error) {
         console.error('Error in Gmail callback:', error);
-        return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/integrations?error=gmail_connection_failed`);
+        const errOrigin = process.env.NEXTAUTH_URL || (typeof request !== 'undefined' ? `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}` : '');
+        return NextResponse.redirect(new URL('/integrations?error=gmail_connection_failed', errOrigin || ''));
     }
 }

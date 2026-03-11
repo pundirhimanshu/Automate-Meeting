@@ -26,6 +26,6 @@ export async function GET(request) {
         return NextResponse.redirect(authUrl);
     } catch (error) {
         console.error('Error initiating Gmail connection:', error);
-        return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/integrations?error=gmail_connection_failed`);
+        return NextResponse.redirect(new URL('/integrations?error=gmail_connection_failed', origin));
     }
 }
