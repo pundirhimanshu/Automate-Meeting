@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
-        const origin = process.env.NEXTAUTH_URL || `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`;
+        const origin = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}`;
 
         if (!session) {
             return NextResponse.redirect(new URL('/login', origin));
@@ -25,7 +25,7 @@ export async function GET(request) {
 
         const clientId = process.env.GOOGLE_CLIENT_ID;
         const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-        const redirectUri = process.env.GOOGLE_GMAIL_REDIRECT_URI || `${origin}/api/integrations/gmail/callback`;
+        const redirectUri = `${origin}/api/integrations/gmail/callback`;
 
         // Exchange code for tokens
         const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -83,7 +83,7 @@ export async function GET(request) {
         return NextResponse.redirect(new URL('/integrations?success=gmail_connected', origin));
     } catch (error) {
         console.error('Error in Gmail callback:', error);
-        const errOrigin = process.env.NEXTAUTH_URL || (typeof request !== 'undefined' ? `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}` : '');
-        return NextResponse.redirect(new URL('/integrations?error=gmail_connection_failed', errOrigin || ''));
+        const errOrigin = typeof request !== 'undefined' ? `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}` : 'https://automate-booking-v2.vercel.app';
+        return NextResponse.redirect(new URL('/integrations?error=gmail_connection_failed', errOrigin));
     }
 }

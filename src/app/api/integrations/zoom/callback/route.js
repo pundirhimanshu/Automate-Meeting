@@ -21,7 +21,8 @@ export async function GET(request) {
 
         const clientId = process.env.ZOOM_CLIENT_ID;
         const clientSecret = process.env.ZOOM_CLIENT_SECRET;
-        const redirectUri = process.env.ZOOM_REDIRECT_URI;
+        const origin = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}`;
+        const redirectUri = `${origin}/api/integrations/zoom/callback`;
 
         // Exchange code for tokens
         const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');

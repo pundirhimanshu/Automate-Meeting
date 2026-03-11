@@ -12,8 +12,8 @@ export async function GET(request) {
         }
 
         const clientId = process.env.GOOGLE_CLIENT_ID;
-        const origin = process.env.NEXTAUTH_URL || `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`;
-        const redirectUri = process.env.GOOGLE_GMAIL_REDIRECT_URI || `${origin}/api/integrations/gmail/callback`;
+        const origin = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}`;
+        const redirectUri = `${origin}/api/integrations/gmail/callback`;
 
         // Scope for sending emails on the user's behalf
         const scopes = [
@@ -26,6 +26,7 @@ export async function GET(request) {
         return NextResponse.redirect(authUrl);
     } catch (error) {
         console.error('Error initiating Gmail connection:', error);
-        return NextResponse.redirect(new URL('/integrations?error=gmail_connection_failed', origin));
+        const errOrigin = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}`;
+        return NextResponse.redirect(new URL('/integrations?error=gmail_connection_failed', errOrigin));
     }
 }

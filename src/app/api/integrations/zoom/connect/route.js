@@ -12,7 +12,8 @@ export async function GET() {
     try {
         const session = await getServerSession(authOptions);
         if (!session) {
-            return NextResponse.redirect(new URL('/login', process.env.NEXTAUTH_URL));
+            const origin = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}`;
+            return NextResponse.redirect(new URL('/login', origin));
         }
 
         // Plan enforcement: check if user can use Zoom
@@ -23,7 +24,8 @@ export async function GET() {
         }
 
         const clientId = process.env.ZOOM_CLIENT_ID;
-        const redirectUri = process.env.ZOOM_REDIRECT_URI;
+        const origin = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}`;
+        const redirectUri = `${origin}/api/integrations/zoom/callback`;
 
         if (!clientId || !redirectUri) {
             return NextResponse.json({ error: 'Zoom configuration missing' }, { status: 500 });

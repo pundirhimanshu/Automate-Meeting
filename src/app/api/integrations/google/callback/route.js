@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
-        const origin = process.env.NEXTAUTH_URL || `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`;
+        const origin = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}`;
 
         if (!session) {
             return NextResponse.redirect(new URL('/login', origin));
@@ -20,14 +20,14 @@ export async function GET(request) {
 
         if (error) {
             console.error('[GOOGLE_CALLBACK_ERROR]', error);
-            return NextResponse.redirect(new URL('/integrations?error=google_denied', process.env.NEXTAUTH_URL));
+            return NextResponse.redirect(new URL('/integrations?error=google_denied', origin));
         }
 
         if (!code) {
-            return NextResponse.redirect(new URL('/integrations?error=no_code', process.env.NEXTAUTH_URL));
+            return NextResponse.redirect(new URL('/integrations?error=no_code', origin));
         }
 
-        const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${origin}/api/integrations/google/callback`;
+        const redirectUri = `${origin}/api/integrations/google/callback`;
 
         // Exchange code for tokens
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -46,7 +46,7 @@ export async function GET(request) {
 
         if (!tokenRes.ok) {
             console.error('[GOOGLE_TOKEN_ERROR]', tokenData);
-            return NextResponse.redirect(new URL('/integrations?error=token_failed', process.env.NEXTAUTH_URL));
+            return NextResponse.redirect(new URL('/integrations?error=token_failed', origin));
         }
 
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
@@ -73,9 +73,10 @@ export async function GET(request) {
             },
         });
 
-        return NextResponse.redirect(new URL('/integrations', process.env.NEXTAUTH_URL));
+        return NextResponse.redirect(new URL('/integrations', origin));
     } catch (error) {
         console.error('[GOOGLE_CALLBACK_ERROR]', error);
-        return NextResponse.redirect(new URL('/integrations?error=callback_failed', process.env.NEXTAUTH_URL));
+        const errOrigin = typeof request !== 'undefined' ? `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}` : 'https://automate-booking-v2.vercel.app';
+        return NextResponse.redirect(new URL('/integrations?error=callback_failed', errOrigin));
     }
 }
