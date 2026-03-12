@@ -14,12 +14,36 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { searchParams } = new URL(request.url);
+        const teamId = searchParams.get('teamId');
+
+        let whereClause = {};
+
+        if (teamId) {
+            // Fetch all event types belonging to any member of the team
+            const teamMembers = await prisma.teamMember.findMany({
+                where: { teamId },
+                select: { userId: true }
+            });
+            const memberIds = teamMembers.map(tm => tm.userId);
+            whereClause = { userId: { in: memberIds } };
+        } else {
+            // Default: User's own event types OR where they are a co-host
+            whereClause = {
+                OR: [
+                    { userId: session.user.id },
+                    { coHosts: { some: { id: session.user.id } } }
+                ]
+            };
+        }
+
         const eventTypes = await prisma.eventType.findMany({
-            where: { userId: session.user.id },
+            where: whereClause,
             orderBy: { createdAt: 'desc' },
             include: {
                 _count: { select: { bookings: true } },
-                coHosts: { select: { id: true, name: true, email: true } }
+                coHosts: { select: { id: true, name: true, email: true } },
+                user: { select: { id: true, name: true, email: true, username: true } }
             },
         });
 

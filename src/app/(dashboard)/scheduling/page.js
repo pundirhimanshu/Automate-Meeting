@@ -30,6 +30,9 @@ function SchedulingContent() {
     const [showTypeFilter, setShowTypeFilter] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [deleting, setDeleting] = useState(false);
+    const [accountFilter, setAccountFilter] = useState({ type: 'me', id: null, name: 'My scheduler' });
+    const [showAccountFilter, setShowAccountFilter] = useState(false);
+    const [teams, setTeams] = useState([]);
 
     // Availability state
     const [schedules, setSchedules] = useState([]);
@@ -99,6 +102,7 @@ function SchedulingContent() {
         fetchSchedules();
         fetchTeamMembers();
         fetchUser();
+        fetchTeams();
         fetch('/api/subscription').then(r => r.json()).then(d => setUserPlan(d.plan || 'free')).catch(() => { });
         window.addEventListener('logo-updated', fetchUser);
         window.addEventListener('profile-updated', fetchUser);
@@ -126,6 +130,24 @@ function SchedulingContent() {
             }
         } catch (e) { }
     };
+
+    const fetchTeams = async () => {
+        try {
+            const res = await fetch('/api/team');
+            if (res.ok) {
+                const data = await res.json();
+                // A user might be in multiple teams, though our current API prioritized one.
+                // Assuming it might return multiple in a future iteration or we just use the one.
+                if (data.team) {
+                    setTeams([data.team]);
+                }
+            }
+        } catch (e) { }
+    };
+
+    useEffect(() => {
+        fetchEventTypes(accountFilter.id);
+    }, [accountFilter]);
 
     // Auto-open create drawer from sidebar button or query param
     useEffect(() => {
@@ -218,9 +240,11 @@ function SchedulingContent() {
         finally { setSulCreating(false); }
     };
 
-    const fetchEventTypes = async () => {
+    const fetchEventTypes = async (teamId = null) => {
+        setLoading(true);
         try {
-            const res = await fetch('/api/event-types');
+            const url = teamId ? `/api/event-types?teamId=${teamId}` : '/api/event-types';
+            const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
                 setEventTypes(data.eventTypes || []);
@@ -536,11 +560,63 @@ function SchedulingContent() {
                 <button className={`tab ${activeTab === 'single-use' ? 'active' : ''}`} onClick={() => setActiveTab('single-use')}>Single-use links</button>
             </div>
 
-            {/* Filter Bar */}
             <div className="filter-bar">
-                <div className="filter-select">
-                    My Calendly
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
+                <div className="dropdown" style={{ position: 'relative' }}>
+                    <div
+                        className={`filter-select ${showAccountFilter ? 'active' : ''}`}
+                        onClick={() => setShowAccountFilter(!showAccountFilter)}
+                        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', background: 'var(--bg-white)', fontSize: '0.875rem', fontWeight: 500 }}
+                    >
+                        {accountFilter.name}
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: showAccountFilter ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </div>
+                    {showAccountFilter && (
+                        <div className="dropdown-menu" style={{ minWidth: '220px', top: '100%', left: 0, marginTop: '4px' }}>
+                            <div style={{ padding: '8px 12px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Personal</div>
+                            <button
+                                className={`dropdown-item ${accountFilter.type === 'me' ? 'active' : ''}`}
+                                onClick={() => {
+                                    setAccountFilter({ type: 'me', id: null, name: 'My scheduler' });
+                                    setShowAccountFilter(false);
+                                }}
+                                style={accountFilter.type === 'me' ? { background: 'var(--primary-light)', color: 'var(--primary)' } : {}}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <div style={{ background: 'var(--primary)', color: 'white', width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem' }}>
+                                        {session?.user?.name?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span>My scheduler</span>
+                                </div>
+                            </button>
+
+                            {teams.length > 0 && (
+                                <>
+                                    <div className="dropdown-divider" />
+                                    <div style={{ padding: '8px 12px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Teams</div>
+                                    {teams.map(team => (
+                                        <button
+                                            key={team.id}
+                                            className={`dropdown-item ${accountFilter.id === team.id ? 'active' : ''}`}
+                                            onClick={() => {
+                                                setAccountFilter({ type: 'team', id: team.id, name: team.name });
+                                                setShowAccountFilter(false);
+                                            }}
+                                            style={accountFilter.id === team.id ? { background: 'var(--primary-light)', color: 'var(--primary)' } : {}}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <div style={{ background: '#f1f5f9', color: 'var(--text-main)', width: '24px', height: '24px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem' }}>
+                                                    👥
+                                                </div>
+                                                <span>{team.name}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <div className="search-input" style={{ flex: 1, maxWidth: '240px' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
