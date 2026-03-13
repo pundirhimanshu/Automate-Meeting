@@ -36,6 +36,7 @@ model User {
   subscription         Subscription?
   hiddenContactCols    String?
   workflows            Workflow[]
+  routingForms         RoutingForm[]
 }
 
 model Integration {
@@ -303,3 +304,61 @@ model Workflow {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
+
+model RoutingForm {
+  id            String              @id @default(uuid())
+  name          String
+  slug          String              @unique
+  description   String?
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive      Boolean             @default(true)
+  headlessToken String              @unique @default(uuid())
+  questions     RoutingQuestion[]
+  rules         RoutingRule[]
+  submissions   RoutingSubmission[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([userId, slug])
+}
+
+model RoutingQuestion {
+  id          String        @id @default(uuid())
+  formId      String
+  form        RoutingForm   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  type        String        @default("text") // "text", "dropdown", "radio"
+  label       String
+  identifier  String?       // Used for headless parameter mapping (e.g. "company_size")
+  placeholder String?
+  required    Boolean       @default(false)
+  options     String?       // JSON string for dropdown/radio options
+  order       Int           @default(0)
+  rules       RoutingRule[]
+}
+
+model RoutingRule {
+  id            String          @id @default(uuid())
+  formId        String
+  form          RoutingForm     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  questionId    String?
+  question      RoutingQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  operator      String?         // "is", "is_not", "contains", "greater_than"
+  value         String?
+  destination   String          // URL or "event-type:[id]"
+  isFallback    Boolean         @default(false)
+  order         Int             @default(0)
+}
+
+model RoutingSubmission {
+  id           String      @id @default(uuid())
+  formId       String
+  form         RoutingForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  inviteeName  String
+  inviteeEmail String
+  answers      Json        // Map of question labels to responses
+  destination  String?
+  source       String      @default("internal") // "internal" or "headless"
+  createdAt    DateTime    @default(now())
+}
+

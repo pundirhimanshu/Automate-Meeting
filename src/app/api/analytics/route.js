@@ -109,6 +109,21 @@ export async function GET(request) {
             color: et.color,
         }));
 
+        // Routing Metrics
+        const totalRoutingSubmissions = await prisma.routingSubmission.count({
+            where: { form: { userId } }
+        });
+
+        const routingForms = await prisma.routingForm.findMany({
+            where: { userId },
+            include: { _count: { select: { submissions: true } } }
+        });
+
+        const routingBreakdown = routingForms.map(f => ({
+            name: f.name,
+            submissions: f._count.submissions
+        }));
+
         return NextResponse.json({
             totalBookings,
             monthBookings,
@@ -121,6 +136,10 @@ export async function GET(request) {
             popularSlots,
             last7Days,
             eventBreakdown,
+            routingMetrics: {
+                totalSubmissions: totalRoutingSubmissions,
+                breakdown: routingBreakdown
+            }
         });
     } catch (error) {
         console.error('Error fetching analytics:', error);

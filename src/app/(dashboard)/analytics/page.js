@@ -60,6 +60,11 @@ export default function AnalyticsPage() {
                     <div className="stat-value">{data.noShowRate}%</div>
                     <div className="stat-trend down">Cancelled meetings</div>
                 </div>
+                <div className="stat-card">
+                    <div className="stat-label">Routing Submissions</div>
+                    <div className="stat-value">{data.routingMetrics?.totalSubmissions || 0}</div>
+                    <div className="stat-trend">Qualifier form entries</div>
+                </div>
             </div>
 
             {/* Bookings Over Time */}
@@ -139,6 +144,35 @@ export default function AnalyticsPage() {
                                 {slot.hour}:00 ({slot.count})
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Routing Breakdown */}
+            {data.routingMetrics?.breakdown && data.routingMetrics.breakdown.length > 0 && (
+                <div className="chart-container" style={{ marginTop: '24px' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>Routing Form Performance</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {data.routingMetrics.breakdown.map((f, i) => {
+                            const maxSubmissions = Math.max(...data.routingMetrics.breakdown.map(x => x.submissions), 1);
+                            return (
+                                <div key={i}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                        <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{f.name}</span>
+                                        <span style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>{f.submissions} submissions</span>
+                                    </div>
+                                    <div style={{ height: '8px', background: 'var(--bg-page)', borderRadius: '4px', overflow: 'hidden' }}>
+                                        <div style={{
+                                            height: '100%',
+                                            width: `${(f.submissions / maxSubmissions) * 100}%`,
+                                            background: '#6366f1',
+                                            borderRadius: '4px',
+                                            transition: 'width 0.5s ease',
+                                        }} />
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}
