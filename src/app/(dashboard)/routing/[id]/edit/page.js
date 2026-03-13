@@ -345,10 +345,11 @@ export default function RoutingEditorPage({ params }) {
                                                 <span className="logic-keyword-then">THEN ROUTE TO</span>
                                                 <select
                                                     className="select-dest"
-                                                    value={rule.destination}
+                                                    value={rule.destination?.startsWith('event-type:') ? rule.destination : (rule.destination ? 'custom' : '')}
                                                     onChange={(e) => {
+                                                        const val = e.target.value;
                                                         const newRules = [...form.rules];
-                                                        newRules[idx].destination = e.target.value;
+                                                        newRules[idx].destination = val === 'custom' ? 'https://' : val;
                                                         setForm({ ...form, rules: newRules });
                                                     }}
                                                 >
@@ -361,6 +362,22 @@ export default function RoutingEditorPage({ params }) {
                                                     <option value="custom">External Webpage</option>
                                                 </select>
                                             </div>
+                                            
+                                            {(!rule.destination?.startsWith('event-type:') && rule.destination !== '') && (
+                                                <div className="logic-row custom-url-row" style={{ marginTop: '12px' }}>
+                                                    <span className="logic-keyword">URL</span>
+                                                    <input 
+                                                        className="input"
+                                                        placeholder="https://example.com"
+                                                        value={rule.destination}
+                                                        onChange={(e) => {
+                                                            const newRules = [...form.rules];
+                                                            newRules[idx].destination = e.target.value;
+                                                            setForm({ ...form, rules: newRules });
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
