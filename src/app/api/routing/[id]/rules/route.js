@@ -48,33 +48,64 @@ export async function PUT(request, { params }) {
         const form = await prisma.routingForm.findUnique({ where: { id: formId, userId: session.user.id } });
         if (!form) return NextResponse.json({ error: 'Form not found' }, { status: 404 });
 
-        // Batch update rules
-        await prisma.$transaction(
-            rules.map((r) =>
-                prisma.routingRule.upsert({
-                    where: { id: r.id || 'new' },
-                    update: {
-                        questionId: r.questionId,
-                        operator: r.operator,
-                        value: r.value,
-                        destination: r.destination,
-                        isFallback: r.isFallback,
-                        order: r.order
-                    },
-                    create: {
-                        formId,
-                        questionId: r.questionId,
-                        operator: r.operator,
-                        value: r.value,
-                        destination: r.destination,
-                        isFallback: r.isFallback,
-                        order: r.order
-                    }
-                })
-            )
-        );
+        // Logic for batch update/reorder/remove
+        // 1. Get existing rule IDs
+        const existingRules = await prisma.routingRule.findMany({
+            where: { formId }
+        });
+        const existingIds = existingRules.map(r => r.id);
+        const incomingIds = rules.filter(r => r.id && !r.id.startsWith('temp-')).map(r => r.id);
 
-        return NextResponse.json({ message: 'Rules updated' });
+        // 2. Delete rules not in the incoming list
+        const idsToDelete = existingIds.filter(id => !incomingIds.includes(id));
+
+        await prisma.$transaction(async (tx) => {
+            // Delete removed rules
+            if (idsToDelete.length > 0) {
+                await tx.routingRule.deleteMany({
+                    where: { id: { in: idsToDelete } }
+                });
+            }
+
+            // Upsert / Create rules
+            for (const r of rules) {
+                const isTemp = !r.id || r.id.startsWith('temp-');
+                
+                if (isTemp) {
+                    await tx.routingRule.create({
+                        data: {
+                            formId,
+                            questionId: r.questionId,
+                            operator: r.operator,
+                            value: r.value,
+                            destination: r.destination,
+                            isFallback: r.isFallback || false,
+                            order: r.order || 0
+                        }
+                    });
+                } else {
+                    await tx.routingRule.update({
+                        where: { id: r.id },
+                        data: {
+                            questionId: r.questionId,
+                            operator: r.operator,
+                            value: r.value,
+                            destination: r.destination,
+                            isFallback: r.isFallback,
+                            order: r.order
+                        }
+                    });
+                }
+            }
+        });
+
+        // Fetch and return updated rules
+        const updatedRules = await prisma.routingRule.findMany({
+            where: { formId },
+            orderBy: { order: 'asc' }
+        });
+
+        return NextResponse.json({ rules: updatedRules });
     } catch (error) {
         console.error('Error batch updating routing rules:', error);
         return NextResponse.json({ error: 'Server error' }, { status: 500 });

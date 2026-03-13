@@ -16,7 +16,7 @@ export default function PublicRouterPage({ params }) {
 
     const fetchForm = async () => {
         try {
-            const res = await fetch(`/api/router/${slug}/submit`);
+            const res = await fetch(`/api/router/${slug}/submit`, { cache: 'no-store' });
             const data = await res.json();
             if (data.form) {
                 const processedQuestions = data.form.questions.map(q => ({

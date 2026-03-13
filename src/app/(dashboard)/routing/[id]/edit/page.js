@@ -30,8 +30,8 @@ export default function RoutingEditorPage({ params }) {
     const fetchData = async () => {
         try {
             const [formRes, eventTypesRes] = await Promise.all([
-                fetch(`/api/routing/${id}`),
-                fetch('/api/event-types')
+                fetch(`/api/routing/${id}`, { cache: 'no-store' }),
+                fetch('/api/event-types', { cache: 'no-store' })
             ]);
             const formData = await formRes.json();
             const etData = await eventTypesRes.json();
@@ -67,14 +67,24 @@ export default function RoutingEditorPage({ params }) {
     const handleSaveQuestions = async () => {
         setSaving(true);
         try {
-            await fetch(`/api/routing/${id}/questions`, {
+            const res = await fetch(`/api/routing/${id}/questions`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ questions: form.questions }),
             });
-            alert('Form structure saved!');
+            const data = await res.json();
+            
+            if (data.questions) {
+                const processedQuestions = data.questions.map(q => ({
+                    ...q,
+                    options: q.options ? JSON.parse(q.options) : []
+                }));
+                setForm(prev => ({ ...prev, questions: processedQuestions }));
+                alert('Form structure saved and synchronized!');
+            }
         } catch (error) {
             console.error('Error saving questions:', error);
+            alert('Failed to save questions. Check console for details.');
         } finally {
             setSaving(false);
         }
@@ -83,14 +93,20 @@ export default function RoutingEditorPage({ params }) {
     const handleSaveRules = async () => {
         setSaving(true);
         try {
-            await fetch(`/api/routing/${id}/rules`, {
+            const res = await fetch(`/api/routing/${id}/rules`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rules: form.rules }),
             });
-            alert('Routing logic updated!');
+            const data = await res.json();
+            
+            if (data.rules) {
+                setForm(prev => ({ ...prev, rules: data.rules }));
+                alert('Routing logic updated and synchronized!');
+            }
         } catch (error) {
             console.error('Error saving rules:', error);
+            alert('Failed to save logic rules.');
         } finally {
             setSaving(false);
         }
@@ -242,8 +258,10 @@ export default function RoutingEditorPage({ params }) {
                                                     </label>
                                                 </div>
                                                 <button className="btn-icon-danger" onClick={() => {
+                                                    const deletedQId = form.questions[idx].id;
                                                     const newQs = form.questions.filter((_, i) => i !== idx);
-                                                    setForm({ ...form, questions: newQs });
+                                                    const newRules = form.rules.filter(r => r.questionId !== deletedQId);
+                                                    setForm({ ...form, questions: newQs, rules: newRules });
                                                 }}>
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                                                 </button>
