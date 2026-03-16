@@ -291,7 +291,8 @@ export default function RoutingEditorPage({ params }) {
 
     const handleSaveQuestions = async (isAutosave = false) => {
         if (!form) return;
-        if (!isAutosave) setSaving(true);
+        setSaving(true);
+        const start = Date.now();
         try {
             const res = await fetch(`/api/routing/${id}/questions`, {
                 method: 'PUT',
@@ -305,18 +306,21 @@ export default function RoutingEditorPage({ params }) {
                     ...q,
                     options: q.options ? JSON.parse(q.options) : []
                 }));
+                // Only update form state if not autosaving to prevent cursor jumps
                 if (!isAutosave) setForm(prev => ({ ...prev, questions: processedQuestions }));
             }
         } catch (error) {
             console.error('Error saving questions:', error);
         } finally {
-            if (!isAutosave) setSaving(false);
+            const elapsed = Date.now() - start;
+            setTimeout(() => setSaving(false), Math.max(0, 500 - elapsed));
         }
     };
 
     const handleSaveRules = async (isAutosave = false) => {
         if (!form) return;
-        if (!isAutosave) setSaving(true);
+        setSaving(true);
+        const start = Date.now();
         try {
             const res = await fetch(`/api/routing/${id}/rules`, {
                 method: 'PUT',
@@ -331,12 +335,14 @@ export default function RoutingEditorPage({ params }) {
         } catch (error) {
             console.error('Error saving rules:', error);
         } finally {
-            if (!isAutosave) setSaving(false);
+            const elapsed = Date.now() - start;
+            setTimeout(() => setSaving(false), Math.max(0, 500 - elapsed));
         }
     };
 
     const handleUpdateSettings = async (updates) => {
         setSaving(true);
+        const start = Date.now();
         try {
             const res = await fetch(`/api/routing/${id}`, {
                 method: 'PATCH',
@@ -350,7 +356,8 @@ export default function RoutingEditorPage({ params }) {
         } catch (error) {
             console.error('Error updating settings:', error);
         } finally {
-            setSaving(false);
+            const elapsed = Date.now() - start;
+            setTimeout(() => setSaving(false), Math.max(0, 500 - elapsed));
         }
     };
 
@@ -414,9 +421,19 @@ export default function RoutingEditorPage({ params }) {
                         </button>
                     </nav>
                     <div className="header-right">
-                        <span className="status-indicator">
-                            <span className="dot"></span> Saved
-                        </span>
+                        <div className={`status-indicator ${saving ? 'is-saving' : ''}`}>
+                            {saving ? (
+                                <>
+                                    <span className="sync-spinner"></span>
+                                    Syncing...
+                                </>
+                            ) : (
+                                <>
+                                    <span className="dot"></span>
+                                    Saved
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
@@ -460,7 +477,12 @@ export default function RoutingEditorPage({ params }) {
                             </div>
                             <div className="builder-save-bar">
                                 <button className="btn btn-primary btn-lg" onClick={handleSaveQuestions} disabled={saving}>
-                                    {saving ? 'Syncing...' : 'Save Structure'}
+                                    {saving ? (
+                                        <>
+                                            <span className="btn-spinner"></span>
+                                            Syncing...
+                                        </>
+                                    ) : 'Save Structure'}
                                 </button>
                             </div>
                         </div>
@@ -608,7 +630,12 @@ export default function RoutingEditorPage({ params }) {
 
                             <div className="builder-save-bar">
                                 <button className="btn btn-primary btn-lg" onClick={handleSaveRules} disabled={saving}>
-                                    {saving ? 'Syncing...' : 'Save Logic Rules'}
+                                    {saving ? (
+                                        <>
+                                            <span className="btn-spinner"></span>
+                                            Syncing...
+                                        </>
+                                    ) : 'Save Logic Rules'}
                                 </button>
                             </div>
                         </div>
@@ -622,7 +649,12 @@ export default function RoutingEditorPage({ params }) {
                                     <p className="section-desc">Review and analyze responses from your visitors.</p>
                                 </div>
                                 <button className="btn btn-secondary btn-sm" onClick={fetchSubmissions} disabled={fetchingSubmissions}>
-                                    {fetchingSubmissions ? 'Refreshing...' : 'Refresh'}
+                                    {fetchingSubmissions ? (
+                                        <>
+                                            <span className="btn-spinner small"></span>
+                                            Refreshing...
+                                        </>
+                                    ) : 'Refresh'}
                                 </button>
                             </div>
 
@@ -743,6 +775,7 @@ export default function RoutingEditorPage({ params }) {
                                             onChange={(e) => handleUpdateSettings({ isActive: e.target.checked })}
                                         />
                                         <span className="toggle-label">Accept submissions for this form</span>
+                                        {saving && <span className="btn-spinner small ml-3" style={{ borderTopColor: 'var(--primary)' }}></span>}
                                     </label>
                                 </div>
                             </div>
@@ -1251,6 +1284,60 @@ export default function RoutingEditorPage({ params }) {
                     margin-bottom: 16px;
                 }
                 @keyframes spin { to { transform: rotate(360deg); } }
+                .btn-spinner {
+                    display: inline-block;
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    border-top-color: #fff;
+                    border-radius: 50%;
+                    animation: btn-spin 0.6s linear infinite;
+                    margin-right: 8px;
+                    vertical-align: middle;
+                }
+                .btn-spinner.small {
+                    width: 12px;
+                    height: 12px;
+                    border-width: 1.5px;
+                    margin-right: 6px;
+                    border-top-color: var(--primary);
+                    border-color: var(--primary-light);
+                }
+                @keyframes btn-spin {
+                    to { transform: rotate(360deg); }
+                }
+
+                .status-indicator {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: var(--text-tertiary);
+                    padding: 6px 12px;
+                    background: #f8fafc;
+                    border-radius: 20px;
+                    transition: all 0.3s ease;
+                }
+                .status-indicator.is-saving {
+                    color: var(--primary);
+                    background: var(--primary-light);
+                    opacity: 0.8;
+                }
+                .status-indicator .dot {
+                    width: 8px;
+                    height: 8px;
+                    background: #10b981;
+                    border-radius: 50%;
+                }
+                .sync-spinner {
+                    width: 14px;
+                    height: 14px;
+                    border: 2px solid var(--primary-light);
+                    border-top-color: var(--primary);
+                    border-radius: 50%;
+                    animation: btn-spin 0.6s linear infinite;
+                }
             `}</style>
         </div>
     );
