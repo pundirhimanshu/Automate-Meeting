@@ -45,6 +45,36 @@ export default function RoutingPage() {
         }
     };
 
+    const handleToggleActive = async (formId, currentStatus) => {
+        try {
+            const res = await fetch(`/api/routing/${formId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isActive: !currentStatus }),
+            });
+            if (res.ok) {
+                setForms(forms.map(f => f.id === formId ? { ...f, isActive: !currentStatus } : f));
+            }
+        } catch (error) {
+            console.error('Error toggling form status:', error);
+        }
+    };
+
+    const handleDelete = async (formId) => {
+        if (!confirm('Are you sure you want to delete this routing form? This action cannot be undone.')) return;
+        
+        try {
+            const res = await fetch(`/api/routing/${formId}`, {
+                method: 'DELETE',
+            });
+            if (res.ok) {
+                setForms(forms.filter(f => f.id !== formId));
+            }
+        } catch (error) {
+            console.error('Error deleting form:', error);
+        }
+    };
+
     return (
         <div className="routing-container">
             <header className="page-header">
@@ -91,9 +121,22 @@ export default function RoutingPage() {
                                             {form.description || 'No description provided.'}
                                         </p>
                                     </div>
-                                    <span className={`badge ${form.isActive ? 'badge-success' : 'badge-danger'}`}>
-                                        {form.isActive ? 'Active' : 'Disabled'}
-                                    </span>
+                                    <div className="header-actions">
+                                        <button 
+                                            className={`toggle-btn ${form.isActive ? 'active' : ''}`}
+                                            onClick={() => handleToggleActive(form.id, form.isActive)}
+                                            title={form.isActive ? 'Deactivate form' : 'Activate form'}
+                                        >
+                                            <div className="toggle-slider"></div>
+                                        </button>
+                                        <button 
+                                            className="btn-trash"
+                                            onClick={() => handleDelete(form.id)}
+                                            title="Delete form"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div className="routing-card-stats">
@@ -102,7 +145,7 @@ export default function RoutingPage() {
                                         <span className="stat-label">Submissions</span>
                                     </Link>
                                     <div className="stat-item">
-                                        <span className="stat-value">{form.questions?.length || 0}</span>
+                                        <span className="stat-value">{form._count?.questions || 0}</span>
                                         <span className="stat-label">Questions</span>
                                     </div>
                                 </div>
@@ -303,6 +346,51 @@ export default function RoutingPage() {
                     font-size: 24px;
                     color: var(--text-tertiary);
                     cursor: pointer;
+                }
+                .header-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                .toggle-btn {
+                    width: 40px;
+                    height: 20px;
+                    background: #e2e8f0;
+                    border-radius: 20px;
+                    padding: 2px;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    position: relative;
+                }
+                .toggle-btn.active {
+                    background: #10b981;
+                }
+                .toggle-slider {
+                    width: 16px;
+                    height: 16px;
+                    background: white;
+                    border-radius: 50%;
+                    transition: all 0.2s;
+                }
+                .toggle-btn.active .toggle-slider {
+                    transform: translateX(20px);
+                }
+                .btn-trash {
+                    background: none;
+                    border: none;
+                    color: #94a3b8;
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: 4px;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .btn-trash:hover {
+                    color: #ef4444;
+                    background: #fee2e2;
                 }
                 .flex-1 { flex: 1; }
                 .help-text {

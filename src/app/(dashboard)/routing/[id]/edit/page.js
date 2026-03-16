@@ -1,10 +1,132 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function SortableQuestion({ q, idx, form, setForm, updateQuestion, handleUpdateOption, handleRemoveOption, handleAddOption }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({ id: q.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className="card question-card">
+            <div className="q-drag-handle" {...attributes} {...listeners}>⠿</div>
+            <div className="q-content">
+                <div className="q-row">
+                    <input
+                        className="q-input-label"
+                        placeholder="Enter question label..."
+                        value={q.label}
+                        onChange={(e) => {
+                            const newQs = [...form.questions];
+                            newQs[idx].label = e.target.value;
+                            setForm({ ...form, questions: newQs });
+                        }}
+                    />
+                    <select
+                        className="q-select-type"
+                        value={q.type}
+                        onChange={(e) => {
+                            const newQs = [...form.questions];
+                            newQs[idx].type = e.target.value;
+                            if ((e.target.value === 'dropdown' || e.target.value === 'radio') && !Array.isArray(newQs[idx].options)) {
+                                newQs[idx].options = [];
+                            }
+                            setForm({ ...form, questions: newQs });
+                        }}
+                    >
+                        <option value="text">Text Input</option>
+                        <option value="dropdown">Dropdown Select</option>
+                        <option value="radio">Radio Options</option>
+                        <option value="phone">Phone Number</option>
+                    </select>
+                </div>
+                
+                {(q.type === 'dropdown' || q.type === 'radio') && (
+                    <div className="q-options-area">
+                        <label className="field-label">Answers Options</label>
+                        <div className="options-editor-list">
+                            {(q.options || []).map((opt, optIdx) => (
+                                <div key={optIdx} className="option-editor-row">
+                                    <input
+                                        className="input q-option-input"
+                                        value={opt}
+                                        onChange={(e) => handleUpdateOption(q.id, optIdx, e.target.value)}
+                                        placeholder={`Option ${optIdx + 1}`}
+                                    />
+                                    <button className="btn-remove-opt" onClick={() => handleRemoveOption(q.id, optIdx)}>×</button>
+                                </div>
+                            ))}
+                            <button className="btn-add-opt" onClick={() => handleAddOption(q.id)}>
+                                + Add Another Option
+                            </button>
+                        </div>
+                    </div>
+                )}
+                
+                <div className="q-footer">
+                    <div className="q-settings">
+                        <label className="checkbox-toggle">
+                            <input
+                                type="checkbox"
+                                checked={q.required}
+                                onChange={(e) => {
+                                    const newQs = [...form.questions];
+                                    newQs[idx].required = e.target.checked;
+                                    setForm({ ...form, questions: newQs });
+                                }}
+                            />
+                            <span className="toggle-label">Required field</span>
+                        </label>
+                    </div>
+                    <button className="btn-icon-danger" onClick={() => {
+                        const deletedQId = form.questions[idx].id;
+                        const newQs = form.questions.filter((_, i) => i !== idx);
+                        const newRules = form.rules.filter(r => r.questionId !== deletedQId);
+                        setForm({ ...form, questions: newQs, rules: newRules });
+                    }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function RoutingEditorPage({ params }) {
+    const slugify = (text) => text.toString().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '')
+        .replace(/--+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+
     const { id } = params;
     const searchParams = useSearchParams();
     const initialTab = searchParams.get('tab') || 'questions';
@@ -16,6 +138,13 @@ export default function RoutingEditorPage({ params }) {
     const [eventTypes, setEventTypes] = useState([]);
     const [submissions, setSubmissions] = useState([]);
     const [fetchingSubmissions, setFetchingSubmissions] = useState(false);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     useEffect(() => {
         fetchData();
@@ -64,8 +193,105 @@ export default function RoutingEditorPage({ params }) {
         }
     };
 
-    const handleSaveQuestions = async () => {
-        setSaving(true);
+
+    const addQuestion = () => {
+        const newQuestion = {
+            id: `temp-${Date.now()}`,
+            label: 'Untitled Question',
+            type: 'text',
+            placeholder: '',
+            required: false,
+            options: [],
+            order: form.questions.length
+        };
+        setForm({ ...form, questions: [...form.questions, newQuestion] });
+    };
+
+    const addRule = () => {
+        const newRule = {
+            id: `temp-${Date.now()}`,
+            questionId: form.questions[0]?.id || null,
+            operator: 'is',
+            value: '',
+            logicType: 'AND',
+            conditions: [
+                { questionId: form.questions[0]?.id || null, operator: 'is', value: '' }
+            ],
+            destination: '',
+            isFallback: false,
+            order: form.rules.length
+        };
+        setForm({ ...form, rules: [...form.rules, newRule] });
+    };
+
+    const handleAddCondition = (ruleIdx) => {
+        const newRules = [...form.rules];
+        const newCond = { questionId: form.questions[0]?.id || null, operator: 'is', value: '' };
+        newRules[ruleIdx].conditions = [...(newRules[ruleIdx].conditions || []), newCond];
+        setForm({ ...form, rules: newRules });
+    };
+
+    const handleRemoveCondition = (ruleIdx, condIdx) => {
+        const newRules = [...form.rules];
+        newRules[ruleIdx].conditions = newRules[ruleIdx].conditions.filter((_, i) => i !== condIdx);
+        setForm({ ...form, rules: newRules });
+    };
+
+    const handleUpdateCondition = (ruleIdx, condIdx, updates) => {
+        const newRules = [...form.rules];
+        newRules[ruleIdx].conditions[condIdx] = { ...newRules[ruleIdx].conditions[condIdx], ...updates };
+        setForm({ ...form, rules: newRules });
+    };
+
+    const handleUpdateOption = (qId, optIdx, newVal) => {
+        const newQs = form.questions.map(q => {
+            if (q.id === qId) {
+                const newOpts = [...(q.options || [])];
+                newOpts[optIdx] = newVal;
+                return { ...q, options: newOpts };
+            }
+            return q;
+        });
+        setForm({ ...form, questions: newQs });
+    };
+
+    const handleRemoveOption = (qId, optIdx) => {
+        const newQs = form.questions.map(q => {
+            if (q.id === qId) {
+                const newOpts = (q.options || []).filter((_, i) => i !== optIdx);
+                return { ...q, options: newOpts };
+            }
+            return q;
+        });
+        setForm({ ...form, questions: newQs });
+    };
+
+    const handleAddOption = (qId) => {
+        const newQs = form.questions.map(q => {
+            if (q.id === qId) {
+                const newOpts = [...(q.options || []), ''];
+                return { ...q, options: newOpts };
+            }
+            return q;
+        });
+        setForm({ ...form, questions: newQs });
+    };
+
+    // Autosave logic
+    useEffect(() => {
+        if (!form || loading) return;
+        
+        const delayDebounceFn = setTimeout(() => {
+            handleSaveQuestions(true);
+            handleSaveRules(true);
+        }, 2000); // 2 second debounce for autosave
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [form?.questions, form?.rules]);
+
+    const handleSaveQuestions = async (isAutosave = false) => {
+        if (!form) return;
+        if (!isAutosave) setSaving(true);
         try {
             const res = await fetch(`/api/routing/${id}/questions`, {
                 method: 'PUT',
@@ -79,19 +305,18 @@ export default function RoutingEditorPage({ params }) {
                     ...q,
                     options: q.options ? JSON.parse(q.options) : []
                 }));
-                setForm(prev => ({ ...prev, questions: processedQuestions }));
-                alert('Form structure saved and synchronized!');
+                if (!isAutosave) setForm(prev => ({ ...prev, questions: processedQuestions }));
             }
         } catch (error) {
             console.error('Error saving questions:', error);
-            alert('Failed to save questions. Check console for details.');
         } finally {
-            setSaving(false);
+            if (!isAutosave) setSaving(false);
         }
     };
 
-    const handleSaveRules = async () => {
-        setSaving(true);
+    const handleSaveRules = async (isAutosave = false) => {
+        if (!form) return;
+        if (!isAutosave) setSaving(true);
         try {
             const res = await fetch(`/api/routing/${id}/rules`, {
                 method: 'PUT',
@@ -100,49 +325,64 @@ export default function RoutingEditorPage({ params }) {
             });
             const data = await res.json();
             
-            if (data.rules) {
+            if (data.rules && !isAutosave) {
                 setForm(prev => ({ ...prev, rules: data.rules }));
-                alert('Routing logic updated and synchronized!');
             }
         } catch (error) {
             console.error('Error saving rules:', error);
-            alert('Failed to save logic rules.');
+        } finally {
+            if (!isAutosave) setSaving(false);
+        }
+    };
+
+    const handleUpdateSettings = async (updates) => {
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/routing/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates),
+            });
+            const data = await res.json();
+            if (data.form) {
+                setForm(prev => ({ ...prev, ...updates }));
+            }
+        } catch (error) {
+            console.error('Error updating settings:', error);
         } finally {
             setSaving(false);
         }
     };
 
-    const addQuestion = () => {
-        const newQ = {
-            id: `temp-${Date.now()}`,
-            label: 'New Question',
-            type: 'text',
-            required: false,
-            order: form.questions.length,
-            options: []
-        };
-        setForm({ ...form, questions: [...form.questions, newQ] });
-    };
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
 
-    const addRule = () => {
-        const newRule = {
-            id: `temp-${Date.now()}`,
-            questionId: form.questions[0]?.id || null,
-            operator: 'is',
-            value: '',
-            destination: '',
-            isFallback: false,
-            order: form.rules.length
-        };
-        setForm({ ...form, rules: [...form.rules, newRule] });
-    };
+        if (active.id !== over?.id) {
+            setForm((prev) => {
+                const oldIndex = prev.questions.findIndex((q) => q.id === active.id);
+                const newIndex = prev.questions.findIndex((q) => q.id === over.id);
 
-    if (loading) return (
-        <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Loading editor environment...</p>
-        </div>
-    );
+                const newQuestions = arrayMove(prev.questions, oldIndex, newIndex);
+                // Update order for each question
+                const updatedQuestions = newQuestions.map((q, i) => ({ ...q, order: i }));
+                return { ...prev, questions: updatedQuestions };
+            });
+        }
+    };
+    
+    if (loading) {
+        return (
+            <div className="loading-state">
+                <div className="spinner"></div>
+                <p>Preparing your editor...</p>
+                <style jsx>{`
+                    .loading-state { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; }
+                    .spinner { width: 40px; height: 40px; border: 3px solid var(--primary-light); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+                    @keyframes spin { to { transform: rotate(360deg); } }
+                `}</style>
+            </div>
+        );
+    }
     
     if (!form) return <div className="error-state">Routing form not found.</div>;
 
@@ -193,84 +433,31 @@ export default function RoutingEditorPage({ params }) {
                                 <button className="btn btn-primary" onClick={addQuestion}>
                                     + Add Question
                                 </button>
+                            </div>                            <div className="questions-stack">
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <SortableContext
+                                        items={form.questions.map(q => q.id)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        {form.questions.map((q, idx) => (
+                                            <SortableQuestion
+                                                key={q.id}
+                                                q={q}
+                                                idx={idx}
+                                                form={form}
+                                                setForm={setForm}
+                                                handleUpdateOption={handleUpdateOption}
+                                                handleRemoveOption={handleRemoveOption}
+                                                handleAddOption={handleAddOption}
+                                            />
+                                        ))}
+                                    </SortableContext>
+                                </DndContext>
                             </div>
-
-                            <div className="questions-stack">
-                                {form.questions.map((q, idx) => (
-                                    <div key={q.id} className="card question-card">
-                                        <div className="q-drag-handle">⠿</div>
-                                        <div className="q-content">
-                                            <div className="q-row">
-                                                <input
-                                                    className="q-input-label"
-                                                    placeholder="Enter question label..."
-                                                    value={q.label}
-                                                    onChange={(e) => {
-                                                        const newQs = [...form.questions];
-                                                        newQs[idx].label = e.target.value;
-                                                        setForm({ ...form, questions: newQs });
-                                                    }}
-                                                />
-                                                <select
-                                                    className="q-select-type"
-                                                    value={q.type}
-                                                    onChange={(e) => {
-                                                        const newQs = [...form.questions];
-                                                        newQs[idx].type = e.target.value;
-                                                        setForm({ ...form, questions: newQs });
-                                                    }}
-                                                >
-                                                    <option value="text">Text Input</option>
-                                                    <option value="dropdown">Dropdown Select</option>
-                                                    <option value="radio">Radio Options</option>
-                                                </select>
-                                            </div>
-                                            
-                                            {(q.type === 'dropdown' || q.type === 'radio') && (
-                                                <div className="q-options-area">
-                                                    <label className="field-label">Options (separate by comma)</label>
-                                                    <input
-                                                        className="input q-options-input"
-                                                        value={q.options?.join(', ') || ''}
-                                                        onChange={(e) => {
-                                                            const newQs = [...form.questions];
-                                                            newQs[idx].options = e.target.value.split(',').map(s => s.trim());
-                                                            setForm({ ...form, questions: newQs });
-                                                        }}
-                                                        placeholder="Sales, Support, Billing..."
-                                                    />
-                                                </div>
-                                            )}
-                                            
-                                            <div className="q-footer">
-                                                <div className="q-settings">
-                                                    <label className="checkbox-toggle">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={q.required}
-                                                            onChange={(e) => {
-                                                                const newQs = [...form.questions];
-                                                                newQs[idx].required = e.target.checked;
-                                                                setForm({ ...form, questions: newQs });
-                                                            }}
-                                                        />
-                                                        <span className="toggle-label">Required field</span>
-                                                    </label>
-                                                </div>
-                                                <button className="btn-icon-danger" onClick={() => {
-                                                    const deletedQId = form.questions[idx].id;
-                                                    const newQs = form.questions.filter((_, i) => i !== idx);
-                                                    const newRules = form.rules.filter(r => r.questionId !== deletedQId);
-                                                    setForm({ ...form, questions: newQs, rules: newRules });
-                                                }}>
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            
                             <div className="builder-save-bar">
                                 <button className="btn btn-primary btn-lg" onClick={handleSaveQuestions} disabled={saving}>
                                     {saving ? 'Syncing...' : 'Save Structure'}
@@ -302,45 +489,81 @@ export default function RoutingEditorPage({ params }) {
                                             }}>×</button>
                                         </div>
                                         <div className="rule-body">
-                                            <div className="logic-row">
-                                                <span className="logic-keyword">IF</span>
-                                                <select
-                                                    className="select-logic"
-                                                    value={rule.questionId || ''}
-                                                    onChange={(e) => {
-                                                        const newRules = [...form.rules];
-                                                        newRules[idx].questionId = e.target.value;
-                                                        setForm({ ...form, rules: newRules });
-                                                    }}
-                                                >
-                                                    <option value="">Choose Question</option>
-                                                    {form.questions.map(q => <option key={q.id} value={q.id}>{q.label}</option>)}
-                                                </select>
-                                                <select
-                                                    className="select-operator"
-                                                    value={rule.operator}
-                                                    onChange={(e) => {
-                                                        const newRules = [...form.rules];
-                                                        newRules[idx].operator = e.target.value;
-                                                        setForm({ ...form, rules: newRules });
-                                                    }}
-                                                >
-                                                    <option value="is">is</option>
-                                                    <option value="is_not">is not</option>
-                                                    <option value="contains">contains</option>
-                                                </select>
-                                                <input
-                                                    className="input-logic-val"
-                                                    placeholder="Value"
-                                                    value={rule.value}
-                                                    onChange={(e) => {
-                                                        const newRules = [...form.rules];
-                                                        newRules[idx].value = e.target.value;
-                                                        setForm({ ...form, rules: newRules });
-                                                    }}
-                                                />
+                                            <div className="conditions-container">
+                                                {(rule.conditions || [{ questionId: rule.questionId, operator: rule.operator, value: rule.value }]).map((cond, condIdx) => (
+                                                    <div key={condIdx} className="logic-row condition-row mb-2">
+                                                        <span className="logic-keyword">
+                                                            {condIdx === 0 ? 'IF' : rule.logicType || 'AND'}
+                                                        </span>
+                                                        <select
+                                                            className="select-logic"
+                                                            value={cond.questionId || ''}
+                                                            onChange={(e) => handleUpdateCondition(idx, condIdx, { questionId: e.target.value })}
+                                                        >
+                                                            <option value="">Choose Question</option>
+                                                            {form.questions.map(q => <option key={q.id} value={q.id}>{q.label}</option>)}
+                                                        </select>
+                                                        <select
+                                                            className="select-operator"
+                                                            value={cond.operator}
+                                                            onChange={(e) => handleUpdateCondition(idx, condIdx, { operator: e.target.value })}
+                                                        >
+                                                            <option value="is">is</option>
+                                                            <option value="is_not">is not</option>
+                                                            <option value="contains">contains</option>
+                                                            <option value="in">is in (comma-separated)</option>
+                                                        </select>
+                                                        {(() => {
+                                                            const selectedQ = form.questions.find(q => q.id === cond.questionId);
+                                                            if (selectedQ && (selectedQ.type === 'dropdown' || selectedQ.type === 'radio')) {
+                                                                return (
+                                                                    <select
+                                                                        className="input-logic-val"
+                                                                        value={cond.value}
+                                                                        onChange={(e) => handleUpdateCondition(idx, condIdx, { value: e.target.value })}
+                                                                    >
+                                                                        <option value="">Select Option</option>
+                                                                        {(selectedQ.options || []).map((opt, i) => (
+                                                                            <option key={i} value={opt}>{opt}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                );
+                                                            }
+                                                            return (
+                                                                <input
+                                                                    className="input-logic-val"
+                                                                    placeholder={cond.operator === 'in' ? "e.g. Sales, Support" : "Value"}
+                                                                    value={cond.value}
+                                                                    onChange={(e) => handleUpdateCondition(idx, condIdx, { value: e.target.value })}
+                                                                />
+                                                            );
+                                                        })()}
+                                                        {(rule.conditions?.length > 1) && (
+                                                            <button className="btn-remove-cond" onClick={() => handleRemoveCondition(idx, condIdx)}>×</button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                <div className="condition-actions mt-3">
+                                                    <button className="btn btn-ghost btn-sm" onClick={() => handleAddCondition(idx)}>+ Add Condition</button>
+                                                    {(rule.conditions?.length > 1) && (
+                                                        <select 
+                                                            className="select-logic-type ml-2"
+                                                            value={rule.logicType || 'AND'} 
+                                                            onChange={(e) => {
+                                                                const newRules = [...form.rules];
+                                                                newRules[idx].logicType = e.target.value;
+                                                                setForm({ ...form, rules: newRules });
+                                                            }}
+                                                        >
+                                                            <option value="AND">Match all conditions (AND)</option>
+                                                            <option value="OR">Match any condition (OR)</option>
+                                                        </select>
+                                                    )}
+                                                </div>
                                             </div>
+                                            
                                             <div className="logic-arrow">↓</div>
+                                            
                                             <div className="logic-row">
                                                 <span className="logic-keyword-then">THEN ROUTE TO</span>
                                                 <select
@@ -457,12 +680,48 @@ export default function RoutingEditorPage({ params }) {
                             <h2 className="section-title">Form Settings</h2>
                             <div className="card settings-card">
                                 <div className="setting-group">
+                                    <h3 className="settings-section-title">Form Details</h3>
+                                    <p className="settings-section-desc">Change the identity of this routing form.</p>
+                                    
+                                    <div className="input-group-vertical mt-4">
+                                        <div className="field-block">
+                                            <label className="field-label">Display Name</label>
+                                            <input 
+                                                className="input w-full" 
+                                                value={form.name} 
+                                                onChange={(e) => {
+                                                    const newName = e.target.value;
+                                                    setForm({ ...form, name: newName, slug: slugify(newName) });
+                                                }}
+                                                onBlur={(e) => handleUpdateSettings({ name: form.name, slug: form.slug })}
+                                                placeholder="e.g. Sales Inquiry"
+                                            />
+                                        </div>
+                                        <div className="field-block mt-4">
+                                            <label className="field-label">Description</label>
+                                            <textarea 
+                                                className="input w-full min-h-[100px]" 
+                                                value={form.description || ''} 
+                                                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                                onBlur={(e) => handleUpdateSettings({ description: e.target.value })}
+                                                placeholder="Explain what this form is for..."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="divider"></div>
+                                <div className="setting-group">
                                     <label className="field-label">Form URL Slug</label>
                                     <div className="slug-preview">
                                         <span className="domain-prefix">router.cal/</span>
-                                        <input className="input-slug" value={form.slug} readOnly />
+                                        <input 
+                                            className="input-slug" 
+                                            value={form.slug} 
+                                            readOnly
+                                            placeholder="unique-link-text"
+                                        />
                                     </div>
-                                    <p className="help-text">This is the unique part of your public link.</p>
+                                    <p className="help-text">This is the unique part of your public link. Changing this will break existing links.</p>
                                 </div>
                                 <div className="divider"></div>
                                 <div className="setting-group">
@@ -478,7 +737,11 @@ export default function RoutingEditorPage({ params }) {
                                 <div className="divider"></div>
                                 <div className="setting-group">
                                     <label className="checkbox-toggle">
-                                        <input type="checkbox" checked={form.isActive} readOnly />
+                                        <input 
+                                            type="checkbox" 
+                                            checked={form.isActive} 
+                                            onChange={(e) => handleUpdateSettings({ isActive: e.target.checked })}
+                                        />
                                         <span className="toggle-label">Accept submissions for this form</span>
                                     </label>
                                 </div>
@@ -589,44 +852,52 @@ export default function RoutingEditorPage({ params }) {
                     gap: 16px;
                     margin-bottom: 15rem;
                 }
-                .question-card {
+                :global(.question-card) {
                     display: flex;
                     padding: 0;
                     overflow: visible;
+                    background: white;
+                    border: 1px solid var(--border-color);
+                    border-radius: 12px;
                 }
-                .q-drag-handle {
+                :global(.q-drag-handle) {
                     width: 40px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: #d1d5db;
+                    color: #94a3b8;
                     font-size: 20px;
                     cursor: grab;
                     background: #f8fafc;
                     border-right: 1px solid var(--border-light);
+                    user-select: none;
+                    border-top-left-radius: 12px;
+                    border-bottom-left-radius: 12px;
                 }
-                .q-content {
+                :global(.q-drag-handle:active) { cursor: grabbing; }
+                :global(.q-content) {
                     padding: 24px;
                     flex: 1;
                 }
-                .q-row {
+                :global(.q-row) {
                     display: flex;
                     gap: 16px;
                     margin-bottom: 16px;
                 }
-                .q-input-label {
+                :global(.q-input-label) {
                     flex: 1;
                     font-size: 18px;
                     font-weight: 600;
                     border: 1px solid transparent;
                     padding: 4px 0;
                     color: var(--text-primary);
+                    background: transparent;
                 }
-                .q-input-label:focus {
+                :global(.q-input-label:focus) {
                     outline: none;
                     border-bottom: 2px solid var(--primary);
                 }
-                .q-select-type {
+                :global(.q-select-type) {
                     padding: 8px 12px;
                     border: 1px solid var(--border-color);
                     border-radius: 8px;
@@ -634,7 +905,7 @@ export default function RoutingEditorPage({ params }) {
                     font-size: 14px;
                     font-weight: 500;
                 }
-                .q-footer {
+                :global(.q-footer) {
                     margin-top: 20px;
                     padding-top: 16px;
                     border-top: 1px solid #f1f5f9;
@@ -642,23 +913,67 @@ export default function RoutingEditorPage({ params }) {
                     justify-content: space-between;
                     align-items: center;
                 }
-                .checkbox-toggle {
+                :global(.checkbox-toggle) {
                     display: flex;
                     align-items: center;
                     gap: 8px;
                     cursor: pointer;
                 }
-                .toggle-label {
+                :global(.toggle-label) {
                     font-size: 13px;
                     font-weight: 500;
                     color: #64748b;
                 }
-                .btn-icon-danger {
+                :global(.q-options-area) {
+                    margin-top: 16px;
+                }
+                :global(.options-editor-list) {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    margin-top: 8px;
+                }
+                :global(.option-editor-row) {
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                }
+                :global(.q-option-input) {
+                    flex: 1;
+                    padding: 8px 12px;
+                    font-size: 14px;
+                }
+                :global(.btn-remove-opt) {
+                    background: none;
+                    border: none;
+                    color: #94a3b8;
+                    font-size: 18px;
+                    cursor: pointer;
+                    padding: 0 8px;
+                }
+                :global(.btn-remove-opt:hover) { color: var(--danger); }
+                :global(.btn-add-opt) {
+                    background: none;
+                    border: 1px dashed #cbd5e1;
+                    border-radius: 8px;
+                    padding: 8px;
+                    color: var(--primary);
+                    font-size: 13px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    margin-top: 4px;
+                }
+                :global(.btn-add-opt:hover) {
+                    background: #f0f7ff;
+                    border-color: var(--primary);
+                }
+                :global(.btn-icon-danger) {
                     color: #94a3b8;
                     background: none;
                     transition: all 0.2s;
+                    border: none;
                 }
-                .btn-icon-danger:hover {
+                :global(.btn-icon-danger:hover) {
                     color: var(--danger);
                 }
                 .rule-card {
@@ -682,6 +997,67 @@ export default function RoutingEditorPage({ params }) {
                 .rule-body {
                     padding: 24px;
                 }
+                .conditions-container {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 12px;
+                    padding: 16px;
+                    margin-bottom: 16px;
+                }
+                .condition-row {
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                    background: white;
+                    padding: 10px;
+                    border-radius: 8px;
+                    border: 1px solid #f1f5f9;
+                    margin-bottom: 8px;
+                }
+                .condition-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-top: 12px;
+                }
+                .btn-remove-cond {
+                    background: #fee2e2;
+                    color: #ef4444;
+                    border: none;
+                    border-radius: 6px;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    font-size: 18px;
+                }
+                .select-logic-type {
+                    font-size: 12px;
+                    padding: 4px 10px;
+                    border-radius: 6px;
+                    border: 1px solid #cbd5e1;
+                    color: var(--primary);
+                    font-weight: 600;
+                    background: #f0f7ff;
+                    cursor: pointer;
+                }
+                .mb-2 { margin-bottom: 8px; }
+                .mt-3 { margin-top: 12px; }
+                .ml-2 { margin-left: 8px; }
+                .btn-ghost {
+                    background: none;
+                    border: none;
+                    color: var(--primary);
+                    font-size: 13px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                }
+                .btn-ghost:hover { background: #f0f7ff; }
+                .btn-sm { font-size: 12px; padding: 4px 8px; }
                 .logic-row {
                     display: flex;
                     align-items: center;
@@ -788,6 +1164,21 @@ export default function RoutingEditorPage({ params }) {
                     font-weight: 500;
                     color: #475569;
                 }
+                
+                .settings-section-title {
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 4px;
+                    color: var(--text-primary);
+                }
+                .settings-section-desc {
+                    font-size: 13px;
+                    color: var(--text-tertiary);
+                    margin-bottom: 24px;
+                }
+                .w-full { width: 100%; }
+                .min-h-\[100px\] { min-height: 100px; }
+                .mt-4 { margin-top: 16px; }
                 
                 .settings-card {
                     margin-top: 24px;

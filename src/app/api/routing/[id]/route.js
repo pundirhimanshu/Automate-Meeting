@@ -34,11 +34,11 @@ export async function PATCH(request, { params }) {
 
         const { id } = params;
         const body = await request.json();
-        const { name, description, isActive } = body;
+        const { name, slug, description, isActive } = body;
 
         const form = await prisma.routingForm.update({
             where: { id, userId: session.user.id },
-            data: { name, description, isActive }
+            data: { name, slug, description, isActive }
         });
 
         return NextResponse.json({ form });

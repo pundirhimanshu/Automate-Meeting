@@ -104,105 +104,127 @@ export default function PublicRouterPage({ params }) {
                         <p className="form-subtitle">{form.description || 'Welcome. Please fill out the details below to find the best time for our meeting.'}</p>
                     </header>
 
-                    <form onSubmit={handleSubmit} className="actual-form">
-                        <div className="form-section">
-                            <h3 className="section-label">Your Details</h3>
-                            <div className="input-grid">
-                                <div className="field-block">
-                                    <label>Full Name</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        className="premium-input"
-                                        value={invitee.name}
-                                        onChange={(e) => setInvitee({ ...invitee, name: e.target.value })}
-                                        placeholder="Enter your name"
-                                    />
-                                </div>
-                                <div className="field-block">
-                                    <label>Email Address</label>
-                                    <input
-                                        type="email"
-                                        required
-                                        className="premium-input"
-                                        value={invitee.email}
-                                        onChange={(e) => setInvitee({ ...invitee, email: e.target.value })}
-                                        placeholder="name@company.com"
-                                    />
+                    {form.isActive ? (
+                        <form onSubmit={handleSubmit} className="actual-form">
+                            <div className="form-section">
+                                <h3 className="section-label">Your Details</h3>
+                                <div className="input-grid">
+                                    <div className="field-block">
+                                        <label>Full Name</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="premium-input"
+                                            value={invitee.name}
+                                            onChange={(e) => setInvitee({ ...invitee, name: e.target.value })}
+                                            placeholder="Enter your name"
+                                        />
+                                    </div>
+                                    <div className="field-block">
+                                        <label>Email Address</label>
+                                        <input
+                                            type="email"
+                                            required
+                                            className="premium-input"
+                                            value={invitee.email}
+                                            onChange={(e) => setInvitee({ ...invitee, email: e.target.value })}
+                                            placeholder="name@company.com"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="form-section divider-top">
-                            <h3 className="section-label">Tell us more</h3>
-                            <div className="input-stack">
-                                {form.questions.map((q) => (
-                                    <div key={q.id} className="field-block">
-                                        <label>{q.label} {q.required && <span className="req">*</span>}</label>
+                            <div className="form-section divider-top">
+                                <h3 className="section-label">Tell us more</h3>
+                                <div className="input-stack">
+                                    {form.questions.map((q) => (
+                                        <div key={q.id} className="field-block">
+                                            <label>{q.label} {q.required && <span className="req">*</span>}</label>
 
-                                        {q.type === 'text' && (
-                                            <input
-                                                type="text"
-                                                required={q.required}
-                                                className="premium-input"
-                                                placeholder={q.placeholder || 'Type your answer...'}
-                                                value={answers[q.id] || ''}
-                                                onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-                                            />
-                                        )}
-
-                                        {q.type === 'dropdown' && (
-                                            <div className="select-wrapper">
-                                                <select
+                                            {q.type === 'text' && (
+                                                <input
+                                                    type="text"
                                                     required={q.required}
-                                                    className="premium-select"
+                                                    className="premium-input"
+                                                    placeholder={q.placeholder || 'Type your answer...'}
                                                     value={answers[q.id] || ''}
                                                     onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-                                                >
-                                                    <option value="" disabled>Choose an option</option>
+                                                />
+                                            )}
+
+                                            {q.type === 'dropdown' && (
+                                                <div className="select-wrapper">
+                                                    <select
+                                                        required={q.required}
+                                                        className="premium-select"
+                                                        value={answers[q.id] || ''}
+                                                        onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+                                                    >
+                                                        <option value="" disabled>Choose an option</option>
+                                                        {q.options.map((opt, i) => (
+                                                            <option key={i} value={opt}>{opt}</option>
+                                                        ))}
+                                                    </select>
+                                                    <span className="select-icon">▼</span>
+                                                </div>
+                                            )}
+
+                                            {q.type === 'radio' && (
+                                                <div className="radio-list">
                                                     {q.options.map((opt, i) => (
-                                                        <option key={i} value={opt}>{opt}</option>
+                                                        <label key={i} className={`radio-pill ${answers[q.id] === opt ? 'selected' : ''}`}>
+                                                            <input
+                                                                type="radio"
+                                                                name={q.id}
+                                                                required={q.required}
+                                                                value={opt}
+                                                                checked={answers[q.id] === opt}
+                                                                onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+                                                            />
+                                                            {opt}
+                                                        </label>
                                                     ))}
-                                                </select>
-                                                <span className="select-icon">▼</span>
-                                            </div>
-                                        )}
-
-                                        {q.type === 'radio' && (
-                                            <div className="radio-list">
-                                                {q.options.map((opt, i) => (
-                                                    <label key={i} className={`radio-pill ${answers[q.id] === opt ? 'selected' : ''}`}>
-                                                        <input
-                                                            type="radio"
-                                                            name={q.id}
-                                                            required={q.required}
-                                                            value={opt}
-                                                            checked={answers[q.id] === opt}
-                                                            onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-                                                        />
-                                                        {opt}
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                                </div>
+                                            )}
+                                            {q.type === 'phone' && (
+                                                <div className="phone-input-wrapper">
+                                                    <input
+                                                        type="tel"
+                                                        required={q.required}
+                                                        className="premium-input"
+                                                        placeholder={q.placeholder || '+1 123 456 7890'}
+                                                        value={answers[q.id] || ''}
+                                                        onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        <button
-                            type="submit"
-                            className={`submit-action-btn ${status === 'submitting' ? 'spinning' : ''}`}
-                            disabled={status === 'submitting'}
-                        >
-                            {status === 'submitting' ? 'Finding available times...' : 'Next'}
-                            <span className="arrow">→</span>
-                        </button>
-                    </form>
+                            <button
+                                type="submit"
+                                className={`submit-action-btn ${status === 'submitting' ? 'spinning' : ''}`}
+                                disabled={status === 'submitting'}
+                            >
+                                {status === 'submitting' ? 'Finding available times...' : 'Next'}
+                                <span className="arrow">→</span>
+                            </button>
+                        </form>
+                    ) : (
+                        <div className="form-inactive-state">
+                            <div className="inactive-icon-wrapper">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            </div>
+                            <h3>Form currently closed</h3>
+                            <p>This form is not accepting responses at the moment. Please contact the organizer directly if you have any questions.</p>
+                        </div>
+                    )}
                 </div>
                 
                 <footer className="public-form-footer">
-                    <p>Powered by <strong>Automate Bookings</strong></p>
+                    <p>Powered by <strong>Scheduler</strong></p>
                 </footer>
             </main>
 
@@ -229,6 +251,32 @@ export default function PublicRouterPage({ params }) {
                     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
                     padding: 48px;
                     margin-bottom: 24px;
+                }
+                .form-inactive-state {
+                    text-align: center;
+                    padding: 40px 0;
+                }
+                .inactive-icon-wrapper {
+                    width: 80px;
+                    height: 80px;
+                    background: #fef2f2;
+                    color: #ef4444;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 24px;
+                }
+                .form-inactive-state h3 {
+                    font-size: 22px;
+                    font-weight: 700;
+                    color: #111827;
+                    margin-bottom: 12px;
+                }
+                .form-inactive-state p {
+                    font-size: 15px;
+                    color: #6b7280;
+                    line-height: 1.6;
                 }
                 .brand-dot {
                     width: 12px;

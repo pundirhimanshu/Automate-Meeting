@@ -22,6 +22,8 @@ export async function POST(request, { params }) {
                 questionId,
                 operator,
                 value,
+                logicType: body.logicType || 'AND',
+                conditions: body.conditions || null,
                 destination,
                 isFallback,
                 order: order || 0
@@ -79,7 +81,8 @@ export async function PUT(request, { params }) {
                             operator: r.operator,
                             value: r.value,
                             destination: r.destination,
-                            isFallback: r.isFallback || false,
+                            logicType: r.logicType || 'AND',
+                            conditions: r.conditions || null,
                             order: r.order || 0
                         }
                     });
@@ -90,8 +93,8 @@ export async function PUT(request, { params }) {
                             questionId: r.questionId,
                             operator: r.operator,
                             value: r.value,
-                            destination: r.destination,
-                            isFallback: r.isFallback,
+                            logicType: r.logicType,
+                            conditions: r.conditions,
                             order: r.order
                         }
                     });

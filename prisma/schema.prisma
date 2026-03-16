@@ -343,8 +343,10 @@ model RoutingRule {
   form          RoutingForm     @relation(fields: [formId], references: [id], onDelete: Cascade)
   questionId    String?
   question      RoutingQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
-  operator      String?         // "is", "is_not", "contains", "greater_than"
+  operator      String?         // "is", "is_not", "contains", "greater_than", "in" (multi-select)
   value         String?
+  logicType     String          @default("AND") // "AND", "OR"
+  conditions    Json?           // Array of { questionId, operator, value }
   destination   String          // URL or "event-type:[id]"
   isFallback    Boolean         @default(false)
   order         Int             @default(0)

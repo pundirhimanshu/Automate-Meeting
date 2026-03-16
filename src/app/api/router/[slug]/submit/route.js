@@ -90,7 +90,7 @@ export async function GET(request, { params }) {
             }
         });
 
-        if (!form || !form.isActive) {
+        if (!form) {
             return NextResponse.json({ error: 'Routing form not found' }, { status: 404 });
         }
 

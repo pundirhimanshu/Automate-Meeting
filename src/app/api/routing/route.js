@@ -16,7 +16,10 @@ export async function GET(request) {
             where: { userId: session.user.id },
             include: {
                 _count: {
-                    select: { submissions: true }
+                    select: { 
+                        submissions: true,
+                        questions: true
+                    }
                 }
             },
             orderBy: { createdAt: 'desc' }
