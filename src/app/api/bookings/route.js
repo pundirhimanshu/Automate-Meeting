@@ -289,7 +289,7 @@ export async function POST(request) {
                     topic: `${inviteeName} & ${eventType.title}`,
                     startTime: new Date(startTime),
                     duration: eventType.duration,
-                    userId: eventType.userId
+                    userId: assignedHostId
                 });
             } catch (zoomErr) {
                 console.error('[BOOKING] Zoom meeting creation failed:', zoomErr.message);
@@ -301,7 +301,7 @@ export async function POST(request) {
                     subject: `${inviteeName} & ${eventType.title}`,
                     startTime: new Date(startTime),
                     endTime: new Date(endTime),
-                    userId: eventType.userId
+                    userId: assignedHostId
                 });
             } catch (teamsErr) {
                 console.error('[BOOKING] Teams meeting creation failed:', teamsErr.message);
@@ -316,7 +316,7 @@ export async function POST(request) {
                     startTime: new Date(startTime),
                     endTime: new Date(endTime),
                     attendeeEmail: inviteeEmail,
-                    userId: eventType.userId,
+                    userId: assignedHostId,
                 });
                 meetingLink = result.meetLink || 'Google Meet link unavailable';
             } catch (googleErr) {

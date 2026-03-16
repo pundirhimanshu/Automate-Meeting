@@ -10,7 +10,7 @@ export function evaluateRoutingRules(rules, answers) {
     for (const rule of sortedRules) {
         if (rule.isFallback) continue;
 
-        const answer = answers[rule.questionId];
+        const answer = answers[rule.questionId] !== undefined ? answers[rule.questionId] : answers[rule.question?.label];
         if (answer === undefined) continue;
 
         let isMatch = false;

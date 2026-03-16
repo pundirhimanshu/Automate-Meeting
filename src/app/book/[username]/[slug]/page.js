@@ -258,7 +258,7 @@ export default function BookingPage() {
                             <div>📅 {selectedDate?.toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
                             <div>🕐 {selectedTime?.label} ({data.eventType.duration} min)</div>
                             <div>🌍 {inviteeTimezone}</div>
-                            {data.eventType.location && <div>📍 {data.eventType.location}</div>}
+                            {bookedData?.location && <div>📍 {bookedData.location}</div>}
                         </div>
                     </div>
                     <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 import { getUserSubscription } from '@/lib/subscription';
 
-export async function GET() {
+export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session) {
