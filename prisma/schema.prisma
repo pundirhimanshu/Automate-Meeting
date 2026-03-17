@@ -146,6 +146,7 @@ model Booking {
   executedWorkflows    String[]        @default([]) // Stores IDs of workflows that have already run for this booking
   answers              BookingAnswer[]
   notifications        Notification[]
+  isSingleUse          Boolean         @default(false)
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
 }

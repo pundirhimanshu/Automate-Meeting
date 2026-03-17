@@ -68,6 +68,15 @@ export async function GET(request) {
                 ],
                 status: 'rescheduled',
             };
+        } else if (status === 'single-use') {
+            where = {
+                OR: [
+                    { hostId: session.user.id },
+                    { eventType: { coHosts: { some: { id: session.user.id } } } }
+                ],
+                isSingleUse: true,
+                status: { in: ['confirmed', 'pending', 'completed', 'rescheduled'] }
+            };
         }
 
         // Add search filter
@@ -348,6 +357,7 @@ export async function POST(request) {
                     answer: a.answer,
                 })),
             } : undefined,
+            isSingleUse: !!singleUseToken,
         };
 
         let booking;

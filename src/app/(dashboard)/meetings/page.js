@@ -218,11 +218,11 @@ export default function MeetingsPage() {
             </div>
 
             <div className="tabs" style={{ marginBottom: '16px' }}>
-                {['upcoming', 'past', 'cancelled', 'rescheduled'].map((tab) => (
-                    <button key={tab} className={`tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
-                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </button>
-                ))}
+                <button className={`tab ${activeTab === 'upcoming' ? 'active' : ''}`} onClick={() => setActiveTab('upcoming')}>Upcoming</button>
+                <button className={`tab ${activeTab === 'past' ? 'active' : ''}`} onClick={() => setActiveTab('past')}>Past</button>
+                <button className={`tab ${activeTab === 'cancelled' ? 'active' : ''}`} onClick={() => setActiveTab('cancelled')}>Cancelled</button>
+                <button className={`tab ${activeTab === 'rescheduled' ? 'active' : ''}`} onClick={() => setActiveTab('rescheduled')}>Rescheduled</button>
+                <button className={`tab ${activeTab === 'single-use' ? 'active' : ''}`} onClick={() => setActiveTab('single-use')}>Single Use Links</button>
             </div>
 
             {/* Search & Filter Bar */}
