@@ -19,6 +19,7 @@ const DEFAULT_COLUMNS = [
     { id: 'lastMeetingDate', label: 'Last meeting date', visible: true },
     { id: 'nextMeetingDate', label: 'Next meeting date', visible: true },
     { id: 'company', label: 'Company', visible: true },
+    { id: 'notes', label: 'Notes', visible: true },
 ];
 
 export default function ContactsPage() {
@@ -35,7 +36,7 @@ export default function ContactsPage() {
 
     // Add contact drawer
     const [addDrawer, setAddDrawer] = useState(false);
-    const [addForm, setAddForm] = useState({ name: '', email: '', phone: '', company: '' });
+    const [addForm, setAddForm] = useState({ name: '', email: '', phone: '', company: '', notes: '' });
     const [addFieldValues, setAddFieldValues] = useState({});
     const [addLoading, setAddLoading] = useState(false);
     const [addError, setAddError] = useState('');
@@ -49,6 +50,10 @@ export default function ContactsPage() {
     // Edit contact state
     const [editingCell, setEditingCell] = useState(null); // { contactId, column }
     const [editValue, setEditValue] = useState('');
+
+    // Details drawer state
+    const [selectedContact, setSelectedContact] = useState(null);
+    const [detailsDrawer, setDetailsDrawer] = useState(false);
 
     useEffect(() => {
         fetchContacts();
@@ -117,7 +122,7 @@ export default function ContactsPage() {
 
             if (res.ok) {
                 setAddDrawer(false);
-                setAddForm({ name: '', email: '', phone: '', company: '' });
+                setAddForm({ name: '', email: '', phone: '', company: '', notes: '' });
                 setAddFieldValues({});
                 fetchContacts();
             } else {
@@ -402,6 +407,8 @@ export default function ContactsPage() {
                                             value = contact.phone || '';
                                         } else if (col.id === 'company') {
                                             value = contact.company || '';
+                                        } else if (col.id === 'notes') {
+                                            value = contact.notes || '';
                                         } else if (col.id === 'lastMeetingDate') {
                                             value = formatDate(contact.lastMeetingDate);
                                         } else if (col.id === 'nextMeetingDate') {
@@ -434,29 +441,52 @@ export default function ContactsPage() {
                                                     />
                                                 ) : (
                                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                                        {col.id === 'name' && (
-                                                            <span style={{
-                                                                width: '22px', height: '22px', borderRadius: '50%', background: 'var(--primary-light)',
-                                                                color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                                                fontSize: '0.625rem', fontWeight: 700, flexShrink: 0,
-                                                            }}>
-                                                                {contact.name?.charAt(0)?.toUpperCase()}
-                                                            </span>
+                                                        {col.id === 'name' ? (
+                                                            <div
+                                                                style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                                                                onClick={(e) => { e.stopPropagation(); setSelectedContact(contact); setDetailsDrawer(true); }}
+                                                            >
+                                                                <span style={{
+                                                                    width: '22px', height: '22px', borderRadius: '50%', background: 'var(--primary-light)',
+                                                                    color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                                                    fontSize: '0.625rem', fontWeight: 700, flexShrink: 0,
+                                                                }}>
+                                                                    {contact.name?.charAt(0)?.toUpperCase()}
+                                                                </span>
+                                                                <span style={{ fontWeight: 600, color: 'var(--primary)', borderBottom: '1px solid transparent' }}
+                                                                    onMouseEnter={(e) => e.target.style.borderBottom = '1px solid var(--primary)'}
+                                                                    onMouseLeave={(e) => e.target.style.borderBottom = '1px solid transparent'}
+                                                                >
+                                                                    {value}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                {value || <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                                                            </>
                                                         )}
-                                                        {value || <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
                                                     </span>
                                                 )}
                                             </td>
                                         );
                                     })}
                                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                                        <button
-                                            onClick={() => deleteContact(contact.id)}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '4px' }}
-                                            title="Delete contact"
-                                        >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                            <button
+                                                onClick={() => { setSelectedContact(contact); setDetailsDrawer(true); }}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '4px' }}
+                                                title="View details"
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                                            </button>
+                                            <button
+                                                onClick={() => deleteContact(contact.id)}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '4px' }}
+                                                title="Delete contact"
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
@@ -502,10 +532,14 @@ export default function ContactsPage() {
                                             <label>Phone</label>
                                             <input className="input" placeholder="+1 (555) 000-0000" value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })} />
                                         </div>
-                                        <div className="input-group">
+                                         <div className="input-group">
                                             <label>Company</label>
                                             <input className="input" placeholder="Company name" value={addForm.company} onChange={(e) => setAddForm({ ...addForm, company: e.target.value })} />
-                                        </div>
+                                         </div>
+                                         <div className="input-group">
+                                            <label>Notes</label>
+                                            <textarea className="input" placeholder="Additional notes..." value={addForm.notes} onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })} rows={3} />
+                                         </div>
                                     </div>
                                 </div>
 
@@ -655,6 +689,125 @@ export default function ContactsPage() {
                             >
                                 Create
                             </button>
+                        </div>
+                    </div>
+                </>
+            )}
+            {/* ===== CONTACT DETAILS DRAWER ===== */}
+            {detailsDrawer && selectedContact && (
+                <>
+                    <div className="drawer-overlay" onClick={() => { setDetailsDrawer(false); setSelectedContact(null); }} />
+                    <div className="drawer">
+                        <div className="drawer-header">
+                            <h2>Contact Details</h2>
+                            <button className="drawer-close" onClick={() => { setDetailsDrawer(false); setSelectedContact(null); }}>✕</button>
+                        </div>
+                        <div className="drawer-body">
+                            {/* Header Info */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                                <div style={{
+                                    width: '56px', height: '56px', borderRadius: '50%', background: 'var(--primary-light)',
+                                    color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '1.5rem', fontWeight: 700, flexShrink: 0
+                                }}>
+                                    {selectedContact.name?.charAt(0)?.toUpperCase()}
+                                </div>
+                                <div>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '4px' }}>{selectedContact.name}</h3>
+                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>{selectedContact.company || 'No company'}</div>
+                                </div>
+                            </div>
+
+                            {/* Contact Details */}
+                            <div className="drawer-section">
+                                <div className="drawer-section-title">Contact Information</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ color: 'var(--text-tertiary)' }}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Email</div>
+                                            <a href={`mailto:${selectedContact.email}`} style={{ fontSize: '0.9375rem', color: 'var(--primary)', textDecoration: 'none' }}>{selectedContact.email}</a>
+                                        </div>
+                                    </div>
+                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ color: 'var(--text-tertiary)' }}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Phone</div>
+                                            <div style={{ fontSize: '0.9375rem' }}>{selectedContact.phone || '—'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ color: 'var(--text-tertiary)' }}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Company</div>
+                                            <div style={{ fontSize: '0.9375rem' }}>{selectedContact.company || '—'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Activity */}
+                            <div className="drawer-section">
+                                <div className="drawer-section-title">Activity</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ color: 'var(--text-tertiary)' }}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Last Meeting</div>
+                                            <div style={{ fontSize: '0.9375rem' }}>{formatDate(selectedContact.lastMeetingDate) || 'No past meetings'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ color: 'var(--text-tertiary)' }}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Next Meeting</div>
+                                            <div style={{ fontSize: '0.9375rem', color: selectedContact.nextMeetingDate ? 'var(--primary)' : 'inherit', fontWeight: selectedContact.nextMeetingDate ? 600 : 400 }}>
+                                                {formatDate(selectedContact.nextMeetingDate) || 'No upcoming meetings'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Custom Fields */}
+                            {(customFields.length > 0 || selectedContact.notes) && (
+                                <div className="drawer-section">
+                                    <div className="drawer-section-title">Additional Info</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        {selectedContact.notes && (
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '4px', fontWeight: 500 }}>Notes</div>
+                                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', background: 'var(--bg-page)', padding: '12px', borderRadius: 'var(--radius-md)', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                                                    {selectedContact.notes}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {customFields.map((f) => {
+                                            const val = getFieldValue(selectedContact, f.id);
+                                            if (!val) return null;
+                                            return (
+                                                <div key={f.id}>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>{f.name}</div>
+                                                    <div style={{ fontSize: '0.9375rem' }}>{val}</div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="drawer-footer">
+                            <button className="btn btn-secondary w-full" onClick={() => { setDetailsDrawer(false); setSelectedContact(null); }}>Close</button>
                         </div>
                     </div>
                 </>

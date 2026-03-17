@@ -25,6 +25,13 @@ export async function POST(request, { params }) {
             // Find a common host/user for this form to assign the contact
             const userId = form.userId;
 
+            // Format answers for human-readable notes
+            const formattedAnswers = Object.entries(answers)
+                .map(([q, a]) => `- ${q}: ${a}`)
+                .join('\n');
+
+            const contactNotes = `Routed via: ${form.name}${formattedAnswers ? '\n\nAnswers:\n' + formattedAnswers : ''}`;
+
             await prisma.contact.upsert({
                 where: {
                     userId_email: {
@@ -34,13 +41,14 @@ export async function POST(request, { params }) {
                 },
                 update: {
                     name: inviteeName,
-                    notes: `Routed via: ${form.name}\nAnswers: ${JSON.stringify(answers)}`,
+                    notes: contactNotes,
+                    updatedAt: new Date(),
                 },
                 create: {
                     name: inviteeName,
                     email: inviteeEmail,
                     userId: userId,
-                    notes: `Routed via: ${form.name}\nAnswers: ${JSON.stringify(answers)}`,
+                    notes: contactNotes,
                 }
             });
         } catch (contactErr) {

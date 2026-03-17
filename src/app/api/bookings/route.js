@@ -94,7 +94,12 @@ export async function GET(request) {
         const bookings = await prisma.booking.findMany({
             where,
             include: {
-                eventType: { select: { title: true, duration: true, color: true, type: true } },
+                eventType: { 
+                    include: { 
+                        customQuestions: { orderBy: { order: 'asc' } } 
+                    } 
+                },
+                answers: true,
             },
             orderBy: { startTime: status === 'upcoming' ? 'asc' : 'desc' },
         });
@@ -402,9 +407,24 @@ export async function POST(request) {
         // --- Auto-Add to Contacts ---
         try {
             let companyName = '';
+            let contactNotes = `Booking for ${eventType.title}`;
+            
             if (answers?.length > 0) {
-                const companyAnswer = answers.find(a => a.questionId.toLowerCase().includes('company'));
-                if (companyAnswer) companyName = companyAnswer.answer;
+                // Fetch question labels to make notes readable
+                const questionLabels = await prisma.customQuestion.findMany({
+                    where: { id: { in: answers.map(a => a.questionId) } },
+                    select: { id: true, question: true }
+                });
+
+                const formattedAnswers = answers.map(a => {
+                    const qLabel = questionLabels.find(q => q.id === a.questionId)?.question || 'Question';
+                    if (qLabel.toLowerCase().includes('company')) companyName = a.answer;
+                    return `- ${qLabel}: ${a.answer}`;
+                }).join('\n');
+
+                if (formattedAnswers) {
+                    contactNotes += `\n\nCustom Answers:\n${formattedAnswers}`;
+                }
             }
 
             await prisma.contact.upsert({
@@ -418,12 +438,15 @@ export async function POST(request) {
                     name: inviteeName,
                     ...(inviteePhone && { phone: inviteePhone }),
                     ...(companyName && { company: companyName }),
+                    notes: contactNotes,
+                    updatedAt: new Date(),
                 },
                 create: {
                     name: inviteeName,
                     email: inviteeEmail,
                     phone: inviteePhone || null,
                     company: companyName || null,
+                    notes: contactNotes,
                     userId: assignedHostId,
                 }
             });

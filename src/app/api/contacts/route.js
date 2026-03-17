@@ -79,7 +79,7 @@ export async function POST(request) {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { name, email, phone, company, fieldValues } = await request.json();
+        const { name, email, phone, company, notes, fieldValues } = await request.json();
 
         if (!name || !email) {
             return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
@@ -99,6 +99,7 @@ export async function POST(request) {
                 email,
                 phone: phone || null,
                 company: company || null,
+                notes: notes || null,
                 userId: session.user.id,
                 fieldValues: fieldValues?.length > 0
                     ? {

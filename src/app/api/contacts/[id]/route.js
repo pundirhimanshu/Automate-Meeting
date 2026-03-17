@@ -10,7 +10,7 @@ export async function PUT(request, { params }) {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { name, email, phone, company, fieldValues } = await request.json();
+        const { name, email, phone, company, notes, fieldValues } = await request.json();
         const id = params.id;
 
         const contact = await prisma.contact.findFirst({
@@ -26,6 +26,7 @@ export async function PUT(request, { params }) {
                 email: email !== undefined ? email : contact.email,
                 phone: phone !== undefined ? phone : contact.phone,
                 company: company !== undefined ? company : contact.company,
+                notes: notes !== undefined ? notes : contact.notes,
             },
         });
 

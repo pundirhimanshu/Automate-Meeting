@@ -417,6 +417,28 @@ export default function MeetingsPage() {
                                 )}
                             </div>
 
+                            {/* Custom Questions */}
+                            {selectedBooking.answers?.length > 0 && (
+                                <div className="drawer-section">
+                                    <div className="drawer-section-title">Questionnaire</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {selectedBooking.answers.map((ans) => {
+                                            const question = selectedBooking.eventType?.customQuestions?.find(q => q.id === ans.questionId);
+                                            return (
+                                                <div key={ans.id}>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px', fontWeight: 500 }}>
+                                                        {question?.question || 'Question'}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', background: 'var(--bg-page)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
+                                                        {ans.answer || '—'}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Notes */}
                             {selectedBooking.notes && (
                                 <div className="drawer-section">
