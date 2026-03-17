@@ -138,6 +138,7 @@ export default function RoutingEditorPage({ params }) {
     const [eventTypes, setEventTypes] = useState([]);
     const [submissions, setSubmissions] = useState([]);
     const [fetchingSubmissions, setFetchingSubmissions] = useState(false);
+    const [embedCopied, setEmbedCopied] = useState(''); // 'link' | 'embed' | ''
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -762,8 +763,39 @@ export default function RoutingEditorPage({ params }) {
                                         <input className="input-link" readOnly value={`${typeof window !== 'undefined' ? window.location.origin : ''}/router/${form.slug}`} />
                                         <button className="btn btn-secondary btn-sm" onClick={() => {
                                             navigator.clipboard.writeText(`${window.location.origin}/router/${form.slug}`);
-                                            alert('Link copied!');
-                                        }}>Copy</button>
+                                            setEmbedCopied('link');
+                                            setTimeout(() => setEmbedCopied(''), 2000);
+                                        }}>{embedCopied === 'link' ? 'Copied!' : 'Copy'}</button>
+                                    </div>
+                                </div>
+                                <div className="divider"></div>
+                                <div className="setting-group">
+                                    <h3 className="settings-section-title">Embed into Website</h3>
+                                    <p className="settings-section-desc">Add this form to your website using an iframe.</p>
+                                    <div className="mt-4">
+                                        <pre style={{ 
+                                            background: '#f8fafc', 
+                                            border: '1px solid var(--border-color)', 
+                                            borderRadius: '10px', 
+                                            padding: '12px 14px', 
+                                            fontSize: '12px', 
+                                            color: '#64748b', 
+                                            overflow: 'auto', 
+                                            whiteSpace: 'pre-wrap', 
+                                            wordBreak: 'break-all', 
+                                            lineHeight: 1.6,
+                                            marginBottom: '12px'
+                                        }}>
+                                            {`<iframe src="${typeof window !== 'undefined' ? window.location.origin : ''}/router/${form.slug}" width="100%" height="700" frameborder="0" style="border:none; border-radius:8px;"></iframe>`}
+                                        </pre>
+                                        <button className="btn btn-secondary btn-sm" onClick={() => {
+                                            const code = `<iframe src="${window.location.origin}/router/${form.slug}" width="100%" height="700" frameborder="0" style="border:none; border-radius:8px;"></iframe>`;
+                                            navigator.clipboard.writeText(code);
+                                            setEmbedCopied('embed');
+                                            setTimeout(() => setEmbedCopied(''), 2000);
+                                        }}>
+                                            {embedCopied === 'embed' ? '✓ Code Copied!' : 'Copy Embed Code'}
+                                        </button>
                                     </div>
                                 </div>
                                 <div className="divider"></div>
