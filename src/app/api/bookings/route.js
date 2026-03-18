@@ -6,6 +6,7 @@ import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { createZoomMeeting } from '@/lib/integrations/zoom';
 import { createTeamsMeeting } from '@/lib/integrations/teams';
+import { createGoogleMeetEvent, createGoogleCalendarEvent } from '@/lib/integrations/google';
 import { canCreateBooking, canUseIntegration } from '@/lib/plans';
 import { getUserSubscription } from '@/lib/subscription';
 
@@ -323,7 +324,6 @@ export async function POST(request) {
             }
         } else if (eventType.locationType === 'google_meet') {
             try {
-                const { createGoogleMeetEvent } = await import('@/lib/integrations/google');
                 const result = await createGoogleMeetEvent({
                     title: `${inviteeName} & ${eventType.title}`,
                     description: `Booking via Scheduler\n\nInvitee: ${inviteeName}\nEmail: ${inviteeEmail}${notes ? '\nNotes: ' + notes : ''}`,
@@ -339,6 +339,23 @@ export async function POST(request) {
             }
         }
 
+        // Optional: Sync to Google Calendar for non-Google Meet locations (like Zoom, Teams, Phone)
+        if (eventType.locationType !== 'google_meet') {
+            try {
+                await createGoogleCalendarEvent({
+                    title: `${inviteeName} & ${eventType.title}`,
+                    description: `Booking via Scheduler\n\nInvitee: ${inviteeName}\nEmail: ${inviteeEmail}${notes ? '\nNotes: ' + notes : ''}\n\nLocation: ${meetingLink}`,
+                    location: meetingLink,
+                    startTime: new Date(startTime),
+                    endTime: new Date(endTime),
+                    attendeeEmail: inviteeEmail,
+                    userId: assignedHostId,
+                });
+            } catch (calErr) {
+                // Ignore if not connected, it's fine. We only want to push it IF they happen to have Google Calendar connected.
+                console.log('[BOOKING] Optional Google Calendar sync failed/skipped:', calErr.message);
+            }
+        }
 
         const bookingData = {
             eventTypeId,

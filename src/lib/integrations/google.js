@@ -108,3 +108,55 @@ export async function createGoogleMeetEvent({ title, description, startTime, end
         calendarLink: data.htmlLink,
     };
 }
+
+export async function createGoogleCalendarEvent({ title, description, location, startTime, endTime, attendeeEmail, userId }) {
+    const token = await getValidGoogleToken(userId);
+    if (!token) {
+        throw new Error('Google Calendar not connected');
+    }
+
+    const event = {
+        summary: title || 'Scheduled Meeting',
+        description: description || '',
+        location: location || '',
+        start: {
+            dateTime: new Date(startTime).toISOString(),
+            timeZone: 'UTC',
+        },
+        end: {
+            dateTime: new Date(endTime).toISOString(),
+            timeZone: 'UTC',
+        },
+        attendees: attendeeEmail ? [{ email: attendeeEmail }] : [],
+        reminders: {
+            useDefault: false,
+            overrides: [
+                { method: 'popup', minutes: 10 },
+            ],
+        },
+    };
+
+    const response = await fetch(
+        'https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all',
+        {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(event),
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        console.error('[GOOGLE_CALENDAR_CREATE_ERROR]', data);
+        throw new Error(data.error?.message || 'Failed to create Google Calendar event');
+    }
+
+    return {
+        calendarEventId: data.id,
+        calendarLink: data.htmlLink,
+    };
+}
