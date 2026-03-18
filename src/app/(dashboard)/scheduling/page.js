@@ -96,6 +96,8 @@ function SchedulingContent() {
     const searchParams = useSearchParams();
 
     const [userData, setUserData] = useState(null);
+    const [isEmbedModalOpen, setIsEmbedModalOpen] = useState(false);
+    const [embedCopiedLandingPage, setEmbedCopiedLandingPage] = useState('');
 
     useEffect(() => {
         fetchEventTypes();
@@ -538,6 +540,46 @@ function SchedulingContent() {
 
     return (
         <div>
+            {/* Embed Modal */}
+            {isEmbedModalOpen && (
+                <div className="modal-overlay" onClick={() => setIsEmbedModalOpen(false)}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
+                        <div className="modal-header">
+                            <h2>Embed Landing Page</h2>
+                            <button className="btn-close" onClick={() => setIsEmbedModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--text-tertiary)' }}>×</button>
+                        </div>
+                        <div className="modal-body" style={{ padding: '24px' }}>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.875rem' }}>
+                                Copy the code snippet below and paste it into your website's HTML to embed your complete scheduling page (showing all your public event types).
+                            </p>
+                            <pre style={{
+                                background: '#f8fafc',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: '10px',
+                                padding: '12px 14px',
+                                fontSize: '12px',
+                                color: '#64748b',
+                                overflow: 'auto',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-all',
+                                lineHeight: 1.6,
+                                marginBottom: '16px'
+                            }}>
+                                {`<iframe src="${typeof window !== 'undefined' ? window.location.origin : ''}/book/${session?.user?.username || 'user'}" width="100%" height="700" frameborder="0" style="border:none; border-radius:8px;"></iframe>`}
+                            </pre>
+                            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => {
+                                const code = `<iframe src="${window.location.origin}/book/${session?.user?.username || 'user'}" width="100%" height="700" frameborder="0" style="border:none; border-radius:8px;"></iframe>`;
+                                navigator.clipboard.writeText(code);
+                                setEmbedCopiedLandingPage('embed');
+                                setTimeout(() => setEmbedCopiedLandingPage(''), 2000);
+                            }}>
+                                {embedCopiedLandingPage === 'embed' ? '✓ Code Copied!' : 'Copy Embed Code'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Page Header */}
             <div className="page-header">
                 <h1 className="page-title">
@@ -660,10 +702,16 @@ function SchedulingContent() {
                     </div>
                     <span className="user-name">{session?.user?.name || 'User'}</span>
                 </div>
-                <a href={`/book/${session?.user?.username || 'user'}`} target="_blank" className="view-landing-link">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
-                    View landing page
-                </a>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => setIsEmbedModalOpen(true)} className="view-landing-link" style={{ background: 'none', border: 'none', padding: '0px 12px', height: '32px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+                        Embed
+                    </button>
+                    <a href={`/book/${session?.user?.username || 'user'}`} target="_blank" className="view-landing-link">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                        View landing page
+                    </a>
+                </div>
             </div>
 
             {/* Event Types List */}
