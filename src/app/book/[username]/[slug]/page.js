@@ -514,6 +514,50 @@ export default function BookingPage() {
                                                 required={q.required}
                                                 rows={3}
                                             />
+                                        ) : q.type === 'number' ? (
+                                            <input
+                                                type="number"
+                                                className="input"
+                                                value={form.answers[q.id] || ''}
+                                                onChange={(e) => setForm({ ...form, answers: { ...form.answers, [q.id]: e.target.value } })}
+                                                required={q.required}
+                                            />
+                                        ) : q.type === 'date' ? (
+                                            <input
+                                                type="date"
+                                                className="input"
+                                                value={form.answers[q.id] || ''}
+                                                onChange={(e) => setForm({ ...form, answers: { ...form.answers, [q.id]: e.target.value } })}
+                                                required={q.required}
+                                            />
+                                        ) : q.type === 'select' ? (
+                                            <select
+                                                className="input"
+                                                value={form.answers[q.id] || ''}
+                                                onChange={(e) => setForm({ ...form, answers: { ...form.answers, [q.id]: e.target.value } })}
+                                                required={q.required}
+                                            >
+                                                <option value="">Select an option...</option>
+                                                {q.options?.split(',').map((opt, idx) => (
+                                                    <option key={idx} value={opt.trim()}>{opt.trim()}</option>
+                                                ))}
+                                            </select>
+                                        ) : q.type === 'radio' ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+                                                {q.options?.split(',').map((opt, idx) => (
+                                                    <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.875rem' }}>
+                                                        <input
+                                                            type="radio"
+                                                            name={`question-${q.id}`}
+                                                            value={opt.trim()}
+                                                            checked={form.answers[q.id] === opt.trim()}
+                                                            onChange={(e) => setForm({ ...form, answers: { ...form.answers, [q.id]: e.target.value } })}
+                                                            required={q.required}
+                                                        />
+                                                        {opt.trim()}
+                                                    </label>
+                                                ))}
+                                            </div>
                                         ) : (
                                             <input
                                                 className="input"

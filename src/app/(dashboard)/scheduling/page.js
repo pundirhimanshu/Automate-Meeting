@@ -382,7 +382,7 @@ function SchedulingContent() {
     const addQuestion = () => {
         setForm((prev) => ({
             ...prev,
-            customQuestions: [...prev.customQuestions, { question: '', type: 'text', required: false }],
+            customQuestions: [...prev.customQuestions, { question: '', type: 'text', required: false, options: '' }],
         }));
     };
 
@@ -1278,7 +1278,10 @@ function SchedulingContent() {
                                     {/* Custom Questions Section */}
                                     <div className="drawer-section">
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                            <div className="drawer-section-title" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>Custom Questions</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div className="drawer-section-title" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>Custom Questions</div>
+                                                <span style={{ background: 'var(--primary)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 700 }}>NEW</span>
+                                            </div>
                                             <button type="button" className="btn btn-secondary btn-sm" onClick={addQuestion}>+ Add</button>
                                         </div>
                                         {form.customQuestions.length === 0 ? (
@@ -1286,14 +1289,41 @@ function SchedulingContent() {
                                         ) : (
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                 {form.customQuestions.map((q, i) => (
-                                                    <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                                        <input className="input" value={q.question} onChange={(e) => updateQuestion(i, 'question', e.target.value)} style={{ flex: 1 }} placeholder="Question..." />
-                                                        <select className="input" value={q.type} onChange={(e) => updateQuestion(i, 'type', e.target.value)} style={{ width: '80px' }}>
-                                                            <option value="text">Text</option>
-                                                            <option value="textarea">Long</option>
-                                                            <option value="select">Select</option>
-                                                        </select>
-                                                        <button type="button" className="drawer-close" onClick={() => removeQuestion(i)} style={{ color: 'var(--danger)', width: 24, height: 24, fontSize: '0.8rem' }}>✕</button>
+                                                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', background: 'var(--bg-white)' }}>
+                                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                            <input className="input" value={q.question} onChange={(e) => updateQuestion(i, 'question', e.target.value)} style={{ flex: 1 }} placeholder="Question..." />
+                                                            <select className="input" value={q.type} onChange={(e) => updateQuestion(i, 'type', e.target.value)} style={{ width: '100px' }}>
+                                                                <option value="text">Text</option>
+                                                                <option value="textarea">Long text</option>
+                                                                <option value="number">Number</option>
+                                                                <option value="date">Date</option>
+                                                                <option value="select">Dropdown</option>
+                                                                <option value="radio">Radio</option>
+                                                            </select>
+                                                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={q.required}
+                                                                    onChange={(e) => updateQuestion(i, 'required', e.target.checked)}
+                                                                />
+                                                                Req
+                                                            </label>
+                                                            <button type="button" className="drawer-close" onClick={() => removeQuestion(i)} style={{ color: 'var(--danger)', width: 24, height: 24, fontSize: '0.8rem' }}>✕</button>
+                                                        </div>
+                                                        {['select', 'radio'].includes(q.type) && (
+                                                            <div style={{ marginTop: '4px' }}>
+                                                                <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: '2px', display: 'block' }}>
+                                                                    Options (comma separated)
+                                                                </label>
+                                                                <input
+                                                                    className="input"
+                                                                    placeholder="Option 1, Option 2"
+                                                                    value={q.options || ''}
+                                                                    onChange={(e) => updateQuestion(i, 'options', e.target.value)}
+                                                                    style={{ fontSize: '0.8125rem', padding: '6px 10px' }}
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>
