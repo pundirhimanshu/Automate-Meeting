@@ -36,8 +36,13 @@ export default function DodoSettings() {
         e.preventDefault();
         setSaving(true);
         if (status !== 'connected') {
-            if (!form.dodoApiKey.startsWith('dp_live_') && !form.dodoApiKey.startsWith('dp_test_')) {
-                alert('Invalid API Key format. It should start with "dp_live_" or "dp_test_".');
+            const isValidKey = 
+                form.dodoApiKey.startsWith('dp_live_') || 
+                form.dodoApiKey.startsWith('dp_test_') || 
+                form.dodoApiKey.startsWith('otht'); // Supporting user's legacy key format
+                
+            if (!isValidKey) {
+                alert('Invalid API Key format. It should typically start with "dp_live_" or "otht".');
                 setSaving(false);
                 return;
             }
