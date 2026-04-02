@@ -8,9 +8,12 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const token = searchParams.get('token');
 
+        // Use the current request's domain for all redirects to be safe
+        const baseUrl = new URL(request.url).origin;
+        
         if (!token) {
             console.error('[VERIFY] No token provided');
-            return NextResponse.redirect(new URL('/login?error=Invalid verification link', request.url));
+            return NextResponse.redirect(new URL('/login?error=Invalid verification link', baseUrl));
         }
 
         const user = await prisma.user.findUnique({
@@ -19,12 +22,12 @@ export async function GET(request) {
 
         if (!user) {
             console.error('[VERIFY] Token not found or invalid:', token);
-            return NextResponse.redirect(new URL('/login?error=Invalid or expired verification link', request.url));
+            return NextResponse.redirect(new URL('/login?error=Invalid or expired verification link', baseUrl));
         }
 
         if (user.emailVerified) {
             console.log('[VERIFY] User already verified:', user.email);
-            return NextResponse.redirect(new URL('/login?verified=already', request.url));
+            return NextResponse.redirect(new URL('/login?verified=already', baseUrl));
         }
 
         // Mark email as verified and clear the token
@@ -38,11 +41,10 @@ export async function GET(request) {
 
         console.log('[VERIFY] Successfully verified user:', user.email);
 
-        // Use an absolute URL for the redirect to be safe
-        const loginUrl = new URL('/login?verified=true', request.url);
-        return NextResponse.redirect(loginUrl);
+        return NextResponse.redirect(new URL('/login?verified=true', baseUrl));
     } catch (error) {
         console.error('[VERIFY] Unexpected error:', error);
-        return NextResponse.redirect(new URL('/login?error=Something went wrong during verification', request.url));
+        const baseUrl = new URL(request.url).origin;
+        return NextResponse.redirect(new URL('/login?error=Something went wrong during verification', baseUrl));
     }
 }

@@ -135,11 +135,11 @@ export async function POST(request) {
         const currentHost = forwardedHost || host;
         const detectedBaseUrl = `${protocol}://${currentHost}`;
 
-        // Prioritize NEXTAUTH_URL only if it's a "real" URL and we're not testing on localhost
-        // This ensures local testing always uses the current local host/port
-        const baseUrl = (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost') && !host.includes('localhost'))
-            ? process.env.NEXTAUTH_URL
-            : detectedBaseUrl;
+        // Trust the actual host the user is visiting ABOVE a hardcoded NEXTAUTH_URL.
+        // This fixes "Deployment Not Found" issues where NEXTAUTH_URL points to the wrong domain.
+        const baseUrl = (currentHost && !currentHost.includes('localhost') && !currentHost.includes('127.0.0.1'))
+            ? detectedBaseUrl
+            : (process.env.NEXTAUTH_URL || detectedBaseUrl);
 
         const cleanBaseUrl = baseUrl.replace(/\/$/, '');
         const verifyUrl = `${cleanBaseUrl}/api/auth/verify?token=${verificationToken}`;

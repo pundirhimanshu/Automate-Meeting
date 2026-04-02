@@ -59,10 +59,10 @@ export async function POST(request) {
         const currentHost = forwardedHost || host;
         const detectedBaseUrl = `${protocol}://${currentHost}`;
 
-        // Prioritize NEXTAUTH_URL consistency
-        const baseUrl = (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost') && !host.includes('localhost'))
-            ? process.env.NEXTAUTH_URL
-            : detectedBaseUrl;
+        // Trust the actual host the user is visiting ABOVE a hardcoded NEXTAUTH_URL.
+        const baseUrl = (currentHost && !currentHost.includes('localhost') && !currentHost.includes('127.0.0.1'))
+            ? detectedBaseUrl
+            : (process.env.NEXTAUTH_URL || detectedBaseUrl);
 
         const cleanBaseUrl = baseUrl.replace(/\/$/, '');
         const resetUrl = `${cleanBaseUrl}/reset-password?token=${resetToken}`;
