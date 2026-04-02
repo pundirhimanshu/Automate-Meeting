@@ -81,6 +81,7 @@ model EventType {
   requiresPayment   Boolean          @default(false)
   price             Float?
   currency          String?          @default("USD")
+  dodoProductId     String?
   inviteeLimit      Int              @default(1)
   roundRobinIndex   Int              @default(0)
   userId            String

@@ -427,8 +427,7 @@ export async function POST(request) {
                         email: inviteeEmail,
                     },
                     product_cart: [{
-                        name: eventType.title,
-                        price: Math.round(eventType.price * 100), // Dodo subunits
+                        product_id: eventType.dodoProductId, // Use the real Product ID from the database
                         quantity: 1,
                     }],
                     billing_currency: 'INR',

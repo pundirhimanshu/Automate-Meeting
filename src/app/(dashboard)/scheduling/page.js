@@ -88,6 +88,7 @@ function SchedulingContent() {
         minNotice: 60,
         requiresPayment: false,
         price: '',
+        dodoProductId: '',
         customQuestions: [],
         coHostIds: [],
     });
@@ -344,6 +345,7 @@ function SchedulingContent() {
                     phoneCallSource: data.eventType.phoneCallSource || 'host',
                     maxBookingsPerDay: data.eventType.maxBookingsPerDay || '',
                     price: data.eventType.price || '',
+                    dodoProductId: data.eventType.dodoProductId || '',
                     customQuestions: data.eventType.customQuestions || [],
                     coHostIds: data.eventType.coHosts?.map(h => h.id) || [],
                 });
@@ -427,6 +429,7 @@ function SchedulingContent() {
             minNotice: parseInt(form.minNotice),
             requiresPayment: form.requiresPayment,
             price: form.price ? parseFloat(form.price) : null,
+            dodoProductId: form.dodoProductId,
             customQuestions: (form.customQuestions || []).filter((q) => q.question.trim()),
             coHostIds: form.coHostIds,
         };
@@ -1386,9 +1389,21 @@ function SchedulingContent() {
                                             Require payment before booking
                                         </label>
                                         {form.requiresPayment && (
-                                            <div className="input-group" style={{ marginTop: '10px' }}>
-                                                <label>Price (INR)</label>
-                                                <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step="0.01" />
+                                            <div key="price-group" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                                                <div className="input-group">
+                                                    <label>Price (INR)</label>
+                                                    <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step="0.01" />
+                                                </div>
+                                                <div className="input-group">
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        Dodo Product ID
+                                                        <span title="Find this in Dodo Dashboard > Products (starts with pdt_)" style={{ cursor: 'help', color: 'var(--text-tertiary)' }}>ⓘ</span>
+                                                    </label>
+                                                    <input name="dodoProductId" className="input" placeholder="pdt_..." value={form.dodoProductId} onChange={handleChange} />
+                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                                        Required for payments. Get this from your Dodo Payments dashboard.
+                                                    </p>
+                                                </div>
                                             </div>
                                         )}
                                     </div>

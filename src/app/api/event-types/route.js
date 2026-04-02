@@ -69,7 +69,7 @@ export async function POST(request) {
             title, slug, description, duration, type, color,
             locationType, location, phoneCallSource, bufferTimeBefore, bufferTimeAfter,
             dateRangeType, dateRangeDays, dateRangeStart, dateRangeEnd,
-            maxBookingsPerDay, minNotice, requiresPayment, price, currency,
+            maxBookingsPerDay, minNotice, requiresPayment, price, currency, dodoProductId,
             customQuestions, coHostIds, inviteeLimit,
         } = body;
 
@@ -138,6 +138,7 @@ export async function POST(request) {
                 requiresPayment: requiresPayment || false,
                 price: price || null,
                 currency: currency || 'USD',
+                dodoProductId: dodoProductId || null,
                 inviteeLimit: inviteeLimit ? parseInt(inviteeLimit) : 1,
                 roundRobinIndex: 0,
                 userId: session.user.id,
