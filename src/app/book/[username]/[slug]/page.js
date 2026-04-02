@@ -211,6 +211,10 @@ export default function BookingPage() {
 
             if (res.ok) {
                 const result = await res.json();
+                if (result.checkoutUrl) {
+                    window.location.href = result.checkoutUrl;
+                    return;
+                }
                 setBookedData(result.booking);
                 setStep('confirmed');
             } else {

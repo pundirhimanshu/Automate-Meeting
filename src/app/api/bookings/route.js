@@ -9,6 +9,8 @@ import { createTeamsMeeting } from '@/lib/integrations/teams';
 import { createGoogleMeetEvent, createGoogleCalendarEvent } from '@/lib/integrations/google';
 import { canCreateBooking, canUseIntegration } from '@/lib/plans';
 import { getUserSubscription } from '@/lib/subscription';
+import { decrypt } from '@/lib/encryption';
+import DodoPayments from 'dodopayments';
 
 export const dynamic = 'force-dynamic';
 
@@ -357,7 +359,7 @@ export async function POST(request) {
             }
         }
 
-        const bookingData = {
+           const bookingData = {
             eventTypeId,
             hostId: assignedHostId,
             inviteeName,
@@ -367,7 +369,8 @@ export async function POST(request) {
             timezone: timezone || 'UTC',
             notes: notes || '',
             location: meetingLink,
-            status: 'confirmed',
+            status: eventType.requiresPayment ? 'pending' : 'confirmed',
+            paymentStatus: eventType.requiresPayment ? 'pending' : 'none',
             answers: answers?.length ? {
                 create: answers.map((a) => ({
                     questionId: a.questionId,
@@ -379,11 +382,10 @@ export async function POST(request) {
 
         let booking;
         if (singleUseToken) {
-            // Use transaction for atomic booking + token invalidation
             const [newBooking] = await prisma.$transaction([
                 prisma.booking.create({
                     data: bookingData,
-                    include: { eventType: { select: { title: true, type: true } }, host: true },
+                    include: { eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, host: true },
                 }),
                 prisma.singleUseLink.update({
                     where: { token: singleUseToken },
@@ -394,16 +396,66 @@ export async function POST(request) {
         } else {
             booking = await prisma.booking.create({
                 data: bookingData,
-                include: { eventType: { select: { title: true, type: true } }, host: true },
+                include: { eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, host: true },
             });
         }
 
-        // Trigger Workflows (Non-blocking)
-        triggerWorkflows('EVENT_BOOKED', booking.id).catch(e => console.error('Workflow trigger error:', e));
+        // Handle Payment Flow if required
+        let checkoutUrl = null;
+        if (eventType.requiresPayment) {
+            const hostUser = eventType.user;
+            if (!hostUser.dodoApiKey || !hostUser.dodoWebhookSecret) {
+                // Cleanup the pending booking if host is not ready
+                await prisma.booking.delete({ where: { id: booking.id } });
+                return NextResponse.json({ 
+                    error: 'This host has not yet set up their payment integration. Please contact them.' 
+                }, { status: 400 });
+            }
+
+            try {
+                const apiKey = decrypt(hostUser.dodoApiKey);
+                
+                // Initialize Dodo client
+                const dodo = new DodoPayments({ 
+                    bearerToken: apiKey,
+                });
+
+                // Create Dodo Checkout Session using SDK
+                const session = await dodo.checkoutSessions.create({
+                    customer: {
+                        name: inviteeName,
+                        email: inviteeEmail,
+                    },
+                    product_cart: [{
+                        name: eventType.title,
+                        price: Math.round(eventType.price * 100), // Dodo subunits
+                        quantity: 1,
+                    }],
+                    billing_currency: 'INR',
+                    metadata: {
+                        bookingId: booking.id,
+                        hostId: assignedHostId,
+                    },
+                    return_url: `${process.env.NEXTAUTH_URL || request.headers.get('origin') || ''}/book/confirmed?bookingId=${booking.id}`,
+                });
+
+                checkoutUrl = session.checkout_url;
+                
+                // Save the session ID in the booking
+                await prisma.booking.update({
+                    where: { id: booking.id },
+                    data: { paymentSessionId: session.checkout_session_id }
+                });
+            } catch (err) {
+                console.error('[DODO_INIT_ERROR]', err);
+                await prisma.booking.delete({ where: { id: booking.id } });
+                return NextResponse.json({ 
+                    error: `Payment initialization critical error: ${err.message}` 
+                }, { status: 500 });
+            }
+        }
 
         // --- Notification & Email Logic ---
-
-        // --- Notification Logic Helper ---
         let hostRecipients = [];
         if (eventType.type === 'round-robin' || eventType.type === 'collective' || eventType.type === 'group') {
             const rawRecipients = [eventType.user, ...eventType.coHosts];
@@ -412,90 +464,49 @@ export async function POST(request) {
             hostRecipients = [eventType.user];
         }
 
-        // Create in-app notifications
-        await Promise.all(hostRecipients.map(recipient =>
-            prisma.notification.create({
-                data: {
-                    userId: recipient.id,
-                    type: 'booking_confirmed',
-                    title: 'New Booking',
-                    message: eventType.type === 'collective'
-                        ? `${inviteeName} booked "${eventType.title}" with the team`
-                        : `${inviteeName} booked "${eventType.title}"`,
-                    bookingId: booking.id,
-                },
-            })
-        ));
+        // ONLY trigger notifications/workflows/emails for non-paid meetings here.
+        // Paid meetings will trigger these in the WEBHOOK after payment is confirmed.
+        if (!eventType.requiresPayment) {
+            // Trigger Workflows (Non-blocking)
+            triggerWorkflows('EVENT_BOOKED', booking.id).catch(e => console.error('Workflow trigger error:', e));
 
-        // Generate manage URL for invitee self-service
-        const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
-        const manageUrl = booking.manageToken ? `${origin}/book/manage/${booking.manageToken}` : '';
+            // Create in-app notifications
+            await Promise.all(hostRecipients.map(recipient =>
+                prisma.notification.create({
+                    data: {
+                        userId: recipient.id,
+                        type: 'booking_confirmed',
+                        title: 'New Booking',
+                        message: eventType.type === 'collective'
+                            ? `${inviteeName} booked "${eventType.title}" with the team`
+                            : `${inviteeName} booked "${eventType.title}"`,
+                        bookingId: booking.id,
+                    },
+                })
+            ));
 
-        // --- Auto-Add to Contacts ---
-        try {
-            let companyName = '';
-            let contactNotes = `Booking for ${eventType.title}`;
-            
-            if (answers?.length > 0) {
-                // Fetch question labels to make notes readable
-                const questionLabels = await prisma.customQuestion.findMany({
-                    where: { id: { in: answers.map(a => a.questionId) } },
-                    select: { id: true, question: true }
-                });
+            // Generate manage URL for invitee self-service
+            const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
+            const manageUrl = booking.manageToken ? `${origin}/book/manage/${booking.manageToken}` : '';
 
-                const formattedAnswers = answers.map(a => {
-                    const qLabel = questionLabels.find(q => q.id === a.questionId)?.question || 'Question';
-                    if (qLabel.toLowerCase().includes('company')) companyName = a.answer;
-                    return `- ${qLabel}: ${a.answer}`;
-                }).join('\n');
-
-                if (formattedAnswers) {
-                    contactNotes += `\n\nCustom Answers:\n${formattedAnswers}`;
-                }
-            }
-
-            await prisma.contact.upsert({
-                where: {
-                    userId_email: {
-                        userId: assignedHostId,
-                        email: inviteeEmail,
-                    }
-                },
-                update: {
-                    name: inviteeName,
-                    ...(inviteePhone && { phone: inviteePhone }),
-                    ...(companyName && { company: companyName }),
-                    notes: contactNotes,
-                    updatedAt: new Date(),
-                },
-                create: {
-                    name: inviteeName,
-                    email: inviteeEmail,
-                    phone: inviteePhone || null,
-                    company: companyName || null,
-                    notes: contactNotes,
-                    userId: assignedHostId,
-                }
+            // Send confirmation emails
+            await sendBookingConfirmation({
+                booking,
+                eventType,
+                host: booking.host, 
+                coHosts: hostRecipients.filter(r => r.id !== booking.hostId), 
+                inviteeName,
+                inviteeEmail,
+                startTime,
+                manageUrl,
+                timezone: timezone || 'UTC',
             });
-        } catch (contactErr) {
-            console.error('[BOOKING] Failed to auto-add contact:', contactErr);
         }
-        // ------------------------------
 
-        // Send confirmation emails
-        await sendBookingConfirmation({
-            booking,
-            eventType,
-            host: booking.host, // The primary host for this booking
-            coHosts: hostRecipients.filter(r => r.id !== booking.hostId), // Everyone else gets co-host treatment in the email
-            inviteeName,
-            inviteeEmail,
-            startTime,
-            manageUrl,
-            timezone: timezone || 'UTC',
-        });
-
-        return NextResponse.json({ booking }, { status: 201 });
+        return NextResponse.json({ 
+            booking, 
+            checkoutUrl 
+        }, { status: 201 });
     } catch (error) {
         console.error('Error creating booking:', error);
         return NextResponse.json({ error: 'Server error' }, { status: 500 });

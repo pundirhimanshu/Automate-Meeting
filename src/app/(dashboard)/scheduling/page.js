@@ -1387,7 +1387,7 @@ function SchedulingContent() {
                                         </label>
                                         {form.requiresPayment && (
                                             <div className="input-group" style={{ marginTop: '10px' }}>
-                                                <label>Price (USD)</label>
+                                                <label>Price (INR)</label>
                                                 <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step="0.01" />
                                             </div>
                                         )}

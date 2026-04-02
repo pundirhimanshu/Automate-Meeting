@@ -8,11 +8,15 @@ export const dynamic = 'force-dynamic';
 
 export default async function IntegrationsPage() {
     const session = await getServerSession(authOptions);
-    const [userIntegrations, { plan: userPlan }] = await Promise.all([
+    const [userIntegrations, { plan: userPlan }, user] = await Promise.all([
         prisma.integration.findMany({ where: { userId: session.user.id } }),
         getUserSubscription(session.user.id),
+        prisma.user.findUnique({ where: { id: session.user.id } }),
     ]);
-    const isConnected = (provider) => userIntegrations.some(i => i.provider === provider);
+    const isConnected = (provider) => {
+        if (provider === 'dodo') return !!user?.dodoApiKey;
+        return userIntegrations.some(i => i.provider === provider);
+    };
 
     const integrations = [
         { id: 'google_calendar', name: 'Google Calendar', desc: 'Two-way calendar sync', icon: '📅', connected: isConnected('google_calendar'), connectUrl: '/api/integrations/google/connect' },
@@ -28,6 +32,7 @@ export default async function IntegrationsPage() {
             connectUrl: '/api/integrations/gmail/connect'
         },
         { id: 'zoom', name: 'Zoom', desc: 'Auto-create Zoom meetings', icon: '🎥', connected: isConnected('zoom'), connectUrl: '/api/integrations/zoom/connect', requiresPlan: 'pro' },
+        { id: 'dodo', name: 'Dodo Payments', desc: 'Accept payments directly', icon: '🦤', connected: isConnected('dodo'), connectUrl: '/integrations/dodo' },
         { id: 'teams', name: 'Microsoft Teams', desc: 'Teams meeting links', icon: '💼', comingSoon: true },
         { id: 'stripe', name: 'Stripe', desc: 'Collect payments', icon: '💳', comingSoon: true },
         { id: 'slack', name: 'Slack', desc: 'Booking notifications', icon: '💬', comingSoon: true },

@@ -37,6 +37,8 @@ model User {
   hiddenContactCols    String?
   workflows            Workflow[]
   routingForms         RoutingForm[]
+  dodoApiKey           String?
+  dodoWebhookSecret    String?
 }
 
 model Integration {
@@ -147,6 +149,8 @@ model Booking {
   answers              BookingAnswer[]
   notifications        Notification[]
   isSingleUse          Boolean         @default(false)
+  paymentStatus        String?         @default("none") // "none", "pending", "paid"
+  paymentSessionId     String?         @unique
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
 }
