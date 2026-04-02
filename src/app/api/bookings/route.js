@@ -435,7 +435,7 @@ export async function POST(request) {
                         bookingId: booking.id,
                         hostId: assignedHostId,
                     },
-                    return_url: `${process.env.NEXTAUTH_URL || request.headers.get('origin') || ''}/book/confirmed?bookingId=${booking.id}`,
+                    return_url: `${request.headers.get('origin') || process.env.NEXTAUTH_URL || ''}/book/confirmed?bookingId=${booking.id}`,
                 });
 
                 checkoutUrl = session.checkout_url;
