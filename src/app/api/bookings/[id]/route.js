@@ -1,7 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { sendBookingCancellation, sendBookingReschedule } from '@/lib/email';
+import { sendBookingCancellation, sendBookingReschedule, sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
+import { decrypt } from '@/lib/encryption';
+import DodoPayments from 'dodopayments';
 
 export const dynamic = 'force-dynamic';
   
@@ -10,8 +12,10 @@ export async function GET(request, { params }) {
         const booking = await prisma.booking.findUnique({
             where: { id: params.id },
             include: {
+                host: true,
                 eventType: {
                     select: {
+                        id: true,
                         title: true,
                         duration: true,
                         location: true,
@@ -24,6 +28,55 @@ export async function GET(request, { params }) {
 
         if (!booking) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+        }
+
+        // --- Double-check Payment status if still pending ---
+        if (booking.status === 'pending' && booking.paymentSessionId) {
+            try {
+                // Get host's decrypted API key
+                const dodoApiKey = decrypt(booking.host.dodoApiKey);
+                const dodo = new DodoPayments({
+                    bearerToken: dodoApiKey,
+                });
+
+                const session = await dodo.checkoutSessions.retrieve(booking.paymentSessionId);
+                
+                // If paid, confirm it now!
+                if (session.status === 'completed' || session.status === 'paid' || session.payment_status === 'paid') {
+                    console.log(`[BOOKING_VERIFY] Payment confirmed via API for ${booking.id}. Updating status.`);
+                    
+                    const updatedBooking = await prisma.booking.update({
+                        where: { id: booking.id },
+                        data: { 
+                            status: 'confirmed',
+                            paymentStatus: 'paid' 
+                        },
+                        include: { eventType: true, host: true }
+                    });
+
+                    // Trigger emails & workflows (Same as webhook)
+                    triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(console.error);
+                    
+                    const origin = request.headers.get('origin') || '';
+                    const manageUrl = updatedBooking.manageToken ? `${origin}/book/manage/${updatedBooking.manageToken}` : '';
+
+                    await sendBookingConfirmation({
+                        booking: updatedBooking,
+                        eventType: updatedBooking.eventType,
+                        host: updatedBooking.host,
+                        coHosts: [],
+                        inviteeName: updatedBooking.inviteeName,
+                        inviteeEmail: updatedBooking.inviteeEmail,
+                        startTime: updatedBooking.startTime,
+                        manageUrl,
+                        timezone: updatedBooking.timezone,
+                    });
+
+                    return NextResponse.json({ booking: updatedBooking });
+                }
+            } catch (err) {
+                console.error('[BOOKING_VERIFY_ERROR]', err);
+            }
         }
 
         return NextResponse.json({ booking });
