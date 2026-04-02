@@ -44,9 +44,23 @@ export async function POST(request) {
 
         // Build the reset URL (same pattern as signup route)
         const host = request.headers.get('host');
-        const protocol = host.includes('localhost') ? 'http' : 'https';
-        const detectedBaseUrl = `${protocol}://${host}`;
-        const baseUrl = (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost'))
+        const forwardedProto = request.headers.get('x-forwarded-proto');
+        const forwardedHost = request.headers.get('x-forwarded-host');
+
+        // Robust protocol detection
+        let protocol = 'https';
+        if (forwardedProto) {
+            protocol = forwardedProto;
+        } else if (host && (host.includes('localhost') || host.includes('127.0.0.1'))) {
+            protocol = 'http';
+        }
+
+        // Use forwarded host if behind a proxy
+        const currentHost = forwardedHost || host;
+        const detectedBaseUrl = `${protocol}://${currentHost}`;
+
+        // Prioritize NEXTAUTH_URL consistency
+        const baseUrl = (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost') && !host.includes('localhost'))
             ? process.env.NEXTAUTH_URL
             : detectedBaseUrl;
 

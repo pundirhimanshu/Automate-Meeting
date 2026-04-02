@@ -120,9 +120,24 @@ export async function POST(request) {
 
         // Send verification email
         const host = request.headers.get('host');
-        const protocol = host.includes('localhost') ? 'http' : 'https';
-        const detectedBaseUrl = `${protocol}://${host}`;
-        const baseUrl = (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost'))
+        const forwardedProto = request.headers.get('x-forwarded-proto');
+        const forwardedHost = request.headers.get('x-forwarded-host');
+
+        // Robust protocol detection
+        let protocol = 'https';
+        if (forwardedProto) {
+            protocol = forwardedProto;
+        } else if (host && (host.includes('localhost') || host.includes('127.0.0.1'))) {
+            protocol = 'http';
+        }
+
+        // Use forwarded host if behind a proxy (like Vercel), otherwise use host header
+        const currentHost = forwardedHost || host;
+        const detectedBaseUrl = `${protocol}://${currentHost}`;
+
+        // Prioritize NEXTAUTH_URL only if it's a "real" URL and we're not testing on localhost
+        // This ensures local testing always uses the current local host/port
+        const baseUrl = (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost') && !host.includes('localhost'))
             ? process.env.NEXTAUTH_URL
             : detectedBaseUrl;
 
