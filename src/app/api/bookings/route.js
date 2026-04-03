@@ -419,6 +419,32 @@ export async function POST(request) {
                 include: { eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, host: true },
             });
         }
+        
+        // Lead Capture: Automatically add/update the invitee as a contact for the host
+        try {
+            await prisma.contact.upsert({
+                where: {
+                    userId_email: {
+                        userId: assignedHostId,
+                        email: inviteeEmail,
+                    }
+                },
+                update: {
+                    name: inviteeName,
+                    notes: `Meeting: ${booking.eventType.title}${notes ? '\n\nNotes from Invitee: ' + notes : ''}`,
+                    updatedAt: new Date(),
+                },
+                create: {
+                    name: inviteeName,
+                    email: inviteeEmail,
+                    userId: assignedHostId,
+                    notes: `First Booking: ${booking.eventType.title}${notes ? '\n\nNotes from Invitee: ' + notes : ''}`,
+                }
+            });
+            console.log('[BOOKING] Contact captured/updated for host:', assignedHostId);
+        } catch (contactErr) {
+            console.error('[BOOKING] Contact capture failed:', contactErr.message);
+        }
 
         // Handle Payment Flow if required
         let checkoutUrl = null;

@@ -142,6 +142,30 @@ export async function POST(request) {
                     },
                 });
 
+                // Update/Create Contact to reflect payment status
+                try {
+                    const existingContact = await prisma.contact.findUnique({
+                        where: { userId_email: { userId: hostId, email: updatedBooking.inviteeEmail } }
+                    });
+
+                    await prisma.contact.upsert({
+                        where: { userId_email: { userId: hostId, email: updatedBooking.inviteeEmail } },
+                        update: {
+                            notes: (existingContact?.notes || '') + `\n[PAID] ${updatedBooking.eventType.title}`,
+                            updatedAt: new Date(),
+                        },
+                        create: {
+                            name: updatedBooking.inviteeName,
+                            email: updatedBooking.inviteeEmail,
+                            userId: hostId,
+                            notes: `Paid Booking: ${updatedBooking.eventType.title}`,
+                        }
+                    });
+                    console.log('[DODO_WEBHOOK] Contact updated for successful payment.');
+                } catch (contactErr) {
+                    console.error('[DODO_WEBHOOK] Contact update failed:', contactErr.message);
+                }
+
                 // Google Calendar Sync
                 if (updatedBooking.eventType.locationType !== 'none') {
                     console.log('[DODO_WEBHOOK] Syncing to Google Calendar...');
