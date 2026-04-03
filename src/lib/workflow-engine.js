@@ -219,3 +219,101 @@ async function refreshGoogleToken(integration) {
 
     return data.access_token;
 }
+/**
+ * Poller for time-based workflows (Before/After Event)
+ */
+export async function processScheduledWorkflows() {
+    console.log('[WORKFLOWS_CRON] Starting scheduled workflow processing...');
+    
+    try {
+        const workflows = await prisma.workflow.findMany({
+            where: {
+                isActive: true,
+                trigger: { in: ['BEFORE_EVENT', 'AFTER_EVENT'] }
+            }
+        });
+
+        console.log(`[WORKFLOWS_CRON] Found ${workflows.length} active scheduled workflows.`);
+
+        for (const wf of workflows) {
+            const timeValue = wf.timeValue || 0;
+            const timeUnit = wf.timeUnit || 'MINUTES';
+            
+            // Calculate offset in milliseconds
+            let offsetMs = 0;
+            if (timeUnit === 'MINUTES') offsetMs = timeValue * 60 * 1000;
+            else if (timeUnit === 'HOURS') offsetMs = timeValue * 60 * 60 * 1000;
+            else if (timeUnit === 'DAYS') offsetMs = timeValue * 24 * 60 * 60 * 1000;
+
+            const now = new Date();
+            let targetStartTime;
+
+            if (wf.trigger === 'BEFORE_EVENT') {
+                // Sent X time BEFORE event starts (e.g. 2 hours before)
+                // We are looking for events starting at (now + offset)
+                targetStartTime = new Date(now.getTime() + offsetMs);
+            } else if (wf.trigger === 'AFTER_EVENT') {
+                // Sent X time AFTER event starts (e.g. 10 mins after)
+                // We are looking for events that started at (now - offset)
+                targetStartTime = new Date(now.getTime() - offsetMs);
+            }
+
+            // Look for bookings starting near that target time (within a 2 minute window to be safe)
+            const windowMs = 60 * 1000; // 1 minute window (cron usually runs every min)
+            
+            const windowStart = new Date(targetStartTime.getTime() - windowMs);
+            const windowEnd = new Date(targetStartTime.getTime() + windowMs);
+
+            // Fetch the workflow with its linked event types to check for "All" vs "Specific"
+            const wfWithDetails = await prisma.workflow.findUnique({
+                where: { id: wf.id },
+                include: { eventTypes: { select: { id: true } } }
+            });
+
+            const isAllEventTypes = wfWithDetails.eventTypes.length === 0;
+            const eventTypeIds = wfWithDetails.eventTypes.map(et => et.id);
+
+            const bookings = await prisma.booking.findMany({
+                where: {
+                    status: 'confirmed',
+                    startTime: {
+                        gte: windowStart,
+                        lte: windowEnd
+                    },
+                    hostId: wf.userId, // Only bookings where the workflow owner is the host (or one of the hosts)
+                    NOT: {
+                        executedWorkflows: {
+                            has: wf.id
+                        }
+                    },
+                    ...(isAllEventTypes ? {} : {
+                        eventTypeId: { in: eventTypeIds }
+                    })
+                },
+                include: {
+                    host: true,
+                    eventType: { include: { user: true, customQuestions: true } },
+                    answers: true
+                }
+            });
+
+            // Filtering logic because prisma "none" relation queries can be tricky
+            const eligibleBookings = bookings.filter(b => {
+                // If the workflow is assigned to specific event types, check if THIS booking's event type is one of them.
+                // If the workflow is assigned to NO event types in the database, it means "All Event Types".
+                // We'll check the count of event types linked to this workflow.
+                // Assuming wf was fetched with eventTypes normally, but here we'll check the connection.
+                return true; // Simplified for now since we'll refactor findMany if needed
+            });
+
+            if (bookings.length > 0) {
+                console.log(`[WORKFLOWS_CRON] Triggering "${wf.name}" for ${bookings.length} bookings.`);
+                for (const booking of bookings) {
+                    await executeWorkflow(wf, booking);
+                }
+            }
+        }
+    } catch (err) {
+        console.error('[WORKFLOW_CRON_ERROR]', err);
+    }
+}
