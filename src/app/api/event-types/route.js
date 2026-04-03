@@ -143,7 +143,7 @@ export async function POST(request) {
                 minNotice: minNotice || 60,
                 requiresPayment: requiresPayment || false,
                 price: price || null,
-                currency: currency || 'USD',
+                currency: currency || 'INR',
                 dodoProductId: dodoProductId || null,
                 inviteeLimit: inviteeLimit ? parseInt(inviteeLimit) : 1,
                 roundRobinIndex: 0,
