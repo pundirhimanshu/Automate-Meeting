@@ -441,6 +441,21 @@ export async function POST(request) {
 
             const mergedNotes = `Meeting: ${booking.eventType.title}${notes ? '\n\nNotes from Invitee: ' + notes : ''}${customNotesString}`;
 
+            const existingContact = await prisma.contact.findUnique({
+                where: {
+                    userId_email: {
+                        userId: assignedHostId,
+                        email: inviteeEmail,
+                    }
+                }
+            });
+
+            // If a different name is used for an existing contact, log it in the notes but keep the original name
+            let finalNotes = mergedNotes;
+            if (existingContact && existingContact.name !== inviteeName) {
+                finalNotes = `(Alternate Name used: ${inviteeName})\n` + mergedNotes;
+            }
+
             await prisma.contact.upsert({
                 where: {
                     userId_email: {
@@ -449,15 +464,14 @@ export async function POST(request) {
                     }
                 },
                 update: {
-                    name: inviteeName,
-                    notes: mergedNotes,
+                    notes: (existingContact?.notes || '') + '\n\n' + finalNotes,
                     updatedAt: new Date(),
                 },
                 create: {
                     name: inviteeName,
                     email: inviteeEmail,
                     userId: assignedHostId,
-                    notes: mergedNotes,
+                    notes: finalNotes,
                 }
             });
             console.log('[BOOKING] Contact captured/updated with custom answers for host:', assignedHostId);
