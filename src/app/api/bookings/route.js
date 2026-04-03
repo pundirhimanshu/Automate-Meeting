@@ -36,7 +36,17 @@ export async function GET(request) {
                     { eventType: { coHosts: { some: { id: session.user.id } } } }
                 ],
                 startTime: { gte: now },
-                status: { in: ['confirmed', 'pending'] },
+                // Only show confirmed bookings or pending ones that don't require payment.
+                // If it's pending AND requires payment, it's not actually a 'meeting' yet.
+                OR: [
+                    { status: 'confirmed' },
+                    { 
+                        AND: [
+                            { status: 'pending' },
+                            { eventType: { requiresPayment: false } }
+                        ]
+                    }
+                ]
             };
         } else if (status === 'past') {
             where = {
@@ -78,7 +88,8 @@ export async function GET(request) {
                     { eventType: { coHosts: { some: { id: session.user.id } } } }
                 ],
                 isSingleUse: true,
-                status: { in: ['confirmed', 'pending', 'completed', 'rescheduled'] }
+                // Only show confirmed or completed single-use bookings.
+                status: { in: ['confirmed', 'completed', 'rescheduled'] }
             };
         }
 
@@ -201,6 +212,9 @@ export async function POST(request) {
                 where: {
                     hostId: { in: hostIdsToDelta },
                     status: { in: ['confirmed', 'pending'] },
+                    // If it's a paid event type, don't let 'pending' bookings (those at checkout) block the slot.
+                    // Only 'confirmed' (paid) bookings will block the slot for paid event types.
+                    ...(eventType.requiresPayment ? { status: 'confirmed' } : { status: { in: ['confirmed', 'pending'] } }),
                     OR: [
                         { AND: [{ startTime: { lte: new Date(startTime) } }, { endTime: { gt: new Date(startTime) } }] },
                         { AND: [{ startTime: { lt: new Date(endTime) } }, { endTime: { gte: new Date(endTime) } }] },
@@ -219,6 +233,9 @@ export async function POST(request) {
                     startTime: new Date(startTime),
                     endTime: new Date(endTime),
                     status: { in: ['confirmed', 'pending'] },
+                    // If it's a paid event type, don't let 'pending' bookings (those at checkout) block the slot.
+                    // Only 'confirmed' (paid) bookings will block the slot for paid event types.
+                    ...(eventType.requiresPayment ? { status: 'confirmed' } : { status: { in: ['confirmed', 'pending'] } }),
                 }
             });
 
@@ -242,6 +259,9 @@ export async function POST(request) {
                     where: {
                         hostId: candidateHostId,
                         status: { in: ['confirmed', 'pending'] },
+                    // If it's a paid event type, don't let 'pending' bookings (those at checkout) block the slot.
+                    // Only 'confirmed' (paid) bookings will block the slot for paid event types.
+                    ...(eventType.requiresPayment ? { status: 'confirmed' } : { status: { in: ['confirmed', 'pending'] } }),
                         OR: [
                             { AND: [{ startTime: { lte: new Date(startTime) } }, { endTime: { gt: new Date(startTime) } }] },
                             { AND: [{ startTime: { lt: new Date(endTime) } }, { endTime: { gte: new Date(endTime) } }] },
