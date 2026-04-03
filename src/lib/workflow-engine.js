@@ -220,7 +220,11 @@ async function refreshGoogleToken(integration) {
     return data.access_token;
 }
 /**
- * Poller for time-based workflows (Before/After Event)
+ * Poller for time-based workflows (BEFORE_EVENT / AFTER_EVENT).
+ * 
+ * Designed to work with Vercel's Hobby plan (daily cron). 
+ * Uses a 24-hour scan window so all pending reminders are caught in a single run.
+ * The `executedWorkflows` array on each Booking prevents duplicate sends.
  */
 export async function processScheduledWorkflows() {
     console.log('[WORKFLOWS_CRON] Starting scheduled workflow processing...');
@@ -230,10 +234,13 @@ export async function processScheduledWorkflows() {
             where: {
                 isActive: true,
                 trigger: { in: ['BEFORE_EVENT', 'AFTER_EVENT'] }
-            }
+            },
+            include: { eventTypes: { select: { id: true } } }
         });
 
         console.log(`[WORKFLOWS_CRON] Found ${workflows.length} active scheduled workflows.`);
+
+        const now = new Date();
 
         for (const wf of workflows) {
             const timeValue = wf.timeValue || 0;
@@ -245,33 +252,29 @@ export async function processScheduledWorkflows() {
             else if (timeUnit === 'HOURS') offsetMs = timeValue * 60 * 60 * 1000;
             else if (timeUnit === 'DAYS') offsetMs = timeValue * 24 * 60 * 60 * 1000;
 
-            const now = new Date();
-            let targetStartTime;
+            // Use a 24-hour scan window to catch all events (compatible with daily cron)
+            const SCAN_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+            let windowStart, windowEnd;
 
             if (wf.trigger === 'BEFORE_EVENT') {
-                // Sent X time BEFORE event starts (e.g. 2 hours before)
-                // We are looking for events starting at (now + offset)
-                targetStartTime = new Date(now.getTime() + offsetMs);
+                // "Send X time before event" means we need events starting between
+                // (now + offset) and (now + offset + 24h).
+                // But we should also catch any we MISSED (already past the trigger point).
+                // So scan from now to now + offset + 24h for the event start time.
+                windowStart = new Date(now.getTime() + offsetMs - SCAN_WINDOW_MS);
+                windowEnd = new Date(now.getTime() + offsetMs + SCAN_WINDOW_MS);
+                
+                // Only send if the trigger time has PASSED (i.e., event starts within offset from now or earlier)
+                // We filter after fetching
             } else if (wf.trigger === 'AFTER_EVENT') {
-                // Sent X time AFTER event starts (e.g. 10 mins after)
-                // We are looking for events that started at (now - offset)
-                targetStartTime = new Date(now.getTime() - offsetMs);
+                // "Send X time after event" means events that started at (now - offset) or earlier
+                windowStart = new Date(now.getTime() - offsetMs - SCAN_WINDOW_MS);
+                windowEnd = new Date(now.getTime() - offsetMs + SCAN_WINDOW_MS);
             }
 
-            // Look for bookings starting near that target time (within a 2 minute window to be safe)
-            const windowMs = 60 * 1000; // 1 minute window (cron usually runs every min)
-            
-            const windowStart = new Date(targetStartTime.getTime() - windowMs);
-            const windowEnd = new Date(targetStartTime.getTime() + windowMs);
-
-            // Fetch the workflow with its linked event types to check for "All" vs "Specific"
-            const wfWithDetails = await prisma.workflow.findUnique({
-                where: { id: wf.id },
-                include: { eventTypes: { select: { id: true } } }
-            });
-
-            const isAllEventTypes = wfWithDetails.eventTypes.length === 0;
-            const eventTypeIds = wfWithDetails.eventTypes.map(et => et.id);
+            const isAllEventTypes = wf.eventTypes.length === 0;
+            const eventTypeIds = wf.eventTypes.map(et => et.id);
 
             const bookings = await prisma.booking.findMany({
                 where: {
@@ -280,7 +283,7 @@ export async function processScheduledWorkflows() {
                         gte: windowStart,
                         lte: windowEnd
                     },
-                    hostId: wf.userId, // Only bookings where the workflow owner is the host (or one of the hosts)
+                    hostId: wf.userId,
                     NOT: {
                         executedWorkflows: {
                             has: wf.id
@@ -297,22 +300,30 @@ export async function processScheduledWorkflows() {
                 }
             });
 
-            // Filtering logic because prisma "none" relation queries can be tricky
+            // Filter to only bookings where the trigger time has actually passed
             const eligibleBookings = bookings.filter(b => {
-                // If the workflow is assigned to specific event types, check if THIS booking's event type is one of them.
-                // If the workflow is assigned to NO event types in the database, it means "All Event Types".
-                // We'll check the count of event types linked to this workflow.
-                // Assuming wf was fetched with eventTypes normally, but here we'll check the connection.
-                return true; // Simplified for now since we'll refactor findMany if needed
+                const eventStart = new Date(b.startTime).getTime();
+                if (wf.trigger === 'BEFORE_EVENT') {
+                    // Trigger time = eventStart - offset. Send if now >= triggerTime.
+                    const triggerTime = eventStart - offsetMs;
+                    return now.getTime() >= triggerTime;
+                } else if (wf.trigger === 'AFTER_EVENT') {
+                    // Trigger time = eventStart + offset. Send if now >= triggerTime.
+                    const triggerTime = eventStart + offsetMs;
+                    return now.getTime() >= triggerTime;
+                }
+                return false;
             });
 
-            if (bookings.length > 0) {
-                console.log(`[WORKFLOWS_CRON] Triggering "${wf.name}" for ${bookings.length} bookings.`);
-                for (const booking of bookings) {
+            if (eligibleBookings.length > 0) {
+                console.log(`[WORKFLOWS_CRON] Triggering "${wf.name}" for ${eligibleBookings.length} booking(s).`);
+                for (const booking of eligibleBookings) {
                     await executeWorkflow(wf, booking);
                 }
             }
         }
+
+        console.log('[WORKFLOWS_CRON] Processing complete.');
     } catch (err) {
         console.error('[WORKFLOW_CRON_ERROR]', err);
     }
