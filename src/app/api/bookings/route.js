@@ -565,6 +565,12 @@ export async function POST(request) {
                 manageUrl,
                 timezone: timezone || 'UTC',
             });
+
+            // --- TRIGGER WORKFLOWS (Real-time) ---
+            if (booking.status === 'confirmed') {
+                console.log('[BOOKING] Triggering workflows for EVENT_BOOKED...');
+                triggerWorkflows('EVENT_BOOKED', booking.id).catch(e => console.error('Workflow trigger error:', e));
+            }
         }
 
         return NextResponse.json({ 
