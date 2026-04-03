@@ -41,7 +41,13 @@ export async function GET(request) {
             where: whereClause,
             orderBy: { createdAt: 'desc' },
             include: {
-                _count: { select: { bookings: true } },
+                _count: {
+                    select: {
+                        bookings: {
+                            where: { status: 'confirmed' }
+                        }
+                    }
+                },
                 coHosts: { select: { id: true, name: true, email: true } },
                 user: { select: { id: true, name: true, email: true, username: true } }
             },
