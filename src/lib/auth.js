@@ -63,7 +63,9 @@ export const authOptions = {
         maxAge: 30 * 24 * 60 * 60,
     },
     callbacks: {
-        async signIn({ user, account }) {
+        async signIn({ user, account, profile }) {
+            console.log(`[AUTH_SIGNIN] Starting sign-in for provider: ${account?.provider}, email: ${user?.email}`);
+            
             if (account?.provider === 'google') {
                 try {
                     // Check if user already exists
@@ -72,8 +74,10 @@ export const authOptions = {
                     });
 
                     if (dbUser) {
+                        console.log(`[AUTH_SIGNIN] Found existing user: ${dbUser.id} (${dbUser.authProvider})`);
                         // If user exists but signed up with credentials, link accounts
                         if (dbUser.authProvider === 'credentials') {
+                            console.log(`[AUTH_SIGNIN] Linking credentials account to Google for: ${user.email}`);
                             await prisma.user.update({
                                 where: { id: dbUser.id },
                                 data: {
@@ -83,8 +87,8 @@ export const authOptions = {
                                 },
                             });
                         }
-                        // Continue to invitation check below
                     } else {
+                        console.log(`[AUTH_SIGNIN] Creating new user from Google profile: ${user.email}`);
                         // Create new user from Google profile
                         const name = user.name || 'User';
                         let username = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -122,12 +126,13 @@ export const authOptions = {
                                 },
                             },
                         });
+                        console.log(`[AUTH_SIGNIN] New Google user created successfully: ${finalUsername}`);
                     }
-
-                    // Continue to invitation check below
                 } catch (error) {
-                    console.error('[GOOGLE_SIGNIN_ERROR]', error);
-                    return false;
+                    console.error('[GOOGLE_SIGNIN_ERROR] Error during Google profile processing:', error);
+                    // Crucial: Return true anyway IF the account is already correctly created 
+                    // or handle it gracefully to not block users. For now, we need to see the error.
+                    return false; 
                 }
             }
 
