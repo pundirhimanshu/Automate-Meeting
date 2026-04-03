@@ -422,6 +422,25 @@ export async function POST(request) {
         
         // Lead Capture: Automatically add/update the invitee as a contact for the host
         try {
+            // Fetch question labels for better formatting in notes
+            let customNotesString = '';
+            if (answers && answers.length > 0) {
+                const questions = await prisma.customQuestion.findMany({
+                    where: { id: { in: answers.map(a => a.questionId) } }
+                });
+                const questionMap = questions.reduce((acc, q) => { 
+                    acc[q.id] = q.question; 
+                    return acc; 
+                }, {});
+                
+                customNotesString = '\n\n--- Custom Questions ---\n' + answers.map(a => {
+                    const label = questionMap[a.questionId] || 'Question';
+                    return `${label}: ${a.answer}`;
+                }).join('\n');
+            }
+
+            const mergedNotes = `Meeting: ${booking.eventType.title}${notes ? '\n\nNotes from Invitee: ' + notes : ''}${customNotesString}`;
+
             await prisma.contact.upsert({
                 where: {
                     userId_email: {
@@ -431,17 +450,17 @@ export async function POST(request) {
                 },
                 update: {
                     name: inviteeName,
-                    notes: `Meeting: ${booking.eventType.title}${notes ? '\n\nNotes from Invitee: ' + notes : ''}`,
+                    notes: mergedNotes,
                     updatedAt: new Date(),
                 },
                 create: {
                     name: inviteeName,
                     email: inviteeEmail,
                     userId: assignedHostId,
-                    notes: `First Booking: ${booking.eventType.title}${notes ? '\n\nNotes from Invitee: ' + notes : ''}`,
+                    notes: mergedNotes,
                 }
             });
-            console.log('[BOOKING] Contact captured/updated for host:', assignedHostId);
+            console.log('[BOOKING] Contact captured/updated with custom answers for host:', assignedHostId);
         } catch (contactErr) {
             console.error('[BOOKING] Contact capture failed:', contactErr.message);
         }
