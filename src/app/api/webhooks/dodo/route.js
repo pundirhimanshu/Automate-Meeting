@@ -118,7 +118,7 @@ export async function POST(request) {
                         // Store conflict info in notes if it happened
                         ...(conflict && { notes: (booking.notes || '') + `\n\n⚠️ OVERBOOKED: Slot taken by ${conflict.inviteeName} first.` })
                     },
-                    include: { eventType: true, host: true }
+                    include: { eventType: true, host: true, contact: true }
                 });
 
                 console.log('[DODO_WEBHOOK] Success: Booking marked as PAID and CONFIRMED in database.');
@@ -142,28 +142,20 @@ export async function POST(request) {
                     },
                 });
 
-                // Update/Create Contact to reflect payment status
-                try {
-                    const existingContact = await prisma.contact.findUnique({
-                        where: { userId_email: { userId: hostId, email: updatedBooking.inviteeEmail } }
-                    });
-
-                    await prisma.contact.upsert({
-                        where: { userId_email: { userId: hostId, email: updatedBooking.inviteeEmail } },
-                        update: {
-                            notes: (existingContact?.notes || '') + `\n[PAID] ${updatedBooking.eventType.title}`,
-                            updatedAt: new Date(),
-                        },
-                        create: {
-                            name: updatedBooking.inviteeName,
-                            email: updatedBooking.inviteeEmail,
-                            userId: hostId,
-                            notes: `Paid Booking: ${updatedBooking.eventType.title}`,
-                        }
-                    });
-                    console.log('[DODO_WEBHOOK] Contact updated for successful payment.');
-                } catch (contactErr) {
-                    console.error('[DODO_WEBHOOK] Contact update failed:', contactErr.message);
+                // Update the specific contact record for this booking (Duplicate-Safe)
+                if (updatedBooking.contactId) {
+                    try {
+                        await prisma.contact.update({
+                            where: { id: updatedBooking.contactId },
+                            data: {
+                                notes: (updatedBooking.contact?.notes || '') + `\n[PAID] Payment confirmed for this booking.`,
+                                updatedAt: new Date(),
+                            }
+                        });
+                        console.log('[DODO_WEBHOOK] Specific contact record updated for payment.');
+                    } catch (contactErr) {
+                        console.error('[DODO_WEBHOOK] Contact update failed:', contactErr.message);
+                    }
                 }
 
                 // Google Calendar Sync

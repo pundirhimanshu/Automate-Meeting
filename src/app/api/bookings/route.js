@@ -379,50 +379,10 @@ export async function POST(request) {
             }
         }
 
-           const bookingData = {
-            eventTypeId,
-            hostId: assignedHostId,
-            inviteeName,
-            inviteeEmail,
-            startTime: new Date(startTime),
-            endTime: new Date(endTime),
-            timezone: timezone || 'UTC',
-            notes: notes || '',
-            location: meetingLink,
-            status: eventType.requiresPayment ? 'pending' : 'confirmed',
-            paymentStatus: eventType.requiresPayment ? 'pending' : 'none',
-            answers: answers?.length ? {
-                create: answers.map((a) => ({
-                    questionId: a.questionId,
-                    answer: a.answer,
-                })),
-            } : undefined,
-            isSingleUse: !!singleUseToken,
-        };
-
-        let booking;
-        if (singleUseToken) {
-            const [newBooking] = await prisma.$transaction([
-                prisma.booking.create({
-                    data: bookingData,
-                    include: { eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, host: true },
-                }),
-                prisma.singleUseLink.update({
-                    where: { token: singleUseToken },
-                    data: { isUsed: true },
-                }),
-            ]);
-            booking = newBooking;
-        } else {
-            booking = await prisma.booking.create({
-                data: bookingData,
-                include: { eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, host: true },
-            });
-        }
-        
-        // Lead Capture: Automatically add/update the invitee as a contact for the host
+        // 1. Lead Capture: Create a BRAND NEW contact for every booking (Allowing duplicates as requested)
+        let contactId = null;
         try {
-            // Fetch question labels for better formatting in notes
+            // Fetch question labels for formatting
             let customNotesString = '';
             if (answers && answers.length > 0) {
                 const questions = await prisma.customQuestion.findMany({
@@ -439,44 +399,70 @@ export async function POST(request) {
                 }).join('\n');
             }
 
-            const mergedNotes = `Meeting: ${booking.eventType.title}${notes ? '\n\nNotes from Invitee: ' + notes : ''}${customNotesString}`;
+            const contactNotes = `Meeting: ${eventType.title}${notes ? '\n\nNotes: ' + notes : ''}${customNotesString}`;
 
-            const existingContact = await prisma.contact.findUnique({
-                where: {
-                    userId_email: {
-                        userId: assignedHostId,
-                        email: inviteeEmail,
-                    }
-                }
-            });
-
-            // If a different name is used for an existing contact, log it in the notes but keep the original name
-            let finalNotes = mergedNotes;
-            if (existingContact && existingContact.name !== inviteeName) {
-                finalNotes = `(Alternate Name used: ${inviteeName})\n` + mergedNotes;
-            }
-
-            await prisma.contact.upsert({
-                where: {
-                    userId_email: {
-                        userId: assignedHostId,
-                        email: inviteeEmail,
-                    }
-                },
-                update: {
-                    notes: (existingContact?.notes || '') + '\n\n' + finalNotes,
-                    updatedAt: new Date(),
-                },
-                create: {
+            const newContact = await prisma.contact.create({
+                data: {
                     name: inviteeName,
                     email: inviteeEmail,
                     userId: assignedHostId,
-                    notes: finalNotes,
+                    notes: contactNotes,
                 }
             });
-            console.log('[BOOKING] Contact captured/updated with custom answers for host:', assignedHostId);
+            contactId = newContact.id;
+            console.log('[BOOKING] New contact created for booking:', contactId);
         } catch (contactErr) {
-            console.error('[BOOKING] Contact capture failed:', contactErr.message);
+            console.error('[BOOKING] Contact creation failed:', contactErr.message);
+        }
+
+        const bookingData = {
+            eventTypeId,
+            hostId: assignedHostId,
+            inviteeName,
+            inviteeEmail,
+            startTime: new Date(startTime),
+            endTime: new Date(endTime),
+            timezone: timezone || 'UTC',
+            notes: notes || '',
+            location: meetingLink,
+            status: eventType.requiresPayment ? 'pending' : 'confirmed',
+            paymentStatus: eventType.requiresPayment ? 'pending' : 'none',
+            contactId: contactId, // Link the specific contact we just created
+            answers: answers?.length ? {
+                create: answers.map((a) => ({
+                    questionId: a.questionId,
+                    answer: a.answer,
+                })),
+            } : undefined,
+            isSingleUse: !!singleUseToken,
+        };
+
+        let booking;
+        if (singleUseToken) {
+            const [newBooking] = await prisma.$transaction([
+                prisma.booking.create({
+                    data: bookingData,
+                    include: { 
+                        eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, 
+                        host: true,
+                        contact: true
+                    },
+                }),
+                prisma.singleUseLink.update({
+                    where: { token: singleUseToken },
+                    data: { isUsed: true },
+                }),
+            ]);
+            booking = newBooking;
+        } else {
+            booking = await prisma.booking.create({
+                data: bookingData,
+                include: { 
+                    eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, 
+                    host: true,
+                    contact: true
+                },
+            });
         }
 
         // Handle Payment Flow if required
