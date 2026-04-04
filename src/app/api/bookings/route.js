@@ -505,10 +505,21 @@ export async function POST(request) {
 
                 checkoutUrl = session.checkout_url;
                 
+                // Dodo SDK returns session_id (not checkout_session_id)
+                const sessionId = session.session_id || session.checkout_session_id || session.id;
+                console.log('[DODO_CHECKOUT] Session created:', JSON.stringify({ 
+                    session_id: session.session_id,
+                    checkout_session_id: session.checkout_session_id,
+                    id: session.id,
+                    resolved: sessionId,
+                    checkout_url: session.checkout_url,
+                    keys: Object.keys(session)
+                }));
+
                 // Save the session ID in the booking
                 await prisma.booking.update({
                     where: { id: booking.id },
-                    data: { paymentSessionId: session.checkout_session_id }
+                    data: { paymentSessionId: sessionId }
                 });
             } catch (err) {
                 console.error('[DODO_INIT_ERROR]', err);

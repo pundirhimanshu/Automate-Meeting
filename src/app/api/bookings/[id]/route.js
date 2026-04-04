@@ -32,64 +32,71 @@ export async function GET(request, { params }) {
 
         // --- Double-check Payment status if still pending ---
         if (booking.status === 'pending' && booking.paymentSessionId) {
+            console.log(`[BOOKING_VERIFY] Booking ${booking.id} is pending with sessionId: ${booking.paymentSessionId}`);
             try {
                 // Get host's decrypted API key
-                const dodoApiKey = decrypt(booking.host.dodoApiKey);
-                const dodo = new DodoPayments({
-                    bearerToken: dodoApiKey,
-                });
-
-                const session = await dodo.checkoutSessions.retrieve(booking.paymentSessionId);
-                
-                console.log(`[BOOKING_VERIFY] Dodo session status for ${booking.id}:`, JSON.stringify({
-                    payment_status: session.payment_status,
-                    status: session.status,
-                }));
-
-                // Dodo SDK returns payment_status: 'succeeded' for successful payments
-                const isPaid = session.payment_status === 'succeeded' 
-                    || session.status === 'completed' 
-                    || session.status === 'paid';
-
-                if (isPaid) {
-                    console.log(`[BOOKING_VERIFY] Payment confirmed via API for ${booking.id}. Updating status.`);
-                    
-                    const updatedBooking = await prisma.booking.update({
-                        where: { id: booking.id },
-                        data: { 
-                            status: 'confirmed',
-                            paymentStatus: 'paid' 
-                        },
-                        include: { eventType: { include: { user: true, coHosts: true } }, host: true }
+                if (!booking.host.dodoApiKey) {
+                    console.error(`[BOOKING_VERIFY] Host ${booking.host.id} has no dodoApiKey!`);
+                } else {
+                    const dodoApiKey = decrypt(booking.host.dodoApiKey);
+                    const dodo = new DodoPayments({
+                        bearerToken: dodoApiKey,
                     });
 
-                    // Trigger emails & workflows (Same as webhook)
-                    triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(console.error);
+                    console.log(`[BOOKING_VERIFY] Calling Dodo API to check session: ${booking.paymentSessionId}`);
+                    const session = await dodo.checkoutSessions.retrieve(booking.paymentSessionId);
                     
-                    const origin = request.headers.get('origin') || '';
-                    const manageUrl = updatedBooking.manageToken ? `${origin}/book/manage/${updatedBooking.manageToken}` : '';
+                    console.log(`[BOOKING_VERIFY] Full Dodo response for ${booking.id}:`, JSON.stringify(session));
 
-                    // Build host recipients list (Main Host + Co-Hosts)
-                    const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];
-                    const hostRecipients = Array.from(new Map(rawRecipients.map(r => [r.id, r])).values());
+                    // Dodo SDK returns payment_status: 'succeeded' for successful payments
+                    const isPaid = session.payment_status === 'succeeded' 
+                        || session.status === 'completed' 
+                        || session.status === 'paid';
 
-                    await sendBookingConfirmation({
-                        booking: updatedBooking,
-                        eventType: updatedBooking.eventType,
-                        host: updatedBooking.host,
-                        coHosts: hostRecipients.filter(r => r.id !== updatedBooking.hostId),
-                        inviteeName: updatedBooking.inviteeName,
-                        inviteeEmail: updatedBooking.inviteeEmail,
-                        startTime: updatedBooking.startTime,
-                        manageUrl,
-                        timezone: updatedBooking.timezone,
-                    });
+                    console.log(`[BOOKING_VERIFY] isPaid=${isPaid}, payment_status=${session.payment_status}, status=${session.status}`);
 
-                    return NextResponse.json({ booking: updatedBooking });
+                    if (isPaid) {
+                        console.log(`[BOOKING_VERIFY] Payment confirmed via API for ${booking.id}. Updating status.`);
+                        
+                        const updatedBooking = await prisma.booking.update({
+                            where: { id: booking.id },
+                            data: { 
+                                status: 'confirmed',
+                                paymentStatus: 'paid' 
+                            },
+                            include: { eventType: { include: { user: true, coHosts: true } }, host: true }
+                        });
+
+                        // Trigger emails & workflows (Same as webhook)
+                        triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(console.error);
+                        
+                        const origin = request.headers.get('origin') || '';
+                        const manageUrl = updatedBooking.manageToken ? `${origin}/book/manage/${updatedBooking.manageToken}` : '';
+
+                        // Build host recipients list (Main Host + Co-Hosts)
+                        const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];
+                        const hostRecipients = Array.from(new Map(rawRecipients.map(r => [r.id, r])).values());
+
+                        await sendBookingConfirmation({
+                            booking: updatedBooking,
+                            eventType: updatedBooking.eventType,
+                            host: updatedBooking.host,
+                            coHosts: hostRecipients.filter(r => r.id !== updatedBooking.hostId),
+                            inviteeName: updatedBooking.inviteeName,
+                            inviteeEmail: updatedBooking.inviteeEmail,
+                            startTime: updatedBooking.startTime,
+                            manageUrl,
+                            timezone: updatedBooking.timezone,
+                        });
+
+                        return NextResponse.json({ booking: updatedBooking });
+                    }
                 }
             } catch (err) {
-                console.error('[BOOKING_VERIFY_ERROR]', err);
+                console.error('[BOOKING_VERIFY_ERROR] Full error:', err.message, err.stack);
             }
+        } else if (booking.status === 'pending' && !booking.paymentSessionId) {
+            console.warn(`[BOOKING_VERIFY] Booking ${booking.id} is pending but has NO paymentSessionId saved!`);
         }
 
         return NextResponse.json({ booking });
