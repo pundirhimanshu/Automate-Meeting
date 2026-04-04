@@ -20,22 +20,23 @@ export async function POST(request) {
         // 1. Fetch host details
         const host = await prisma.user.findUnique({
             where: { id: hostId },
-            select: { dodoWebhookSecret: true, id: true, name: true, email: true }
+            select: { dodoApiKey: true, dodoWebhookSecret: true, id: true, name: true, email: true }
         });
 
-        if (!host || !host.dodoWebhookSecret) {
-            console.error('[DODO_WEBHOOK] Error: Host not found or Dodo secret not configured for hostId:', hostId);
+        if (!host || !host.dodoWebhookSecret || !host.dodoApiKey) {
+            console.error('[DODO_WEBHOOK] Error: Host not found or Dodo keys not configured for hostId:', hostId);
             return new Response('Host not configured', { status: 404 });
         }
 
         console.log('[DODO_WEBHOOK] Found host and secret. Proceeding to verify signature...');
 
-        // 2. Decrypt host secret
-        let webhookSecret;
+        // 2. Decrypt host keys
+        let webhookSecret, apiKey;
         try {
             webhookSecret = decrypt(host.dodoWebhookSecret);
+            apiKey = decrypt(host.dodoApiKey);
         } catch (decErr) {
-            console.error('[DODO_WEBHOOK] Error: Failed to decrypt host secret. ENCRYPTION_KEY might be invalid.');
+            console.error('[DODO_WEBHOOK] Error: Failed to decrypt host keys. ENCRYPTION_KEY might be invalid.');
             return new Response('Decryption failed', { status: 500 });
         }
 
@@ -51,6 +52,7 @@ export async function POST(request) {
         let event;
         try {
             const client = new DodoPayments({
+                bearerToken: apiKey,
                 webhookKey: webhookSecret,
             });
             event = client.webhooks.unwrap(rawBody, { headers });
