@@ -18,23 +18,51 @@ function ConfirmedContent() {
             return;
         }
 
+        let cancelled = false;
+
         const fetchBooking = async () => {
-            try {
-                const res = await fetch(`/api/bookings/${bookingId}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setBooking(data.booking);
-                } else {
-                    setError('Unable to find your booking details.');
+            const MAX_RETRIES = 5;
+            const RETRY_DELAY = 3000; // 3 seconds between retries
+
+            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+                if (cancelled) return;
+
+                try {
+                    const res = await fetch(`/api/bookings/${bookingId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setBooking(data.booking);
+
+                        // If confirmed, stop polling immediately
+                        if (data.booking.status === 'confirmed') {
+                            setLoading(false);
+                            return;
+                        }
+
+                        // If still pending and more retries left, wait and try again
+                        if (attempt < MAX_RETRIES) {
+                            await new Promise(r => setTimeout(r, RETRY_DELAY));
+                            continue;
+                        }
+                    } else {
+                        setError('Unable to find your booking details.');
+                        setLoading(false);
+                        return;
+                    }
+                } catch (err) {
+                    setError('Something went wrong. Please check your email for confirmation.');
+                    setLoading(false);
+                    return;
                 }
-            } catch (err) {
-                setError('Something went wrong. Please check your email for confirmation.');
-            } finally {
-                setLoading(false);
             }
+
+            // After all retries, show whatever we have
+            setLoading(false);
         };
 
         fetchBooking();
+
+        return () => { cancelled = true; };
     }, [bookingId]);
 
     if (loading) {

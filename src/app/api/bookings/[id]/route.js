@@ -41,8 +41,17 @@ export async function GET(request, { params }) {
 
                 const session = await dodo.checkoutSessions.retrieve(booking.paymentSessionId);
                 
-                // If paid, confirm it now!
-                if (session.status === 'completed' || session.status === 'paid' || session.payment_status === 'paid') {
+                console.log(`[BOOKING_VERIFY] Dodo session status for ${booking.id}:`, JSON.stringify({
+                    payment_status: session.payment_status,
+                    status: session.status,
+                }));
+
+                // Dodo SDK returns payment_status: 'succeeded' for successful payments
+                const isPaid = session.payment_status === 'succeeded' 
+                    || session.status === 'completed' 
+                    || session.status === 'paid';
+
+                if (isPaid) {
                     console.log(`[BOOKING_VERIFY] Payment confirmed via API for ${booking.id}. Updating status.`);
                     
                     const updatedBooking = await prisma.booking.update({

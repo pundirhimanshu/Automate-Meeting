@@ -58,9 +58,11 @@ export async function POST(request) {
             // Dodo SDK v2 might use .type or .event_type depending on version/payload
             const eventType = event.type || event.event_type;
             console.log('[DODO_WEBHOOK] Signature verified! Event Type:', eventType);
+            console.log('[DODO_WEBHOOK] Full event keys:', Object.keys(event));
+            if (event.data) console.log('[DODO_WEBHOOK] event.data keys:', Object.keys(event.data));
 
             // 5. Handle success events (Checkout Completion or Payment Success)
-            const successEvents = ['checkout.session.completed', 'payment.succeeded', 'order.completed'];
+            const successEvents = ['checkout.session.completed', 'payment.succeeded', 'payment.completed', 'order.completed'];
             
             if (successEvents.includes(eventType)) {
                 // Metadata can be in event.data.metadata or top-level event.metadata
