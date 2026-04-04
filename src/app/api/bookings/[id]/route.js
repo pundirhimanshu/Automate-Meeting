@@ -51,7 +51,7 @@ export async function GET(request, { params }) {
                             status: 'confirmed',
                             paymentStatus: 'paid' 
                         },
-                        include: { eventType: true, host: true }
+                        include: { eventType: { include: { user: true, coHosts: true } }, host: true }
                     });
 
                     // Trigger emails & workflows (Same as webhook)
@@ -60,11 +60,15 @@ export async function GET(request, { params }) {
                     const origin = request.headers.get('origin') || '';
                     const manageUrl = updatedBooking.manageToken ? `${origin}/book/manage/${updatedBooking.manageToken}` : '';
 
+                    // Build host recipients list (Main Host + Co-Hosts)
+                    const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];
+                    const hostRecipients = Array.from(new Map(rawRecipients.map(r => [r.id, r])).values());
+
                     await sendBookingConfirmation({
                         booking: updatedBooking,
                         eventType: updatedBooking.eventType,
                         host: updatedBooking.host,
-                        coHosts: [],
+                        coHosts: hostRecipients.filter(r => r.id !== updatedBooking.hostId),
                         inviteeName: updatedBooking.inviteeName,
                         inviteeEmail: updatedBooking.inviteeEmail,
                         startTime: updatedBooking.startTime,

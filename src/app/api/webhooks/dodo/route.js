@@ -76,7 +76,7 @@ export async function POST(request) {
 
                 const booking = await prisma.booking.findUnique({
                     where: { id: bookingId },
-                    include: { eventType: true, host: true }
+                    include: { eventType: { include: { user: true, coHosts: true } }, host: true }
                 });
 
                 if (!booking) {
@@ -118,7 +118,7 @@ export async function POST(request) {
                         // Store conflict info in notes if it happened
                         ...(conflict && { notes: (booking.notes || '') + `\n\n⚠️ OVERBOOKED: Slot taken by ${conflict.inviteeName} first.` })
                     },
-                    include: { eventType: true, host: true, contact: true }
+                    include: { eventType: { include: { user: true, coHosts: true } }, host: true, contact: true }
                 });
 
                 console.log('[DODO_WEBHOOK] Success: Booking marked as PAID and CONFIRMED in database.');
@@ -129,18 +129,24 @@ export async function POST(request) {
                 console.log('[DODO_WEBHOOK] Triggering workflows for EVENT_BOOKED...');
                 triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[DODO_WEBHOOK] Workflow trigger error:', e));
 
-                // Create in-app notification for host
-                await prisma.notification.create({
-                    data: {
-                        userId: hostId,
-                        type: 'booking_confirmed',
-                        title: conflict ? '⚠️ Overbooked Payment' : 'Payment Received',
-                        message: conflict 
-                            ? `${updatedBooking.inviteeName} paid, but the slot was already taken! Check details.`
-                            : `${updatedBooking.inviteeName} paid for "${updatedBooking.eventType.title}"`,
-                        bookingId: updatedBooking.id,
-                    },
-                });
+                // Build host recipients list (Main Host + Co-Hosts)
+                const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];
+                const hostRecipients = Array.from(new Map(rawRecipients.map(r => [r.id, r])).values());
+
+                // Create in-app notifications for ALL hosts
+                await Promise.all(hostRecipients.map(recipient =>
+                    prisma.notification.create({
+                        data: {
+                            userId: recipient.id,
+                            type: 'booking_confirmed',
+                            title: conflict ? '⚠️ Overbooked Payment' : 'Payment Received',
+                            message: conflict 
+                                ? `${updatedBooking.inviteeName} paid, but the slot was already taken! Check details.`
+                                : `${updatedBooking.inviteeName} paid for "${updatedBooking.eventType.title}"`,
+                            bookingId: updatedBooking.id,
+                        },
+                    })
+                ));
 
                 // Update the specific contact record for this booking (Duplicate-Safe)
                 if (updatedBooking.contactId) {
@@ -190,14 +196,14 @@ export async function POST(request) {
                         booking: updatedBooking,
                         eventType: updatedBooking.eventType,
                         host: updatedBooking.host,
-                        coHosts: [],
+                        coHosts: hostRecipients.filter(r => r.id !== updatedBooking.hostId),
                         inviteeName: updatedBooking.inviteeName,
                         inviteeEmail: updatedBooking.inviteeEmail,
                         startTime: updatedBooking.startTime,
                         manageUrl,
                         timezone: updatedBooking.timezone,
                     });
-                    console.log('[DODO_WEBHOOK] Emails sent successfully!');
+                    console.log('[DODO_WEBHOOK] Emails sent to host, co-hosts and invitee successfully!');
                 } catch (emailErr) {
                     console.error('[DODO_WEBHOOK] CRITICAL: Failed to send confirmation emails:', emailErr.message);
                 }
