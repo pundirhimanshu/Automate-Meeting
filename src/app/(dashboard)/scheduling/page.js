@@ -89,6 +89,7 @@ function SchedulingContent() {
         requiresPayment: false,
         price: '',
         dodoProductId: '',
+        paymentProvider: 'dodo', // 'dodo' or 'razorpay'
         customQuestions: [],
         coHostIds: [],
     });
@@ -283,7 +284,7 @@ function SchedulingContent() {
             title: '', description: '', duration: 30, type: 'one-on-one', color: '#ff9500',
             locationType: 'none', location: '', countryCode: '+1', phoneCallSource: 'host', bufferTimeBefore: 0, bufferTimeAfter: 0, dateRangeType: 'indefinite',
             dateRangeDays: 60, maxBookingsPerDay: '', minNotice: 60, requiresPayment: false,
-            price: '', customQuestions: [], coHostIds: [],
+            price: '', paymentProvider: 'dodo', customQuestions: [], coHostIds: [],
         });
         setDrawerOpen(true);
     };
@@ -346,6 +347,7 @@ function SchedulingContent() {
                     maxBookingsPerDay: data.eventType.maxBookingsPerDay || '',
                     price: data.eventType.price || '',
                     dodoProductId: data.eventType.dodoProductId || '',
+                    paymentProvider: data.eventType.paymentProvider || 'dodo',
                     customQuestions: data.eventType.customQuestions || [],
                     coHostIds: data.eventType.coHosts?.map(h => h.id) || [],
                 });
@@ -430,6 +432,7 @@ function SchedulingContent() {
             requiresPayment: form.requiresPayment,
             price: form.price ? parseFloat(form.price) : null,
             dodoProductId: form.dodoProductId,
+            paymentProvider: form.paymentProvider,
             customQuestions: (form.customQuestions || []).filter((q) => q.question.trim()),
             coHostIds: form.coHostIds,
         };
@@ -1389,21 +1392,60 @@ function SchedulingContent() {
                                             Require payment before booking
                                         </label>
                                         {form.requiresPayment && (
-                                            <div key="price-group" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                                            <div key="price-group" style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px', padding: '15px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                                {/* Provider Selector */}
+                                                <div className="input-group">
+                                                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '8px' }}>Payment Provider</label>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                                        <button 
+                                                            type="button"
+                                                            className={`btn ${form.paymentProvider === 'dodo' ? 'btn-primary' : 'btn-outline'}`}
+                                                            style={{ fontSize: '0.8125rem', padding: '8px', justifyContent: 'center' }}
+                                                            onClick={() => setForm(f => ({ ...f, paymentProvider: 'dodo' }))}
+                                                        >
+                                                            🦤 Dodo {userData?.dodoApiKey ? '✅' : ''}
+                                                        </button>
+                                                        <button 
+                                                            type="button"
+                                                            className={`btn ${form.paymentProvider === 'razorpay' ? 'btn-primary' : 'btn-outline'}`}
+                                                            style={{ fontSize: '0.8125rem', padding: '8px', justifyContent: 'center' }}
+                                                            onClick={() => setForm(f => ({ ...f, paymentProvider: 'razorpay' }))}
+                                                        >
+                                                            💳 Razorpay {userData?.razorpayKeyId ? '✅' : ''}
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    {/* Connection Warning */}
+                                                    {((form.paymentProvider === 'dodo' && !userData?.dodoApiKey) || (form.paymentProvider === 'razorpay' && !userData?.razorpayKeyId)) && (
+                                                        <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            ⚠️ Not connected. 
+                                                            <Link href={`/integrations/${form.paymentProvider}`} style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Connect now</Link>
+                                                        </p>
+                                                    )}
+                                                </div>
+
                                                 <div className="input-group">
                                                     <label>Price (INR)</label>
-                                                    <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step="0.01" />
+                                                    <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step="1" />
                                                 </div>
-                                                <div className="input-group">
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        Dodo Product ID
-                                                        <span title="Find this in Dodo Dashboard > Products (starts with pdt_)" style={{ cursor: 'help', color: 'var(--text-tertiary)' }}>ⓘ</span>
-                                                    </label>
-                                                    <input name="dodoProductId" className="input" placeholder="pdt_..." value={form.dodoProductId} onChange={handleChange} />
-                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-                                                        Required for payments. Get this from your Dodo Payments dashboard.
+
+                                                {form.paymentProvider === 'dodo' && (
+                                                    <div className="input-group">
+                                                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                            Dodo Product ID
+                                                        </label>
+                                                        <input name="dodoProductId" className="input" placeholder="pdt_..." value={form.dodoProductId} onChange={handleChange} />
+                                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                                            Required for Dodo Payments.
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {form.paymentProvider === 'razorpay' && (
+                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', background: 'white', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-color)', lineHeight: '1.4' }}>
+                                                        💡 <b>Dynamic Order:</b> No Product ID needed! We create orders automatically with the price set above.
                                                     </p>
-                                                </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>

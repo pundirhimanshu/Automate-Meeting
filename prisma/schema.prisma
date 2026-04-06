@@ -39,6 +39,8 @@ model User {
   routingForms         RoutingForm[]
   dodoApiKey           String?
   dodoWebhookSecret    String?
+  razorpayKeyId        String?
+  razorpayKeySecret    String?
 }
 
 model Integration {
@@ -82,6 +84,7 @@ model EventType {
   price             Float?
   currency          String?          @default("USD")
   dodoProductId     String?
+  paymentProvider   String? // "dodo", "razorpay"
   inviteeLimit      Int              @default(1)
   roundRobinIndex   Int              @default(0)
   userId            String

@@ -19,6 +19,8 @@ export async function GET(request) {
                 id: true, name: true, email: true, username: true,
                 timezone: true, brandColor: true, avatar: true, logo: true,
                 createdAt: true,
+                dodoApiKey: true,
+                razorpayKeyId: true,
                 integrations: {
                     select: { provider: true, email: true }
                 }

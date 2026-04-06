@@ -11,10 +11,17 @@ export default function IntegrationButton({ provider, connected, connectUrl }) {
         if (!confirm(`Are you sure you want to disconnect ${provider}?`)) return;
         setLoading(true);
         try {
-            const disconnectPath = provider === 'google_calendar' || provider === 'google_meet'
-                ? '/api/integrations/google/disconnect'
-                : `/api/integrations/${provider}/disconnect`;
-            const res = await fetch(disconnectPath, { method: 'POST' });
+            let disconnectPath = `/api/integrations/${provider}/disconnect`;
+            let method = 'POST';
+
+            if (provider === 'google_calendar' || provider === 'google_meet') {
+                disconnectPath = '/api/integrations/google/disconnect';
+            } else if (provider === 'dodo' || provider === 'razorpay') {
+                disconnectPath = `/api/integrations/${provider}`;
+                method = 'DELETE';
+            }
+
+            const res = await fetch(disconnectPath, { method });
             if (res.ok) {
                 router.refresh();
             } else {

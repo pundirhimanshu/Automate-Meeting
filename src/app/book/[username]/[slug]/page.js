@@ -211,12 +211,60 @@ export default function BookingPage() {
 
             if (res.ok) {
                 const result = await res.json();
+                
+                // 1. DODO Payments redirect
                 if (result.checkoutUrl) {
                     window.location.href = result.checkoutUrl;
                     return;
                 }
+
+                // 2. RAZORPAY Modal
+                if (result.razorpayOrderId && result.razorpayKeyId) {
+                    const resScript = await new Promise((resolve) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                        script.onload = () => resolve(true);
+                        script.onerror = () => resolve(false);
+                        document.body.appendChild(script);
+                    });
+
+                    if (!resScript) {
+                        setError('Razorpay SDK failed to load. Please check your internet connection.');
+                        setSubmitting(false);
+                        return;
+                    }
+
+                    const options = {
+                        key: result.razorpayKeyId,
+                        amount: Math.round((data.eventType.price || 0) * 100),
+                        currency: data.eventType.currency || 'INR',
+                        name: 'Automate Bookings',
+                        description: `Payment for ${data.eventType.title}`,
+                        order_id: result.razorpayOrderId,
+                        handler: function (response) {
+                            window.location.href = `/book/confirmed?bookingId=${result.booking.id}&razorpay_payment_id=${response.razorpay_payment_id}`;
+                        },
+                        prefill: {
+                            name: form.name,
+                            email: form.email,
+                            contact: form.phone || '',
+                        },
+                        theme: { color: brandColor },
+                        modal: {
+                            ondismiss: function () {
+                                setSubmitting(false);
+                            }
+                        }
+                    };
+
+                    const rzp1 = new window.Razorpay(options);
+                    rzp1.open();
+                    return;
+                }
+
                 setBookedData(result.booking);
                 setStep('confirmed');
+                return;
             } else {
                 const errData = await res.json();
                 setError(errData.error || 'Failed to book. Please try again.');

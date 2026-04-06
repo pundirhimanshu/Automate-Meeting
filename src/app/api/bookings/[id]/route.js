@@ -4,6 +4,7 @@ import { sendBookingCancellation, sendBookingReschedule, sendBookingConfirmation
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { decrypt } from '@/lib/encryption';
 import DodoPayments from 'dodopayments';
+import Razorpay from 'razorpay';
 
 export const dynamic = 'force-dynamic';
   
@@ -20,7 +21,8 @@ export async function GET(request, { params }) {
                         duration: true,
                         location: true,
                         description: true,
-                        user: { select: { name: true, avatar: true, logo: true, brandColor: true } }
+                        paymentProvider: true,
+                        user: { select: { id: true, name: true, avatar: true, logo: true, brandColor: true } }
                     }
                 }
             }
@@ -32,68 +34,63 @@ export async function GET(request, { params }) {
 
         // --- Double-check Payment status if still pending ---
         if (booking.status === 'pending' && booking.paymentSessionId) {
-            console.log(`[BOOKING_VERIFY] Booking ${booking.id} is pending with sessionId: ${booking.paymentSessionId}`);
+            const provider = booking.eventType.paymentProvider || 'dodo';
+            
             try {
-                // Get host's decrypted API key
-                if (!booking.host.dodoApiKey) {
-                    console.error(`[BOOKING_VERIFY] Host ${booking.host.id} has no dodoApiKey!`);
-                } else {
+                let isPaid = false;
+
+                // 1. DODO VERIFICATION
+                if (provider === 'dodo' && booking.host.dodoApiKey) {
                     const dodoApiKey = decrypt(booking.host.dodoApiKey);
-                    const dodo = new DodoPayments({
-                        bearerToken: dodoApiKey,
+                    const dodo = new DodoPayments({ bearerToken: dodoApiKey });
+                    const session = await dodo.checkoutSessions.retrieve(booking.paymentSessionId);
+                    isPaid = session.payment_status === 'succeeded' || session.status === 'completed' || session.status === 'paid';
+                } 
+                
+                // 2. RAZORPAY VERIFICATION
+                else if (provider === 'razorpay' && booking.host.razorpayKeyId && booking.host.razorpayKeySecret) {
+                    const keyId = decrypt(booking.host.razorpayKeyId);
+                    const keySecret = decrypt(booking.host.razorpayKeySecret);
+                    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+                    
+                    const order = await razorpay.orders.fetch(booking.paymentSessionId);
+                    isPaid = order.status === 'paid';
+                }
+
+                if (isPaid) {
+                    console.log(`[BOOKING_VERIFY] Payment confirmed via API for ${booking.id}. Updating status.`);
+                    
+                    const updatedBooking = await prisma.booking.update({
+                        where: { id: booking.id },
+                        data: { status: 'confirmed', paymentStatus: 'paid' },
+                        include: { eventType: { include: { user: true, coHosts: true } }, host: true }
                     });
 
-                    console.log(`[BOOKING_VERIFY] Calling Dodo API to check session: ${booking.paymentSessionId}`);
-                    const session = await dodo.checkoutSessions.retrieve(booking.paymentSessionId);
+                    // Finalize (Workflows, Emails)
+                    triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(console.error);
                     
-                    console.log(`[BOOKING_VERIFY] Full Dodo response for ${booking.id}:`, JSON.stringify(session));
+                    const origin = request.headers.get('origin') || `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'localhost:3000'}`;
+                    const manageUrl = updatedBooking.manageToken ? `${origin}/book/manage/${updatedBooking.manageToken}` : '';
 
-                    // Dodo SDK returns payment_status: 'succeeded' for successful payments
-                    const isPaid = session.payment_status === 'succeeded' 
-                        || session.status === 'completed' 
-                        || session.status === 'paid';
+                    const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];
+                    const hostRecipients = Array.from(new Map(rawRecipients.map(r => [r.id, r])).values());
 
-                    console.log(`[BOOKING_VERIFY] isPaid=${isPaid}, payment_status=${session.payment_status}, status=${session.status}`);
+                    await sendBookingConfirmation({
+                        booking: updatedBooking,
+                        eventType: updatedBooking.eventType,
+                        host: updatedBooking.host,
+                        coHosts: hostRecipients.filter(r => r.id !== updatedBooking.hostId),
+                        inviteeName: updatedBooking.inviteeName,
+                        inviteeEmail: updatedBooking.inviteeEmail,
+                        startTime: updatedBooking.startTime,
+                        manageUrl,
+                        timezone: updatedBooking.timezone,
+                    });
 
-                    if (isPaid) {
-                        console.log(`[BOOKING_VERIFY] Payment confirmed via API for ${booking.id}. Updating status.`);
-                        
-                        const updatedBooking = await prisma.booking.update({
-                            where: { id: booking.id },
-                            data: { 
-                                status: 'confirmed',
-                                paymentStatus: 'paid' 
-                            },
-                            include: { eventType: { include: { user: true, coHosts: true } }, host: true }
-                        });
-
-                        // Trigger emails & workflows (Same as webhook)
-                        triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(console.error);
-                        
-                        const origin = request.headers.get('origin') || '';
-                        const manageUrl = updatedBooking.manageToken ? `${origin}/book/manage/${updatedBooking.manageToken}` : '';
-
-                        // Build host recipients list (Main Host + Co-Hosts)
-                        const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];
-                        const hostRecipients = Array.from(new Map(rawRecipients.map(r => [r.id, r])).values());
-
-                        await sendBookingConfirmation({
-                            booking: updatedBooking,
-                            eventType: updatedBooking.eventType,
-                            host: updatedBooking.host,
-                            coHosts: hostRecipients.filter(r => r.id !== updatedBooking.hostId),
-                            inviteeName: updatedBooking.inviteeName,
-                            inviteeEmail: updatedBooking.inviteeEmail,
-                            startTime: updatedBooking.startTime,
-                            manageUrl,
-                            timezone: updatedBooking.timezone,
-                        });
-
-                        return NextResponse.json({ booking: updatedBooking });
-                    }
+                    return NextResponse.json({ booking: updatedBooking });
                 }
             } catch (err) {
-                console.error('[BOOKING_VERIFY_ERROR] Full error:', err.message, err.stack);
+                console.error('[BOOKING_VERIFY_ERROR]', err.message);
             }
         } else if (booking.status === 'pending' && !booking.paymentSessionId) {
             console.warn(`[BOOKING_VERIFY] Booking ${booking.id} is pending but has NO paymentSessionId saved!`);

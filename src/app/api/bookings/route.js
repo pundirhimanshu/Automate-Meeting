@@ -11,6 +11,7 @@ import { canCreateBooking, canUseIntegration } from '@/lib/plans';
 import { getUserSubscription } from '@/lib/subscription';
 import { decrypt } from '@/lib/encryption';
 import DodoPayments from 'dodopayments';
+import Razorpay from 'razorpay';
 
 export const dynamic = 'force-dynamic';
 
@@ -467,66 +468,82 @@ export async function POST(request) {
 
         // Handle Payment Flow if required
         let checkoutUrl = null;
+        let razorpayOrderId = null;
+        let razorpayKeyId = null;
+
         if (eventType.requiresPayment) {
             const hostUser = eventType.user;
-            if (!hostUser.dodoApiKey || !hostUser.dodoWebhookSecret) {
-                // Cleanup the pending booking if host is not ready
-                await prisma.booking.delete({ where: { id: booking.id } });
-                return NextResponse.json({ 
-                    error: 'This host has not yet set up their payment integration. Please contact them.' 
-                }, { status: 400 });
-            }
+            const provider = eventType.paymentProvider || 'dodo';
 
-            try {
-                const apiKey = decrypt(hostUser.dodoApiKey);
-                
-                // Initialize Dodo client
-                const dodo = new DodoPayments({ 
-                    bearerToken: apiKey,
-                });
+            // 1. DODO PAYMENTS FLOW
+            if (provider === 'dodo') {
+                if (!hostUser.dodoApiKey || !hostUser.dodoWebhookSecret) {
+                    await prisma.booking.delete({ where: { id: booking.id } });
+                    return NextResponse.json({ error: 'Host has not set up Dodo Payments.' }, { status: 400 });
+                }
 
-                // Create Dodo Checkout Session using SDK
-                const session = await dodo.checkoutSessions.create({
-                    customer: {
-                        name: inviteeName,
-                        email: inviteeEmail,
-                    },
-                    product_cart: [{
-                        product_id: eventType.dodoProductId, // Use the real Product ID from the database
-                        quantity: 1,
-                    }],
-                    billing_currency: 'INR',
-                    metadata: {
-                        bookingId: booking.id,
-                        hostId: assignedHostId,
-                    },
-                    return_url: `${request.headers.get('origin') || process.env.NEXTAUTH_URL || ''}/book/confirmed?bookingId=${booking.id}`,
-                });
+                try {
+                    const apiKey = decrypt(hostUser.dodoApiKey);
+                    const dodo = new DodoPayments({ bearerToken: apiKey });
+                    const session = await dodo.checkoutSessions.create({
+                        customer: { name: inviteeName, email: inviteeEmail },
+                        product_cart: [{ product_id: eventType.dodoProductId, quantity: 1 }],
+                        billing_currency: 'INR',
+                        metadata: { bookingId: booking.id, hostId: assignedHostId },
+                        return_url: `${request.headers.get('origin') || ''}/book/confirmed?bookingId=${booking.id}`,
+                    });
+                    checkoutUrl = session.checkout_url;
+                    const sessionId = session.session_id || session.checkout_session_id || session.id;
+                    await prisma.booking.update({
+                        where: { id: booking.id },
+                        data: { paymentSessionId: sessionId }
+                    });
+                } catch (err) {
+                    console.error('[DODO_INIT_ERROR]', err);
+                    await prisma.booking.delete({ where: { id: booking.id } });
+                    return NextResponse.json({ error: `Dodo Payment error: ${err.message}` }, { status: 500 });
+                }
+            } 
+            
+            // 2. RAZORPAY FLOW
+            else if (provider === 'razorpay') {
+                if (!hostUser.razorpayKeyId || !hostUser.razorpayKeySecret) {
+                    await prisma.booking.delete({ where: { id: booking.id } });
+                    return NextResponse.json({ error: 'Host has not set up Razorpay.' }, { status: 400 });
+                }
 
-                checkoutUrl = session.checkout_url;
-                
-                // Dodo SDK returns session_id (not checkout_session_id)
-                const sessionId = session.session_id || session.checkout_session_id || session.id;
-                console.log('[DODO_CHECKOUT] Session created:', JSON.stringify({ 
-                    session_id: session.session_id,
-                    checkout_session_id: session.checkout_session_id,
-                    id: session.id,
-                    resolved: sessionId,
-                    checkout_url: session.checkout_url,
-                    keys: Object.keys(session)
-                }));
+                try {
+                    const keyId = decrypt(hostUser.razorpayKeyId);
+                    const keySecret = decrypt(hostUser.razorpayKeySecret);
+                    
+                    const razorpay = new Razorpay({
+                        key_id: keyId,
+                        key_secret: keySecret,
+                    });
 
-                // Save the session ID in the booking
-                await prisma.booking.update({
-                    where: { id: booking.id },
-                    data: { paymentSessionId: sessionId }
-                });
-            } catch (err) {
-                console.error('[DODO_INIT_ERROR]', err);
-                await prisma.booking.delete({ where: { id: booking.id } });
-                return NextResponse.json({ 
-                    error: `Payment initialization critical error: ${err.message}` 
-                }, { status: 500 });
+                    const order = await razorpay.orders.create({
+                        amount: Math.round((eventType.price || 0) * 100), // convert to paise
+                        currency: eventType.currency || 'INR',
+                        receipt: `rcpt_${booking.id.substring(0, 10)}`,
+                        notes: {
+                            bookingId: booking.id,
+                            hostId: assignedHostId,
+                        }
+                    });
+
+                    razorpayOrderId = order.id;
+                    razorpayKeyId = keyId;
+
+                    // Save the Order ID in the booking
+                    await prisma.booking.update({
+                        where: { id: booking.id },
+                        data: { paymentSessionId: order.id }
+                    });
+                } catch (err) {
+                    console.error('[RAZORPAY_INIT_ERROR]', err);
+                    await prisma.booking.delete({ where: { id: booking.id } });
+                    return NextResponse.json({ error: `Razorpay Order error: ${err.message}` }, { status: 500 });
+                }
             }
         }
 
@@ -586,7 +603,9 @@ export async function POST(request) {
 
         return NextResponse.json({ 
             booking, 
-            checkoutUrl 
+            checkoutUrl,
+            razorpayOrderId,
+            razorpayKeyId
         }, { status: 201 });
     } catch (error) {
         console.error('Error creating booking:', error);
