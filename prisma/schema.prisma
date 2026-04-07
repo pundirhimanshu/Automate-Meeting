@@ -41,6 +41,18 @@ model User {
   dodoWebhookSecret    String?
   razorpayKeyId        String?
   razorpayKeySecret    String?
+
+  // Start Your Page
+  pageAboutMe            String?
+  pageHeadline           String?
+  pageSocialYouTube      String?
+  pageSocialFacebook     String?
+  pageSocialWhatsApp     String?
+  pageSocialInstagram    String?
+  pageSidePanelColor     String   @default("#d946ef")
+  pageSelectedEventTypes String?  // comma-separated event-type IDs
+  pageImage              String?
+  pageSchedulerHeader    String?
 }
 
 model Integration {
