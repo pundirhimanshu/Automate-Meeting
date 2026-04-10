@@ -1,5 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
+  output        = "../src/generated/client"
   binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
 }
 
@@ -28,6 +29,7 @@ model User {
   eventTypes           EventType[]
   schedules            Schedule[]
   bookingsAsHost       Booking[]      @relation("HostBookings")
+  reviewsReceived      Review[]       @relation("HostReviews")
   notifications        Notification[]
   teamMembers          TeamMember[]
   contacts             Contact[]
@@ -163,6 +165,7 @@ model Booking {
   rescheduledFromEnd   DateTime?
   executedWorkflows    String[]        @default([]) // Stores IDs of workflows that have already run for this booking
   answers              BookingAnswer[]
+  review               Review?
   notifications        Notification[]
   isSingleUse          Boolean         @default(false)
   paymentStatus        String?         @default("none") // "none", "pending", "paid"
@@ -388,3 +391,15 @@ model RoutingSubmission {
   createdAt    DateTime    @default(now())
 }
 
+model Review {
+  id         String   @id @default(uuid())
+  rating     Int
+  comment    String?
+  isPublic   Boolean  @default(false)
+  bookingId  String   @unique
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  hostId     String
+  host       User     @relation("HostReviews", fields: [hostId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

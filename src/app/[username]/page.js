@@ -7,6 +7,11 @@ export const dynamic = 'force-dynamic';
 export default async function PublicProfilePage({ params }) {
     const { username } = params;
 
+    // Static asset guard: Next.js might hit this route for files that don't exist
+    if (username.includes('.') || ['favicon', 'robots', 'sitemap'].includes(username)) {
+        return notFound();
+    }
+
     const user = await prisma.user.findUnique({
         where: { username },
         include: {
