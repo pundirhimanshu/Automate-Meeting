@@ -29,6 +29,11 @@ export async function GET(request) {
                 pageSelectedEventTypes: true,
                 pageImage: true,
                 pageSchedulerHeader: true,
+                reviewsReceived: {
+                    where: { isPublic: true },
+                    orderBy: { createdAt: 'desc' },
+                    include: { booking: { select: { inviteeName: true } } }
+                }
             }
         });
 

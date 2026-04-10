@@ -393,6 +393,28 @@ export default function StartPageEditor() {
                                 )}
                             </div>
 
+                            {/* Testimonials Preview */}
+                            {user?.reviewsReceived && user.reviewsReceived.length > 0 && (
+                                <div style={{ marginBottom: '40px' }}>
+                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        What people say
+                                    </h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'mobile' ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                        {user.reviewsReceived.map(review => (
+                                            <div key={review.id} style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                                                <div style={{ display: 'flex', gap: '2px', marginBottom: '8px' }}>
+                                                    {[1,2,3,4,5].map(star => (
+                                                        <svg key={star} width="14" height="14" viewBox="0 0 24 24" fill={review.rating >= star ? '#facc15' : 'transparent'} stroke={review.rating >= star ? '#facc15' : '#e5e7eb'} strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                                                    ))}
+                                                </div>
+                                                <p style={{ color: '#374151', fontStyle: 'italic', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '12px' }}>"{review.comment}"</p>
+                                                <div style={{ color: '#6b7280', fontSize: '0.75rem', fontWeight: '500' }}>– {review.booking?.inviteeName}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: '0 0 16px 0', color: '#111' }}>
                                     {form.pageSchedulerHeader || 'Meet with me'}

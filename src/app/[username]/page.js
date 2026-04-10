@@ -12,6 +12,11 @@ export default async function PublicProfilePage({ params }) {
         include: {
             eventTypes: {
                 where: { isActive: true }
+            },
+            reviewsReceived: {
+                where: { isPublic: true },
+                orderBy: { createdAt: 'desc' },
+                include: { booking: { select: { inviteeName: true } } }
             }
         }
     });
@@ -42,6 +47,16 @@ export default async function PublicProfilePage({ params }) {
                     />
                     <h1 className="live-page-name">{user.name}</h1>
                     <p className="live-page-headline">{user.pageHeadline}</p>
+                    
+                    {user.reviewsReceived && user.reviewsReceived.length > 0 && (
+                        <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '20px' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                            <span style={{ fontWeight: '600' }}>
+                                {(user.reviewsReceived.reduce((acc, curr) => acc + curr.rating, 0) / user.reviewsReceived.length).toFixed(1)} 
+                            </span>
+                            <span style={{ opacity: 0.8, fontSize: '0.9rem' }}>({user.reviewsReceived.length} reviews)</span>
+                        </div>
+                    )}
 
                     <div className="live-page-footer">
                         <Link href="/login" className="live-page-btn">
@@ -89,6 +104,28 @@ export default async function PublicProfilePage({ params }) {
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
                                     </a>
                                 )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Testimonials */}
+                    {user.reviewsReceived && user.reviewsReceived.length > 0 && (
+                        <div style={{ marginBottom: '40px' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                What people say
+                            </h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                                {user.reviewsReceived.map(review => (
+                                    <div key={review.id} style={{ padding: '24px', backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
+                                        <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
+                                            {[1,2,3,4,5].map(star => (
+                                                <svg key={star} width="16" height="16" viewBox="0 0 24 24" fill={review.rating >= star ? '#facc15' : 'transparent'} stroke={review.rating >= star ? '#facc15' : '#e5e7eb'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                                            ))}
+                                        </div>
+                                        <p style={{ color: '#374151', fontStyle: 'italic', fontSize: '1.05rem', lineHeight: '1.5', marginBottom: '16px' }}>"{review.comment}"</p>
+                                        <div style={{ color: '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>– {review.booking?.inviteeName}</div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}

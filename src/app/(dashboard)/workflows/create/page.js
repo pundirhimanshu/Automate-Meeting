@@ -17,7 +17,7 @@ const ACTIONS = [
 
 const VARIABLES = [
     'Event Name', 'Invitee Full Name', 'Event Time', 'Event Date',
-    'Location', 'Event Description', 'Questions And Answers', 'Host Full Name'
+    'Location', 'Event Description', 'Questions And Answers', 'Host Full Name', 'Review Link'
 ];
 
 function CreateWorkflowContent() {

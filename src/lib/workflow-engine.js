@@ -85,7 +85,11 @@ export async function executeWorkflow(workflow, booking) {
  * Handle variable replacement and email dispatch
  */
 async function sendWorkflowEmail(workflow, booking) {
-    const { host, eventType, inviteeName, inviteeEmail, startTime, location, answers } = booking;
+    const { host, eventType, inviteeName, inviteeEmail, startTime, location, answers, manageToken } = booking;
+    
+    // Ensure we have a token (fallback for older bookings)
+    const secureToken = manageToken || booking.id; 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
     const variables = {
         'Event Name': eventType.title,
@@ -98,24 +102,52 @@ async function sendWorkflowEmail(workflow, booking) {
         'Questions And Answers': (answers || []).map(a => {
             const q = eventType.customQuestions?.find(cq => cq.id === a.questionId);
             return `${q?.question || 'Question'}: ${a.answer}`;
-        }).join('\n')
+        }).join('\n'),
+        'Review Link': `${baseUrl}/review/${secureToken}`
     };
 
     let subject = workflow.subject;
     let body = workflow.body;
 
-    // Replace variables {{Var Name}}
-    Object.entries(variables).forEach(([key, value]) => {
-        const regex = new RegExp(`{{${key}}}`, 'g');
-        subject = subject.replace(regex, value || '');
-        body = body.replace(regex, value || '');
-    });
-
-    // Determine recipient
+    // Determine recipient first (so we can log it)
     let toEmail = '';
     if (workflow.sendTo === 'HOST') toEmail = host.email;
     else if (workflow.sendTo === 'INVITEE') toEmail = inviteeEmail;
-    else toEmail = workflow.sendTo; // Specific email if supported later
+    else toEmail = workflow.sendTo;
+
+    // Replace variables {{Var Name}} gracefully handling spaces and case
+    console.log(`[WORKFLOWS] Starting injection for: ${toEmail}`);
+    console.log(`[WORKFLOWS] Raw body length: ${body?.length || 0}`);
+
+    // Normalize for comparison: lowercase and alphanumeric only
+    const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const replaceVars = (str) => {
+        if (!str) return str;
+        // Support both {{Var}} and ((Var)) just in case
+        const pattern = /[\{\(]{2}\s*([^}\)]+)\s*[\}\)]{2}/gi;
+        
+        return str.replace(pattern, (match, p1) => {
+            const rawKey = p1.trim().replace(/<[^>]*>/g, ''); // Remove HTML tags
+            const normalizedKey = normalize(rawKey);
+            
+            // Find match in variables map
+            const matchKey = Object.keys(variables).find(k => normalize(k) === normalizedKey);
+            
+            if (matchKey) {
+                console.log(`[WORKFLOWS] SUCCESS: Replaced ${match} with value`);
+                return variables[matchKey] ?? '';
+            }
+            
+            console.warn(`[WORKFLOWS] FAILED: No match for ${match} (Normalized: ${normalizedKey})`);
+            return match;
+        });
+    };
+
+    subject = replaceVars(subject);
+    body = replaceVars(body);
+
+    console.log(`[WORKFLOWS] Final body length after injection: ${body?.length || 0}`);
 
     if (!toEmail) return;
 
