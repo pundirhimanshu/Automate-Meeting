@@ -37,7 +37,7 @@ export default async function IntegrationsPage() {
         { id: 'razorpay', name: 'Razorpay', desc: 'Accept payments via UPI, Card, Netbanking', icon: '💳', connected: isConnected('razorpay'), connectUrl: '/integrations/razorpay' },
         { id: 'teams', name: 'Microsoft Teams', desc: 'Teams meeting links', icon: '💼', comingSoon: true },
         { id: 'stripe', name: 'Stripe', desc: 'Collect payments', icon: '💳', comingSoon: true },
-        { id: 'slack', name: 'Slack', desc: 'Booking notifications', icon: '💬', comingSoon: true },
+        { id: 'slack', name: 'Slack', desc: 'Booking notifications', icon: '💬', connected: isConnected('slack'), connectUrl: '/api/integrations/slack/connect' },
         { id: 'outlook', name: 'Outlook', desc: 'Outlook calendar sync', icon: '📧', comingSoon: true },
     ];
 

@@ -1,0 +1,409 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/client"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String         @id @default(uuid())
+  name                 String
+  email                String         @unique
+  password             String?
+  authProvider         String         @default("credentials")
+  avatar               String?
+  timezone             String         @default("Asia/Kolkata")
+  username             String         @unique
+  brandColor           String         @default("#0069ff")
+  logo                 String?
+  emailVerified        Boolean        @default(false)
+  verificationToken    String?        @unique
+  resetPasswordToken   String?        @unique
+  resetPasswordExpires DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  eventTypes           EventType[]
+  schedules            Schedule[]
+  bookingsAsHost       Booking[]      @relation("HostBookings")
+  reviewsReceived      Review[]       @relation("HostReviews")
+  notifications        Notification[]
+  teamMembers          TeamMember[]
+  contacts             Contact[]
+  integrations         Integration[]
+  coHostedEventTypes   EventType[]    @relation("CoHosts")
+  subscription         Subscription?
+  hiddenContactCols    String?
+  workflows            Workflow[]
+  routingForms         RoutingForm[]
+  dodoApiKey           String?
+  dodoWebhookSecret    String?
+  razorpayKeyId        String?
+  razorpayKeySecret    String?
+
+  // Start Your Page
+  pageAboutMe            String?
+  pageHeadline           String?
+  pageSocialYouTube      String?
+  pageSocialFacebook     String?
+  pageSocialWhatsApp     String?
+  pageSocialInstagram    String?
+  pageSidePanelColor     String  @default("#d946ef")
+  pageSelectedEventTypes String? // comma-separated event-type IDs
+  pageImage              String?
+  pageSchedulerHeader    String?
+}
+
+model Integration {
+  id           String    @id @default(uuid())
+  provider     String // "zoom", "teams", "google_calendar", etc.
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime?
+  email        String? // Store the specific email for this integration (e.g. host's gmail)
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Slack specific
+  slackChannelId   String?
+  slackChannelName String?
+  slackWebhookUrl  String?
+
+  @@unique([userId, provider])
+}
+
+model EventType {
+  id                String           @id @default(uuid())
+  title             String
+  slug              String
+  description       String?
+  duration          Int              @default(30)
+  type              String           @default("one-on-one")
+  color             String           @default("#ff9500")
+  locationType      String           @default("none") // "none", "in_person", "phone", "zoom", "teams"
+  location          String? // Stores address, phone number, or join link
+  countryCode       String?          @default("+1")
+  phoneCallSource   String?          @default("host") // "host" or "invitee"
+  bufferTimeBefore  Int              @default(0)
+  bufferTimeAfter   Int              @default(0)
+  dateRangeType     String           @default("indefinite")
+  dateRangeDays     Int?
+  dateRangeStart    DateTime?
+  dateRangeEnd      DateTime?
+  maxBookingsPerDay Int?
+  minNotice         Int              @default(60)
+  isActive          Boolean          @default(true)
+  isSingleUse       Boolean          @default(false)
+  requiresPayment   Boolean          @default(false)
+  price             Float?
+  currency          String?          @default("USD")
+  dodoProductId     String?
+  paymentProvider   String? // "dodo", "razorpay"
+  inviteeLimit      Int              @default(1)
+  roundRobinIndex   Int              @default(0)
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coHosts           User[]           @relation("CoHosts")
+  bookings          Booking[]
+  workflows         Workflow[]
+  customQuestions   CustomQuestion[]
+  singleUseLinks    SingleUseLink[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([userId, slug])
+}
+
+model Schedule {
+  id             String         @id @default(uuid())
+  name           String         @default("Working Hours")
+  isDefault      Boolean        @default(false)
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availabilities Availability[]
+  dateOverrides  DateOverride[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Availability {
+  id         String   @id @default(uuid())
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+}
+
+model DateOverride {
+  id         String   @id @default(uuid())
+  date       DateTime
+  startTime  String?
+  endTime    String?
+  isBlocked  Boolean  @default(false)
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id                   String          @id @default(uuid())
+  eventTypeId          String
+  eventType            EventType       @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  hostId               String
+  host                 User            @relation("HostBookings", fields: [hostId], references: [id], onDelete: Cascade)
+  inviteeName          String
+  inviteeEmail         String
+  startTime            DateTime
+  endTime              DateTime
+  status               String          @default("confirmed")
+  manageToken          String?         @unique @default(uuid())
+  timezone             String          @default("UTC")
+  notes                String?
+  cancelReason         String?
+  location             String?
+  rescheduledFromStart DateTime?
+  rescheduledFromEnd   DateTime?
+  executedWorkflows    String[]        @default([]) // Stores IDs of workflows that have already run for this booking
+  answers              BookingAnswer[]
+  review               Review?
+  notifications        Notification[]
+  isSingleUse          Boolean         @default(false)
+  paymentStatus        String?         @default("none") // "none", "pending", "paid"
+  paymentSessionId     String?         @unique
+  contactId            String?
+  contact              Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+}
+
+model CustomQuestion {
+  id          String    @id @default(uuid())
+  eventTypeId String
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  question    String
+  type        String    @default("text")
+  required    Boolean   @default(false)
+  options     String?
+  order       Int       @default(0)
+}
+
+model BookingAnswer {
+  id         String  @id @default(uuid())
+  bookingId  String
+  booking    Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  questionId String
+  answer     String
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
+
+model Team {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  members     TeamMember[]
+  invitations Invitation[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model TeamMember {
+  id     String @id @default(uuid())
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   String @default("member")
+
+  @@unique([teamId, userId])
+}
+
+model Invitation {
+  id        String   @id @default(uuid())
+  email     String
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role      String   @default("member")
+  invitedBy String
+  token     String   @unique
+  status    String   @default("pending") // pending, accepted, expired
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, email])
+}
+
+model Contact {
+  id          String              @id @default(uuid())
+  name        String
+  email       String
+  phone       String?
+  company     String?
+  notes       String?
+  userId      String
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings    Booking[]
+  fieldValues ContactFieldValue[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model ContactCustomField {
+  id        String              @id @default(uuid())
+  name      String
+  type      String              @default("text")
+  userId    String
+  order     Int                 @default(0)
+  values    ContactFieldValue[]
+  createdAt DateTime            @default(now())
+}
+
+model ContactFieldValue {
+  id        String             @id @default(uuid())
+  contactId String
+  contact   Contact            @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  fieldId   String
+  field     ContactCustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  value     String
+
+  @@unique([contactId, fieldId])
+}
+
+model SingleUseLink {
+  id           String    @id @default(uuid())
+  token        String    @unique @default(uuid())
+  eventTypeId  String
+  eventType    EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  userId       String
+  contactName  String?
+  contactEmail String?
+  isUsed       Boolean   @default(false)
+  bookingId    String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model Subscription {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan          String    @default("free")
+  status        String    @default("active")
+  transactionId String?
+  amount        Float?
+  validUntil    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Workflow {
+  id         String      @id @default(uuid())
+  name       String
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventTypes EventType[]
+
+  // TRIGGER
+  trigger   String // "BEFORE_EVENT", "AFTER_EVENT", "EVENT_BOOKED", "EVENT_CANCELED", "EVENT_RESCHEDULED"
+  timeValue Int? // e.g. 24
+  timeUnit  String? // "MINUTES", "HOURS", "DAYS"
+
+  // ACTION
+  action      String @default("SEND_EMAIL") // "SEND_EMAIL", "SEND_SMS" (future)
+  sendTo      String // "HOST", "INVITEE", "SPECIFIC_EMAIL"
+  senderEmail String @default("system") // "system" or specific connected gmail
+  subject     String
+  body        String
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RoutingForm {
+  id            String              @id @default(uuid())
+  name          String
+  slug          String              @unique
+  description   String?
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive      Boolean             @default(true)
+  headlessToken String              @unique @default(uuid())
+  questions     RoutingQuestion[]
+  rules         RoutingRule[]
+  submissions   RoutingSubmission[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([userId, slug])
+}
+
+model RoutingQuestion {
+  id          String        @id @default(uuid())
+  formId      String
+  form        RoutingForm   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  type        String        @default("text") // "text", "dropdown", "radio"
+  label       String
+  identifier  String? // Used for headless parameter mapping (e.g. "company_size")
+  placeholder String?
+  required    Boolean       @default(false)
+  options     String? // JSON string for dropdown/radio options
+  order       Int           @default(0)
+  rules       RoutingRule[]
+}
+
+model RoutingRule {
+  id          String           @id @default(uuid())
+  formId      String
+  form        RoutingForm      @relation(fields: [formId], references: [id], onDelete: Cascade)
+  questionId  String?
+  question    RoutingQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  operator    String? // "is", "is_not", "contains", "greater_than", "in" (multi-select)
+  value       String?
+  logicType   String           @default("AND") // "AND", "OR"
+  conditions  Json? // Array of { questionId, operator, value }
+  destination String // URL or "event-type:[id]"
+  isFallback  Boolean          @default(false)
+  order       Int              @default(0)
+}
+
+model RoutingSubmission {
+  id           String      @id @default(uuid())
+  formId       String
+  form         RoutingForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  inviteeName  String
+  inviteeEmail String
+  answers      Json // Map of question labels to responses
+  destination  String?
+  source       String      @default("internal") // "internal" or "headless"
+  createdAt    DateTime    @default(now())
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?
+  isPublic  Boolean  @default(false)
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  hostId    String
+  host      User     @relation("HostReviews", fields: [hostId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

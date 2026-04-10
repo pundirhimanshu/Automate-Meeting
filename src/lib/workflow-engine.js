@@ -65,6 +65,8 @@ export async function executeWorkflow(workflow, booking) {
     try {
         if (workflow.action === 'SEND_EMAIL') {
             await sendWorkflowEmail(workflow, booking);
+        } else if (workflow.action === 'SEND_SLACK_MESSAGE') {
+            await sendWorkflowSlackMessage(workflow, booking);
         }
 
         // Mark as executed on the booking to prevent duplicates during cron
@@ -165,6 +167,56 @@ async function sendWorkflowEmail(workflow, booking) {
         text: body,
         html: body.replace(/\n/g, '<br>')
     });
+}
+
+/**
+ * Handle custom Slack message workflows
+ */
+async function sendWorkflowSlackMessage(workflow, booking) {
+    const { host, eventType, inviteeName, inviteeEmail, startTime, location, answers, manageToken } = booking;
+    
+    // Ensure we have a token (fallback for older bookings)
+    const secureToken = manageToken || booking.id; 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+    const variables = {
+        'Event Name': eventType.title,
+        'Invitee Full Name': inviteeName,
+        'Event Time': new Date(startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        'Event Date': new Date(startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+        'Location': location || 'No location specified',
+        'Event Description': eventType.description || '',
+        'Host Full Name': host.name,
+        'Questions And Answers': (answers || []).map(a => {
+            const q = eventType.customQuestions?.find(cq => cq.id === a.questionId);
+            return `${q?.question || 'Question'}: ${a.answer}`;
+        }).join('\n'),
+        'Review Link': `${baseUrl}/review/${secureToken}`
+    };
+
+    let body = workflow.body || '';
+
+    // Normalize for comparison
+    const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const replaceVars = (str) => {
+        if (!str) return str;
+        const pattern = /[\{\(]{2}\s*([^}\)]+)\s*[\}\)]{2}/gi;
+        return str.replace(pattern, (match, p1) => {
+            const rawKey = p1.trim().replace(/<[^>]*>/g, '');
+            const normalizedKey = normalize(rawKey);
+            const matchKey = Object.keys(variables).find(k => normalize(k) === normalizedKey);
+            return matchKey ? (variables[matchKey] ?? '') : match;
+        });
+    };
+
+    const finalMessage = replaceVars(body);
+
+    if (!finalMessage) return;
+
+    // Trigger Slack notification using the helper
+    const { sendSlackNotification } = await import('./integrations/slack');
+    await sendSlackNotification(workflow.userId, finalMessage);
 }
 
 /**

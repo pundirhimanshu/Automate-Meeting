@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
+import { sendSlackNotification } from '@/lib/integrations/slack';
 import { createZoomMeeting } from '@/lib/integrations/zoom';
 import { createTeamsMeeting } from '@/lib/integrations/teams';
 import { createGoogleMeetEvent, createGoogleCalendarEvent } from '@/lib/integrations/google';
@@ -594,10 +595,13 @@ export async function POST(request) {
                 timezone: timezone || 'UTC',
             });
 
-            // --- TRIGGER WORKFLOWS (Real-time) ---
             if (booking.status === 'confirmed') {
                 console.log('[BOOKING] Triggering workflows for EVENT_BOOKED...');
                 triggerWorkflows('EVENT_BOOKED', booking.id).catch(e => console.error('Workflow trigger error:', e));
+
+                // Send Automatic Slack Notification
+                const slackMessage = `🆕 *New Booking: ${eventType.title}*\n👤 *Invitee:* ${inviteeName}\n📧 *Email:* ${inviteeEmail}\n📅 *Time:* ${new Date(startTime).toLocaleString()}\n🔗 *Meeting Link:* ${meetingLink || 'None'}`;
+                sendSlackNotification(assignedHostId, slackMessage).catch(e => console.error('Slack notification error:', e));
             }
         }
 

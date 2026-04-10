@@ -13,6 +13,7 @@ const TRIGGERS = [
 const ACTIONS = [
     { label: 'Send email to host', value: 'SEND_EMAIL_HOST' },
     { label: 'Send email to invitee', value: 'SEND_EMAIL_INVITEE' },
+    { label: 'Send Slack message to primary channel', value: 'SEND_SLACK_MESSAGE' },
 ];
 
 const VARIABLES = [
@@ -46,6 +47,7 @@ function CreateWorkflowContent() {
 
     // Connectors
     const [gmailConnected, setGmailConnected] = useState(false);
+    const [slackConnected, setSlackConnected] = useState(false);
     const [userEmail, setUserEmail] = useState('');
 
     // Pre-fill from template
@@ -101,6 +103,7 @@ function CreateWorkflowContent() {
                 setGmailConnected(false);
                 setUserEmail('');
             }
+            setSlackConnected(data.integrations?.some(i => i.provider === 'slack'));
         }
     };
 
@@ -131,10 +134,10 @@ function CreateWorkflowContent() {
                     trigger,
                     timeValue: TRIGGERS.find(t => t.value === trigger)?.hasTime ? parseInt(timeValue) : null,
                     timeUnit: TRIGGERS.find(t => t.value === trigger)?.hasTime ? timeUnit : null,
-                    action: 'SEND_EMAIL',
-                    sendTo: action === 'SEND_EMAIL_HOST' ? 'HOST' : 'INVITEE',
+                    action: action === 'SEND_SLACK_MESSAGE' ? 'SEND_SLACK_MESSAGE' : 'SEND_EMAIL',
+                    sendTo: action === 'SEND_EMAIL_HOST' ? 'HOST' : action === 'SEND_EMAIL_INVITEE' ? 'INVITEE' : 'SLACK',
                     senderEmail: sender,
-                    subject,
+                    subject: action === 'SEND_SLACK_MESSAGE' ? 'Slack Notification' : subject,
                     body,
                     eventTypes: selectedEventTypes,
                 })
@@ -345,37 +348,61 @@ function CreateWorkflowContent() {
 
                 {action && (
                     <div style={{ border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
-                        <div className="input-group" style={{ marginBottom: '20px' }}>
-                            <label>Send from</label>
-                            <select className="input" value={sender} onChange={e => setSender(e.target.value)}>
-                                <option value="system">System Default (Automate Meetings)</option>
-                                {gmailConnected && <option value="gmail">Your Gmail ({userEmail})</option>}
-                            </select>
-                            {!gmailConnected && (
-                                <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', marginTop: '8px' }}>
-                                    Want to send emails from your own address? <a href="/integrations" style={{ color: 'var(--primary)' }}>Connect Gmail in Integrations</a>.
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="input-group" style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                Subject
-                                <div className="dropdown" style={{ display: 'inline-block', position: 'relative' }}>
-                                    <button className="btn btn-sm btn-secondary" style={{ padding: '2px 8px', fontSize: '0.75rem', height: 'auto' }}>+ Variables</button>
-                                    <div className="dropdown-menu" style={{ right: 0, minWidth: '200px', display: 'none' /* handled via CSS hover usually, using basic buttons here */ }}>
-                                        {VARIABLES.map(v => <button key={v} type="button" onClick={() => insertVariable('subject', v)} className="dropdown-item">{v}</button>)}
-                                    </div>
-                                </div>
-                            </label>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Quick insert:</span>
-                                {VARIABLES.slice(0, 4).map(v => (
-                                    <button key={v} type="button" onClick={() => insertVariable('subject', v)} style={{ border: 'none', background: 'var(--primary-light)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}>{v}</button>
-                                ))}
+                        {action !== 'SEND_SLACK_MESSAGE' ? (
+                            <div className="input-group" style={{ marginBottom: '20px' }}>
+                                <label>Send from</label>
+                                <select className="input" value={sender} onChange={e => setSender(e.target.value)}>
+                                    <option value="system">System Default (Automate Meetings)</option>
+                                    {gmailConnected && <option value="gmail">Your Gmail ({userEmail})</option>}
+                                </select>
+                                {!gmailConnected && (
+                                    <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', marginTop: '8px' }}>
+                                        Want to send emails from your own address? <a href="/integrations" style={{ color: 'var(--primary)' }}>Connect Gmail in Integrations</a>.
+                                    </p>
+                                )}
                             </div>
-                            <input className="input" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Email subject" />
-                        </div>
+                        ) : (
+                            <div className="input-group" style={{ marginBottom: '20px' }}>
+                                <label>Slack Connection</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: 'var(--bg-light)', borderRadius: '8px' }}>
+                                    <span style={{ fontSize: '1.25rem' }}>💬</span>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                                            {slackConnected ? 'Slack is connected' : 'Slack is not connected'}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                            {slackConnected 
+                                                ? 'Messages will be sent to your primary Slack channel.' 
+                                                : 'You need to connect Slack before you can use this action.'}
+                                        </div>
+                                    </div>
+                                    {!slackConnected && (
+                                        <a href="/integrations" className="btn btn-sm btn-primary">Connect Slack</a>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {action !== 'SEND_SLACK_MESSAGE' && (
+                            <div className="input-group" style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    Subject
+                                    <div className="dropdown" style={{ display: 'inline-block', position: 'relative' }}>
+                                        <button className="btn btn-sm btn-secondary" style={{ padding: '2px 8px', fontSize: '0.75rem', height: 'auto' }}>+ Variables</button>
+                                        <div className="dropdown-menu" style={{ right: 0, minWidth: '200px', display: 'none' }}>
+                                            {VARIABLES.map(v => <button key={v} type="button" onClick={() => insertVariable('subject', v)} className="dropdown-item">{v}</button>)}
+                                        </div>
+                                    </div>
+                                </label>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Quick insert:</span>
+                                    {VARIABLES.slice(0, 4).map(v => (
+                                        <button key={v} type="button" onClick={() => insertVariable('subject', v)} style={{ border: 'none', background: 'var(--primary-light)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}>{v}</button>
+                                    ))}
+                                </div>
+                                <input className="input" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Email subject" />
+                            </div>
+                        )}
 
                         <div className="input-group">
                             <label>Body</label>
@@ -393,7 +420,12 @@ function CreateWorkflowContent() {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', position: 'fixed', bottom: 0, left: '240px', right: 0, background: 'var(--bg-white)', padding: '16px 32px', borderTop: '1px solid var(--border-color)', zIndex: 10 }}>
                 <button type="button" className="btn btn-secondary" onClick={() => router.push('/workflows')}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleSave} disabled={loading || !name || !trigger || !action || !subject || !body}>
+                <button 
+                    type="button" 
+                    className="btn btn-primary" 
+                    onClick={handleSave} 
+                    disabled={loading || !name || !trigger || !action || (action !== 'SEND_SLACK_MESSAGE' && !subject) || !body || (action === 'SEND_SLACK_MESSAGE' && !slackConnected)}
+                >
                     {loading ? 'Saving...' : 'Save Workflow'}
                 </button>
             </div>
