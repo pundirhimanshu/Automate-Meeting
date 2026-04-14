@@ -41,6 +41,34 @@ const CURRENCY_SYMBOLS = {
     'INR': '₹'
 };
 
+const TIMEZONES = [
+    { value: 'America/New_York', label: 'Eastern Time (US)' },
+    { value: 'America/Chicago', label: 'Central Time (US)' },
+    { value: 'America/Denver', label: 'Mountain Time (US)' },
+    { value: 'America/Los_Angeles', label: 'Pacific Time (US)' },
+    { value: 'Europe/London', label: 'London (GMT/BST)' },
+    { value: 'Europe/Paris', label: 'Paris (CET/CEST)' },
+    { value: 'Asia/Kolkata', label: 'India (IST)' },
+    { value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+    { value: 'Australia/Sydney', label: 'Sydney (AEST/AEDT)' },
+    { value: 'Pacific/Auckland', label: 'Auckland (NZST/NZDT)' },
+    { value: 'UTC', label: 'UTC' },
+];
+
+function getTzOffset(date, timeZone) {
+    const parts = Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric', month: 'numeric', day: 'numeric',
+        hour: 'numeric', minute: 'numeric', second: 'numeric',
+        hourCycle: 'h23'
+    }).formatToParts(date);
+    const map = {};
+    parts.forEach(p => map[p.type] = p.value);
+    const utc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes());
+    const tz = Date.UTC(map.year, map.month - 1, map.day, map.hour, map.minute);
+    return (tz - utc) / (60 * 1000);
+}
+
 export default function BookingPage() {
     const params = useParams();
     const router = useRouter();
@@ -62,9 +90,16 @@ export default function BookingPage() {
     const [error, setError] = useState('');
     const [bookedData, setBookedData] = useState(null);
 
-    const inviteeTimezone = useMemo(() => {
+    const detectedTz = useMemo(() => {
         try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return 'UTC'; }
     }, []);
+
+    const [inviteeTimezone, setInviteeTimezone] = useState(detectedTz);
+
+    // Update state when detectedTz changes (first load)
+    useEffect(() => {
+        if (detectedTz) setInviteeTimezone(detectedTz);
+    }, [detectedTz]);
 
     useEffect(() => { fetchData(); }, []);
 
@@ -105,6 +140,10 @@ export default function BookingPage() {
 
     const getTimeSlots = (date) => {
         if (!data || !date) return [];
+        const hostTz = data.host.timezone || 'UTC';
+        
+        // Host availabilities are in host's timezone.
+        // We need to convert them to invitee's timezone.
         const dayOfWeek = date.getDay();
         const dayAvails = data.availability?.filter((a) => a.dayOfWeek === dayOfWeek) || [];
         const duration = data.eventType.duration || 30;
@@ -113,6 +152,12 @@ export default function BookingPage() {
         const inviteeLimit = data.eventType.inviteeLimit || 1;
         const slots = [];
 
+        // Helper to get offset difference in minutes (Host - Invitee)
+        // Note: JS offset is negative for positive zones, so we do our own math
+        const hostOffset = getTzOffset(date, hostTz);
+        const inviteeOffset = getTzOffset(date, inviteeTimezone);
+        const shiftMinutes = hostOffset - inviteeOffset;
+
         dayAvails.forEach((avail) => {
             const [startH, startM] = avail.startTime.split(':').map(Number);
             const [endH, endM] = avail.endTime.split(':').map(Number);
@@ -120,11 +165,29 @@ export default function BookingPage() {
             const endMin = endH * 60 + endM;
 
             for (let m = startMin; m + duration <= endMin; m += 30) {
-                const slotStart = new Date(date);
-                slotStart.setHours(Math.floor(m / 60), m % 60, 0, 0);
+                // slotStartHost is the time as defined by host
+                const slotStartInvitee = new Date(date);
+                slotStartInvitee.setHours(0, 0, 0, 0);
+                slotStartInvitee.setMinutes(m - shiftMinutes);
 
-                const slotEnd = new Date(slotStart);
-                slotEnd.setMinutes(slotEnd.getMinutes() + duration);
+                const slotStartHost = new Date(date);
+                slotStartHost.setHours(Math.floor(m / 60), m % 60, 0, 0);
+
+                const slotEndInvitee = new Date(slotStartInvitee);
+                slotEndInvitee.setMinutes(slotEndInvitee.getMinutes() + duration);
+
+                // For conflict checking, we use absolute time (UTC)
+                // slotStartHost is relative to host timezone? No, it's just a Date object.
+                // Actually, the most reliable way is to store the actual UTC start/end.
+                const absoluteStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+                // This is getting complex. Let's simplify:
+                // Create a date object that represents the slot in Host Time, then convert to UTC.
+                
+                const hostDateStr = `${date.toISOString().split('T')[0]}T${avail.startTime}:00`;
+                // Wait, I can just use the shiftMinutes we calculated.
+                
+                const slotStart = slotStartInvitee;
+                const slotEnd = slotEndInvitee;
 
                 // Buffer zones for checking conflicts
                 const bufStart = new Date(slotStart);
@@ -142,17 +205,13 @@ export default function BookingPage() {
                 let spotsLeft = null;
 
                 if (data.eventType.type === 'group') {
-                    // Group: Check how many people booked this specific slot
                     const bookingsInSlot = data.existingBookings?.filter((b) => {
                         const bStart = new Date(b.startTime);
-                        const bEnd = new Date(b.endTime);
                         return bStart.getTime() === slotStart.getTime();
                     }) || [];
-
                     spotsLeft = inviteeLimit - bookingsInSlot.length;
                     available = spotsLeft > 0;
                 } else if (data.eventType.type === 'collective') {
-                    // Collective: ALL hosts must be free
                     const hostIds = [data.host.id, ...(data.eventType.coHosts?.map(ch => ch.id) || [])];
                     const hasConflict = data.existingBookings?.some((b) => {
                         const bStart = new Date(b.startTime);
@@ -161,18 +220,14 @@ export default function BookingPage() {
                     });
                     available = !hasConflict;
                 } else if (data.eventType.type === 'round-robin') {
-                    // Round Robin: AT LEAST ONE host must be free
                     const hostIds = [data.host.id, ...(data.eventType.coHosts?.map(ch => ch.id) || [])];
-                    // Group bookings by hostId for this slot
                     const busyHosts = new Set(data.existingBookings?.filter((b) => {
                         const bStart = new Date(b.startTime);
                         const bEnd = new Date(b.endTime);
                         return bufStart < bEnd && bufEnd > bStart;
                     }).map(b => b.hostId));
-
                     available = hostIds.some(hId => !busyHosts.has(hId));
                 } else {
-                    // One-on-one: Only the owner
                     const hasConflict = data.existingBookings?.some((b) => {
                         if (b.hostId !== data.host.id) return false;
                         const bStart = new Date(b.startTime);
@@ -186,7 +241,7 @@ export default function BookingPage() {
                     slots.push({
                         start: slotStart,
                         end: slotEnd,
-                        label: slotStart.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                        label: slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
                         spotsLeft,
                     });
                 }
@@ -415,9 +470,30 @@ export default function BookingPage() {
                         </div>
                     )}
 
-                    <div className="booking-detail" style={{ marginTop: '8px' }}>
+                    <div className="booking-detail" style={{ marginTop: '8px', position: 'relative' }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-                        {inviteeTimezone}
+                        <select
+                            value={inviteeTimezone}
+                            onChange={(e) => setInviteeTimezone(e.target.value)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-secondary)',
+                                fontSize: '0.8125rem',
+                                cursor: 'pointer',
+                                padding: 0,
+                                margin: 0,
+                                outline: 'none',
+                                width: '100%',
+                            }}
+                        >
+                            {TIMEZONES.map(tz => (
+                                <option key={tz.value} value={tz.value}>{tz.label}</option>
+                            ))}
+                            {!TIMEZONES.some(tz => tz.value === inviteeTimezone) && (
+                                <option value={inviteeTimezone}>{inviteeTimezone}</option>
+                            )}
+                        </select>
                     </div>
 
                     {data.eventType.description && (

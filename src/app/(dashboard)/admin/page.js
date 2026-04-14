@@ -236,16 +236,44 @@ function AdminContent() {
                     <div className="settings-row">
                         <div className="settings-label"><h4>Time Zone</h4></div>
                         <div className="settings-value">
-                            <select className="input w-full" value={form.timezone || ''} onChange={(e) => setForm({ ...form, timezone: e.target.value })}>
-                                <option value="America/New_York">Eastern Time (US)</option>
-                                <option value="America/Chicago">Central Time (US)</option>
-                                <option value="America/Los_Angeles">Pacific Time (US)</option>
-                                <option value="Europe/London">London (GMT)</option>
-                                <option value="Europe/Paris">Paris (CET)</option>
-                                <option value="Asia/Kolkata">India (IST)</option>
-                                <option value="Asia/Tokyo">Tokyo (JST)</option>
-                                <option value="UTC">UTC</option>
-                            </select>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <select className="input w-full" value={form.timezone || ''} onChange={(e) => setForm({ ...form, timezone: e.target.value })}>
+                                    <optgroup label="Common">
+                                        <option value="Asia/Kolkata">India (IST)</option>
+                                        <option value="America/New_York">Eastern Time (US)</option>
+                                        <option value="America/Chicago">Central Time (US)</option>
+                                        <option value="America/Los_Angeles">Pacific Time (US)</option>
+                                        <option value="Europe/London">London (GMT/BST)</option>
+                                        <option value="Europe/Paris">Paris (CET/CEST)</option>
+                                        <option value="Asia/Tokyo">Tokyo (JST)</option>
+                                        <option value="UTC">UTC</option>
+                                    </optgroup>
+                                    <optgroup label="Other">
+                                        <option value="America/Denver">Mountain Time (US)</option>
+                                        <option value="America/Phoenix">Arizona (MST)</option>
+                                        <option value="America/Sao_Paulo">Sao Paulo (BRT)</option>
+                                        <option value="Europe/Berlin">Berlin (CET)</option>
+                                        <option value="Europe/Istanbul">Istanbul (TRT)</option>
+                                        <option value="Asia/Dubai">Dubai (GST)</option>
+                                        <option value="Asia/Singapore">Singapore (SGT)</option>
+                                        <option value="Asia/Hong_Kong">Hong Kong (HKT)</option>
+                                        <option value="Australia/Sydney">Sydney (AEST)</option>
+                                        <option value="Pacific/Auckland">Auckland (NZST)</option>
+                                        <option value="Africa/Johannesburg">Johannesburg (SAST)</option>
+                                    </optgroup>
+                                </select>
+                                <button 
+                                    className="btn btn-secondary" 
+                                    style={{ whiteSpace: 'nowrap' }}
+                                    onClick={() => {
+                                        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                                        setForm({ ...form, timezone: tz });
+                                    }}
+                                    title="Set to your current location"
+                                >
+                                    Detect
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
