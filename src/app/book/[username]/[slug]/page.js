@@ -14,6 +14,33 @@ export const COUNTRY_CODES = [
     { code: '+971', flag: '🇦🇪', label: 'AE (+971)' },
 ];
 
+const BRAND_COLORS = {
+    '#ff9500': '#fff7ed',
+    '#0069ff': '#eff6ff',
+    '#8b5cf6': '#f5f3ff',
+    '#00a854': '#f0fdf4',
+    '#e11d48': '#fff1f2',
+    '#0d9488': '#f0fdfa',
+    '#f59e0b': '#fffbeb',
+    '#6366f1': '#eef2ff'
+};
+
+const CURRENCY_SYMBOLS = {
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'CAD': '$',
+    'AUD': '$',
+    'SGD': '$',
+    'AED': 'Dh',
+    'JPY': '¥',
+    'CHF': 'Fr',
+    'NZD': '$',
+    'HKD': '$',
+    'ZAR': 'R',
+    'INR': '₹'
+};
+
 export default function BookingPage() {
     const params = useParams();
     const router = useRouter();
