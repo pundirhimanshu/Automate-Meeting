@@ -635,7 +635,7 @@ export default function BookingPage() {
 
                                 {data.eventType.requiresPayment && (
                                     <div style={{ padding: '12px 16px', background: 'var(--primary-light)', borderRadius: '8px', fontSize: '0.875rem', color: 'var(--primary)' }}>
-                                        💳 Payment of <strong>₹{data.eventType.price}</strong> will be required after confirmation.
+                                        💳 Payment of <strong>{data.eventType.paymentProvider === 'stripe' || data.eventType.currency === 'USD' ? '$' : '₹'}{data.eventType.price}</strong> will be required after confirmation.
                                     </div>
                                 )}
 

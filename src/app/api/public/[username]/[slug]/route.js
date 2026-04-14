@@ -79,6 +79,7 @@ export async function GET(request, { params }) {
                 requiresPayment: eventType.requiresPayment,
                 price: eventType.price,
                 currency: eventType.currency,
+                paymentProvider: eventType.paymentProvider,
                 inviteeLimit: eventType.inviteeLimit,
                 coHosts: eventType.coHosts,
             },
