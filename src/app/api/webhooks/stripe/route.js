@@ -6,6 +6,8 @@ import { triggerWorkflows } from '@/lib/workflow-engine';
 import { createGoogleCalendarEvent } from '@/lib/integrations/google';
 import Stripe from 'stripe';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
     console.log('[STRIPE_WEBHOOK] Incoming webhook...');
     try {

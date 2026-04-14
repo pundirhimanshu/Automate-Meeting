@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { encrypt } from '@/lib/encryption';
 
+export const dynamic = 'force-dynamic';
+
 // GET - Check connection status
 export async function GET() {
     try {
