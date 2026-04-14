@@ -3342,6 +3342,9 @@ export namespace Prisma {
     dodoWebhookSecret: string | null
     razorpayKeyId: string | null
     razorpayKeySecret: string | null
+    stripeAccountId: string | null
+    stripeSecretKey: string | null
+    stripeWebhookSecret: string | null
     pageAboutMe: string | null
     pageHeadline: string | null
     pageSocialYouTube: string | null
@@ -3376,6 +3379,9 @@ export namespace Prisma {
     dodoWebhookSecret: string | null
     razorpayKeyId: string | null
     razorpayKeySecret: string | null
+    stripeAccountId: string | null
+    stripeSecretKey: string | null
+    stripeWebhookSecret: string | null
     pageAboutMe: string | null
     pageHeadline: string | null
     pageSocialYouTube: string | null
@@ -3410,6 +3416,9 @@ export namespace Prisma {
     dodoWebhookSecret: number
     razorpayKeyId: number
     razorpayKeySecret: number
+    stripeAccountId: number
+    stripeSecretKey: number
+    stripeWebhookSecret: number
     pageAboutMe: number
     pageHeadline: number
     pageSocialYouTube: number
@@ -3446,6 +3455,9 @@ export namespace Prisma {
     dodoWebhookSecret?: true
     razorpayKeyId?: true
     razorpayKeySecret?: true
+    stripeAccountId?: true
+    stripeSecretKey?: true
+    stripeWebhookSecret?: true
     pageAboutMe?: true
     pageHeadline?: true
     pageSocialYouTube?: true
@@ -3480,6 +3492,9 @@ export namespace Prisma {
     dodoWebhookSecret?: true
     razorpayKeyId?: true
     razorpayKeySecret?: true
+    stripeAccountId?: true
+    stripeSecretKey?: true
+    stripeWebhookSecret?: true
     pageAboutMe?: true
     pageHeadline?: true
     pageSocialYouTube?: true
@@ -3514,6 +3529,9 @@ export namespace Prisma {
     dodoWebhookSecret?: true
     razorpayKeyId?: true
     razorpayKeySecret?: true
+    stripeAccountId?: true
+    stripeSecretKey?: true
+    stripeWebhookSecret?: true
     pageAboutMe?: true
     pageHeadline?: true
     pageSocialYouTube?: true
@@ -3621,6 +3639,9 @@ export namespace Prisma {
     dodoWebhookSecret: string | null
     razorpayKeyId: string | null
     razorpayKeySecret: string | null
+    stripeAccountId: string | null
+    stripeSecretKey: string | null
+    stripeWebhookSecret: string | null
     pageAboutMe: string | null
     pageHeadline: string | null
     pageSocialYouTube: string | null
@@ -3672,6 +3693,9 @@ export namespace Prisma {
     dodoWebhookSecret?: boolean
     razorpayKeyId?: boolean
     razorpayKeySecret?: boolean
+    stripeAccountId?: boolean
+    stripeSecretKey?: boolean
+    stripeWebhookSecret?: boolean
     pageAboutMe?: boolean
     pageHeadline?: boolean
     pageSocialYouTube?: boolean
@@ -3719,6 +3743,9 @@ export namespace Prisma {
     dodoWebhookSecret?: boolean
     razorpayKeyId?: boolean
     razorpayKeySecret?: boolean
+    stripeAccountId?: boolean
+    stripeSecretKey?: boolean
+    stripeWebhookSecret?: boolean
     pageAboutMe?: boolean
     pageHeadline?: boolean
     pageSocialYouTube?: boolean
@@ -3753,6 +3780,9 @@ export namespace Prisma {
     dodoWebhookSecret?: boolean
     razorpayKeyId?: boolean
     razorpayKeySecret?: boolean
+    stripeAccountId?: boolean
+    stripeSecretKey?: boolean
+    stripeWebhookSecret?: boolean
     pageAboutMe?: boolean
     pageHeadline?: boolean
     pageSocialYouTube?: boolean
@@ -3820,6 +3850,9 @@ export namespace Prisma {
       dodoWebhookSecret: string | null
       razorpayKeyId: string | null
       razorpayKeySecret: string | null
+      stripeAccountId: string | null
+      stripeSecretKey: string | null
+      stripeWebhookSecret: string | null
       pageAboutMe: string | null
       pageHeadline: string | null
       pageSocialYouTube: string | null
@@ -4256,6 +4289,9 @@ export namespace Prisma {
     readonly dodoWebhookSecret: FieldRef<"User", 'String'>
     readonly razorpayKeyId: FieldRef<"User", 'String'>
     readonly razorpayKeySecret: FieldRef<"User", 'String'>
+    readonly stripeAccountId: FieldRef<"User", 'String'>
+    readonly stripeSecretKey: FieldRef<"User", 'String'>
+    readonly stripeWebhookSecret: FieldRef<"User", 'String'>
     readonly pageAboutMe: FieldRef<"User", 'String'>
     readonly pageHeadline: FieldRef<"User", 'String'>
     readonly pageSocialYouTube: FieldRef<"User", 'String'>
@@ -28408,6 +28444,9 @@ export namespace Prisma {
     dodoWebhookSecret: 'dodoWebhookSecret',
     razorpayKeyId: 'razorpayKeyId',
     razorpayKeySecret: 'razorpayKeySecret',
+    stripeAccountId: 'stripeAccountId',
+    stripeSecretKey: 'stripeSecretKey',
+    stripeWebhookSecret: 'stripeWebhookSecret',
     pageAboutMe: 'pageAboutMe',
     pageHeadline: 'pageHeadline',
     pageSocialYouTube: 'pageSocialYouTube',
@@ -28927,6 +28966,9 @@ export namespace Prisma {
     dodoWebhookSecret?: StringNullableFilter<"User"> | string | null
     razorpayKeyId?: StringNullableFilter<"User"> | string | null
     razorpayKeySecret?: StringNullableFilter<"User"> | string | null
+    stripeAccountId?: StringNullableFilter<"User"> | string | null
+    stripeSecretKey?: StringNullableFilter<"User"> | string | null
+    stripeWebhookSecret?: StringNullableFilter<"User"> | string | null
     pageAboutMe?: StringNullableFilter<"User"> | string | null
     pageHeadline?: StringNullableFilter<"User"> | string | null
     pageSocialYouTube?: StringNullableFilter<"User"> | string | null
@@ -28973,6 +29015,9 @@ export namespace Prisma {
     dodoWebhookSecret?: SortOrderInput | SortOrder
     razorpayKeyId?: SortOrderInput | SortOrder
     razorpayKeySecret?: SortOrderInput | SortOrder
+    stripeAccountId?: SortOrderInput | SortOrder
+    stripeSecretKey?: SortOrderInput | SortOrder
+    stripeWebhookSecret?: SortOrderInput | SortOrder
     pageAboutMe?: SortOrderInput | SortOrder
     pageHeadline?: SortOrderInput | SortOrder
     pageSocialYouTube?: SortOrderInput | SortOrder
@@ -29022,6 +29067,9 @@ export namespace Prisma {
     dodoWebhookSecret?: StringNullableFilter<"User"> | string | null
     razorpayKeyId?: StringNullableFilter<"User"> | string | null
     razorpayKeySecret?: StringNullableFilter<"User"> | string | null
+    stripeAccountId?: StringNullableFilter<"User"> | string | null
+    stripeSecretKey?: StringNullableFilter<"User"> | string | null
+    stripeWebhookSecret?: StringNullableFilter<"User"> | string | null
     pageAboutMe?: StringNullableFilter<"User"> | string | null
     pageHeadline?: StringNullableFilter<"User"> | string | null
     pageSocialYouTube?: StringNullableFilter<"User"> | string | null
@@ -29068,6 +29116,9 @@ export namespace Prisma {
     dodoWebhookSecret?: SortOrderInput | SortOrder
     razorpayKeyId?: SortOrderInput | SortOrder
     razorpayKeySecret?: SortOrderInput | SortOrder
+    stripeAccountId?: SortOrderInput | SortOrder
+    stripeSecretKey?: SortOrderInput | SortOrder
+    stripeWebhookSecret?: SortOrderInput | SortOrder
     pageAboutMe?: SortOrderInput | SortOrder
     pageHeadline?: SortOrderInput | SortOrder
     pageSocialYouTube?: SortOrderInput | SortOrder
@@ -29108,6 +29159,9 @@ export namespace Prisma {
     dodoWebhookSecret?: StringNullableWithAggregatesFilter<"User"> | string | null
     razorpayKeyId?: StringNullableWithAggregatesFilter<"User"> | string | null
     razorpayKeySecret?: StringNullableWithAggregatesFilter<"User"> | string | null
+    stripeAccountId?: StringNullableWithAggregatesFilter<"User"> | string | null
+    stripeSecretKey?: StringNullableWithAggregatesFilter<"User"> | string | null
+    stripeWebhookSecret?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageAboutMe?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageHeadline?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageSocialYouTube?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -31006,6 +31060,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -31052,6 +31109,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -31098,6 +31158,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31144,6 +31207,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31190,6 +31256,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -31224,6 +31293,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31258,6 +31330,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33499,6 +33574,9 @@ export namespace Prisma {
     dodoWebhookSecret?: SortOrder
     razorpayKeyId?: SortOrder
     razorpayKeySecret?: SortOrder
+    stripeAccountId?: SortOrder
+    stripeSecretKey?: SortOrder
+    stripeWebhookSecret?: SortOrder
     pageAboutMe?: SortOrder
     pageHeadline?: SortOrder
     pageSocialYouTube?: SortOrder
@@ -33533,6 +33611,9 @@ export namespace Prisma {
     dodoWebhookSecret?: SortOrder
     razorpayKeyId?: SortOrder
     razorpayKeySecret?: SortOrder
+    stripeAccountId?: SortOrder
+    stripeSecretKey?: SortOrder
+    stripeWebhookSecret?: SortOrder
     pageAboutMe?: SortOrder
     pageHeadline?: SortOrder
     pageSocialYouTube?: SortOrder
@@ -33567,6 +33648,9 @@ export namespace Prisma {
     dodoWebhookSecret?: SortOrder
     razorpayKeyId?: SortOrder
     razorpayKeySecret?: SortOrder
+    stripeAccountId?: SortOrder
+    stripeSecretKey?: SortOrder
+    stripeWebhookSecret?: SortOrder
     pageAboutMe?: SortOrder
     pageHeadline?: SortOrder
     pageSocialYouTube?: SortOrder
@@ -37928,6 +38012,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -37973,6 +38060,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -38034,6 +38124,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38079,6 +38172,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38124,6 +38220,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -38169,6 +38268,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -38219,6 +38321,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -38264,6 +38369,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -38490,6 +38598,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38535,6 +38646,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38599,6 +38713,9 @@ export namespace Prisma {
     dodoWebhookSecret?: StringNullableFilter<"User"> | string | null
     razorpayKeyId?: StringNullableFilter<"User"> | string | null
     razorpayKeySecret?: StringNullableFilter<"User"> | string | null
+    stripeAccountId?: StringNullableFilter<"User"> | string | null
+    stripeSecretKey?: StringNullableFilter<"User"> | string | null
+    stripeWebhookSecret?: StringNullableFilter<"User"> | string | null
     pageAboutMe?: StringNullableFilter<"User"> | string | null
     pageHeadline?: StringNullableFilter<"User"> | string | null
     pageSocialYouTube?: StringNullableFilter<"User"> | string | null
@@ -38726,6 +38843,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -38771,6 +38891,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -38882,6 +39005,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38927,6 +39053,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -39220,6 +39349,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -39265,6 +39397,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -39521,6 +39656,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -39566,6 +39704,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40013,6 +40154,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -40058,6 +40202,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -40178,6 +40325,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40223,6 +40373,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40457,6 +40610,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -40502,6 +40658,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -40592,6 +40751,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40637,6 +40799,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40734,6 +40899,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -40779,6 +40947,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -40926,6 +41097,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40971,6 +41145,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41384,6 +41561,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -41429,6 +41609,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -41490,6 +41673,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41535,6 +41721,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41580,6 +41769,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -41625,6 +41817,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -41767,6 +41962,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41812,6 +42010,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41873,6 +42074,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -41918,6 +42122,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -42077,6 +42284,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42122,6 +42332,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42649,6 +42862,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -42694,6 +42910,9 @@ export namespace Prisma {
     dodoWebhookSecret?: string | null
     razorpayKeyId?: string | null
     razorpayKeySecret?: string | null
+    stripeAccountId?: string | null
+    stripeSecretKey?: string | null
+    stripeWebhookSecret?: string | null
     pageAboutMe?: string | null
     pageHeadline?: string | null
     pageSocialYouTube?: string | null
@@ -42820,6 +43039,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42865,6 +43087,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43669,6 +43894,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43714,6 +43942,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43759,6 +43990,9 @@ export namespace Prisma {
     dodoWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeyId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayKeySecret?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSecretKey?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeWebhookSecret?: NullableStringFieldUpdateOperationsInput | string | null
     pageAboutMe?: NullableStringFieldUpdateOperationsInput | string | null
     pageHeadline?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialYouTube?: NullableStringFieldUpdateOperationsInput | string | null

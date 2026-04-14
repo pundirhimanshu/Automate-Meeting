@@ -13,6 +13,7 @@ import { getUserSubscription } from '@/lib/subscription';
 import { decrypt } from '@/lib/encryption';
 import DodoPayments from 'dodopayments';
 import Razorpay from 'razorpay';
+import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -544,6 +545,69 @@ export async function POST(request) {
                     console.error('[RAZORPAY_INIT_ERROR]', err);
                     await prisma.booking.delete({ where: { id: booking.id } });
                     return NextResponse.json({ error: `Razorpay Order error: ${err.message}` }, { status: 500 });
+                }
+            }
+
+            // 3. STRIPE FLOW
+            else if (provider === 'stripe') {
+                try {
+                    let stripe;
+                    let sessionConfig;
+
+                    if (hostUser.stripeAccountId) {
+                        // Stripe Connect: use platform key, charge on connected account
+                        stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+                        sessionConfig = {
+                            mode: 'payment',
+                            line_items: [{
+                                price_data: {
+                                    currency: (eventType.currency || 'usd').toLowerCase(),
+                                    product_data: { name: eventType.title },
+                                    unit_amount: Math.round((eventType.price || 0) * 100),
+                                },
+                                quantity: 1,
+                            }],
+                            metadata: { bookingId: booking.id, hostId: assignedHostId },
+                            success_url: `${request.headers.get('origin') || ''}/book/confirmed?bookingId=${booking.id}`,
+                            cancel_url: `${request.headers.get('origin') || ''}/book/confirmed?bookingId=${booking.id}&cancelled=true`,
+                            payment_intent_data: {
+                                application_fee_amount: 0,
+                                transfer_data: { destination: hostUser.stripeAccountId },
+                            },
+                        };
+                    } else if (hostUser.stripeSecretKey) {
+                        const secretKey = decrypt(hostUser.stripeSecretKey);
+                        stripe = new Stripe(secretKey);
+                        sessionConfig = {
+                            mode: 'payment',
+                            line_items: [{
+                                price_data: {
+                                    currency: (eventType.currency || 'usd').toLowerCase(),
+                                    product_data: { name: eventType.title },
+                                    unit_amount: Math.round((eventType.price || 0) * 100),
+                                },
+                                quantity: 1,
+                            }],
+                            metadata: { bookingId: booking.id, hostId: assignedHostId },
+                            success_url: `${request.headers.get('origin') || ''}/book/confirmed?bookingId=${booking.id}`,
+                            cancel_url: `${request.headers.get('origin') || ''}/book/confirmed?bookingId=${booking.id}&cancelled=true`,
+                        };
+                    } else {
+                        await prisma.booking.delete({ where: { id: booking.id } });
+                        return NextResponse.json({ error: 'Host has not set up Stripe.' }, { status: 400 });
+                    }
+
+                    const stripeSession = await stripe.checkout.sessions.create(sessionConfig);
+                    checkoutUrl = stripeSession.url;
+
+                    await prisma.booking.update({
+                        where: { id: booking.id },
+                        data: { paymentSessionId: stripeSession.id },
+                    });
+                } catch (err) {
+                    console.error('[STRIPE_INIT_ERROR]', err);
+                    await prisma.booking.delete({ where: { id: booking.id } });
+                    return NextResponse.json({ error: `Stripe error: ${err.message}` }, { status: 500 });
                 }
             }
         }

@@ -431,6 +431,7 @@ function SchedulingContent() {
             minNotice: parseInt(form.minNotice),
             requiresPayment: form.requiresPayment,
             price: form.price ? parseFloat(form.price) : null,
+            currency: form.paymentProvider === 'stripe' ? 'USD' : (form.currency || 'INR'),
             dodoProductId: form.dodoProductId,
             paymentProvider: form.paymentProvider,
             customQuestions: (form.customQuestions || []).filter((q) => q.question.trim()),
@@ -1396,7 +1397,7 @@ function SchedulingContent() {
                                                 {/* Provider Selector */}
                                                 <div className="input-group">
                                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '8px' }}>Payment Provider</label>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                                                         <button 
                                                             type="button"
                                                             className={`btn ${form.paymentProvider === 'dodo' ? 'btn-primary' : 'btn-outline'}`}
@@ -1413,20 +1414,28 @@ function SchedulingContent() {
                                                         >
                                                             💳 Razorpay {userData?.razorpayKeyId ? '✅' : ''}
                                                         </button>
+                                                        <button 
+                                                            type="button"
+                                                            className={`btn ${form.paymentProvider === 'stripe' ? 'btn-primary' : 'btn-outline'}`}
+                                                            style={{ fontSize: '0.8125rem', padding: '8px', justifyContent: 'center' }}
+                                                            onClick={() => setForm(f => ({ ...f, paymentProvider: 'stripe' }))}
+                                                        >
+                                                            💰 Stripe {(userData?.stripeAccountId || userData?.stripeSecretKey) ? '✅' : ''}
+                                                        </button>
                                                     </div>
                                                     
                                                     {/* Connection Warning */}
-                                                    {((form.paymentProvider === 'dodo' && !userData?.dodoApiKey) || (form.paymentProvider === 'razorpay' && !userData?.razorpayKeyId)) && (
+                                                    {((form.paymentProvider === 'dodo' && !userData?.dodoApiKey) || (form.paymentProvider === 'razorpay' && !userData?.razorpayKeyId) || (form.paymentProvider === 'stripe' && !userData?.stripeAccountId && !userData?.stripeSecretKey)) && (
                                                         <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                             ⚠️ Not connected. 
-                                                            <Link href={`/integrations/${form.paymentProvider}`} style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Connect now</Link>
+                                                            <Link href={form.paymentProvider === 'stripe' ? '/integrations/stripe' : `/integrations/${form.paymentProvider}`} style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Connect now</Link>
                                                         </p>
                                                     )}
                                                 </div>
 
                                                 <div className="input-group">
-                                                    <label>Price (INR)</label>
-                                                    <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step="1" />
+                                                    <label>Price ({form.paymentProvider === 'stripe' ? 'USD $' : 'INR ₹'})</label>
+                                                    <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step={form.paymentProvider === 'stripe' ? '0.01' : '1'} />
                                                 </div>
 
                                                 {form.paymentProvider === 'dodo' && (
@@ -1444,6 +1453,12 @@ function SchedulingContent() {
                                                 {form.paymentProvider === 'razorpay' && (
                                                     <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', background: 'white', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-color)', lineHeight: '1.4' }}>
                                                         💡 <b>Dynamic Order:</b> No Product ID needed! We create orders automatically with the price set above.
+                                                    </p>
+                                                )}
+
+                                                {form.paymentProvider === 'stripe' && (
+                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', background: 'white', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-color)', lineHeight: '1.4' }}>
+                                                        💡 <b>Stripe Checkout:</b> Invitees are redirected to Stripe's secure payment page. Supports cards, Apple Pay, Google Pay.
                                                     </p>
                                                 )}
                                             </div>

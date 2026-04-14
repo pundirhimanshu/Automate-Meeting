@@ -21,6 +21,8 @@ export async function GET(request) {
                 createdAt: true,
                 dodoApiKey: true,
                 razorpayKeyId: true,
+                stripeAccountId: true,
+                stripeSecretKey: true,
                 integrations: {
                     select: { provider: true, email: true }
                 }

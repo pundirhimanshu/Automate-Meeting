@@ -43,6 +43,9 @@ model User {
   dodoWebhookSecret    String?
   razorpayKeyId        String?
   razorpayKeySecret    String?
+  stripeAccountId      String? // Stripe Connect account ID
+  stripeSecretKey      String? // Encrypted manual Stripe secret key
+  stripeWebhookSecret  String? // Encrypted manual Stripe webhook secret
 
   // Start Your Page
   pageAboutMe            String?
@@ -103,7 +106,7 @@ model EventType {
   price             Float?
   currency          String?          @default("USD")
   dodoProductId     String?
-  paymentProvider   String? // "dodo", "razorpay"
+  paymentProvider   String? // "dodo", "razorpay", "stripe"
   inviteeLimit      Int              @default(1)
   roundRobinIndex   Int              @default(0)
   userId            String

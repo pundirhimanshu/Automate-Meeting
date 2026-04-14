@@ -16,6 +16,7 @@ export default async function IntegrationsPage() {
     const isConnected = (provider) => {
         if (provider === 'dodo') return !!user?.dodoApiKey;
         if (provider === 'razorpay') return !!user?.razorpayKeyId;
+        if (provider === 'stripe') return !!(user?.stripeAccountId || user?.stripeSecretKey);
         return userIntegrations.some(i => i.provider === provider);
     };
 
@@ -36,7 +37,7 @@ export default async function IntegrationsPage() {
         { id: 'dodo', name: 'Dodo Payments', desc: 'Accept payments directly', icon: '🦤', connected: isConnected('dodo'), connectUrl: '/integrations/dodo' },
         { id: 'razorpay', name: 'Razorpay', desc: 'Accept payments via UPI, Card, Netbanking', icon: '💳', connected: isConnected('razorpay'), connectUrl: '/integrations/razorpay' },
         { id: 'teams', name: 'Microsoft Teams', desc: 'Teams meeting links', icon: '💼', comingSoon: true },
-        { id: 'stripe', name: 'Stripe', desc: 'Collect payments', icon: '💳', comingSoon: true },
+        { id: 'stripe', name: 'Stripe', desc: 'Accept payments via cards globally', icon: '💳', connected: isConnected('stripe'), connectUrl: '/integrations/stripe' },
         { id: 'slack', name: 'Slack', desc: 'Booking notifications', icon: '💬', connected: isConnected('slack'), connectUrl: '/api/integrations/slack/connect' },
         { id: 'outlook', name: 'Outlook', desc: 'Outlook calendar sync', icon: '📧', comingSoon: true },
     ];
