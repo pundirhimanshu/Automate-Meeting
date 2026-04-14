@@ -14,69 +14,113 @@ export async function POST(request) {
         const rawBody = await request.text();
         const signature = request.headers.get('stripe-signature');
 
-        // Try platform-level webhook secret first
-        let event;
-        const platformSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-        if (platformSecret) {
-            try {
-                const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-                event = stripe.webhooks.constructEvent(rawBody, signature, platformSecret);
-            } catch (err) {
-                console.error('[STRIPE_WEBHOOK] Platform signature failed:', err.message);
-                return new Response('Invalid signature', { status: 401 });
-            }
-        } else {
-            // Fallback: parse without verification (for dev)
-            event = JSON.parse(rawBody);
+        // 1. Initial insecure parse to extract metadata (needed to find the correct secret)
+        const unverifiedEvent = JSON.parse(rawBody);
+        
+        if (unverifiedEvent.type !== 'checkout.session.completed') {
+            console.log('[STRIPE_WEBHOOK] Ignoring event type:', unverifiedEvent.type);
+            return new Response('Event ignored', { status: 200 });
         }
 
+        const session = unverifiedEvent.data.object;
+        const bookingId = session.metadata?.bookingId;
+
+        if (!bookingId) {
+            console.warn('[STRIPE_WEBHOOK] No bookingId in metadata');
+            return new Response('No bookingId', { status: 200 });
+        }
+
+        // 2. Lookup the booking and host user to find the secret
+        const booking = await prisma.booking.findUnique({
+            where: { id: bookingId },
+            include: { host: true },
+        });
+
+        if (!booking) {
+            console.error('[STRIPE_WEBHOOK] Booking not found for verification:', bookingId);
+            return new Response('Booking not found', { status: 200 });
+        }
+
+        const hostUser = booking.host;
+        let event;
+        let stripe;
+
+        // 3. SECURE VERIFICATION
+        try {
+            if (hostUser.stripeAccountId) {
+                // Connect Platform Mode
+                const platformSecret = process.env.STRIPE_WEBHOOK_SECRET;
+                if (!platformSecret && process.env.NODE_ENV === 'production') {
+                    throw new Error('Missing platform webhook secret');
+                }
+                
+                stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+                event = platformSecret 
+                    ? stripe.webhooks.constructEvent(rawBody, signature, platformSecret)
+                    : unverifiedEvent;
+            } else if (hostUser.stripeSecretKey) {
+                // Manual Keys Mode
+                const userSecretKey = decrypt(hostUser.stripeSecretKey);
+                const userWebhookSecret = hostUser.stripeWebhookSecret ? decrypt(hostUser.stripeWebhookSecret) : null;
+                
+                if (!userWebhookSecret && process.env.NODE_ENV === 'production') {
+                    throw new Error('User has not set up a webhook secret');
+                }
+
+                stripe = new Stripe(userSecretKey);
+                event = userWebhookSecret
+                    ? stripe.webhooks.constructEvent(rawBody, signature, userWebhookSecret)
+                    : unverifiedEvent;
+            } else {
+                throw new Error('Host has no Stripe configuration');
+            }
+        } catch (err) {
+            console.error('[STRIPE_WEBHOOK] Verification failed:', err.message);
+            return new Response(`Signature verification failed: ${err.message}`, { status: 401 });
+        }
+
+        // 4. PROCESS THE EVENT
         if (event.type === 'checkout.session.completed') {
             const session = event.data.object;
-            const bookingId = session.metadata?.bookingId;
+            
+            console.log('[STRIPE_WEBHOOK] Processing payment for booking:', booking.id);
 
-            if (!bookingId) {
-                console.warn('[STRIPE_WEBHOOK] No bookingId in metadata');
-                return new Response('No bookingId', { status: 200 });
-            }
-
-            console.log('[STRIPE_WEBHOOK] Processing payment for booking:', bookingId);
-
-            const booking = await prisma.booking.findUnique({
-                where: { id: bookingId },
+            // Re-fetch booking with full relations (since we only fetched host earlier for verification)
+            const fullBooking = await prisma.booking.findUnique({
+                where: { id: booking.id },
                 include: { eventType: { include: { user: true, coHosts: true } }, host: true, contact: true },
             });
 
-            if (!booking) {
-                console.error('[STRIPE_WEBHOOK] Booking not found:', bookingId);
+            if (!fullBooking) {
+                console.error('[STRIPE_WEBHOOK] Booking lost while processing:', booking.id);
                 return new Response('Booking not found', { status: 200 });
             }
 
-            if (booking.status === 'confirmed') {
-                console.log('[STRIPE_WEBHOOK] Already confirmed:', bookingId);
+            if (fullBooking.status === 'confirmed') {
+                console.log('[STRIPE_WEBHOOK] Already confirmed:', booking.id);
                 return new Response('Already processed', { status: 200 });
             }
 
             // Check for overbooking
             const conflict = await prisma.booking.findFirst({
                 where: {
-                    hostId: booking.hostId,
+                    hostId: fullBooking.hostId,
                     status: 'confirmed',
-                    id: { not: booking.id },
+                    id: { not: fullBooking.id },
                     OR: [
-                        { AND: [{ startTime: { lte: booking.startTime } }, { endTime: { gt: booking.startTime } }] },
-                        { AND: [{ startTime: { lt: booking.endTime } }, { endTime: { gte: booking.endTime } }] },
+                        { AND: [{ startTime: { lte: fullBooking.startTime } }, { endTime: { gt: fullBooking.startTime } }] },
+                        { AND: [{ startTime: { lt: fullBooking.endTime } }, { endTime: { gte: fullBooking.endTime } }] },
                     ],
                 },
             });
 
             // Confirm booking
             const updatedBooking = await prisma.booking.update({
-                where: { id: booking.id },
+                where: { id: fullBooking.id },
                 data: {
                     status: 'confirmed',
                     paymentStatus: 'paid',
-                    ...(conflict && { notes: (booking.notes || '') + `\n\n⚠️ OVERBOOKED: Slot taken by ${conflict.inviteeName} first.` }),
+                    ...(conflict && { notes: (fullBooking.notes || '') + `\n\n⚠️ OVERBOOKED: Slot taken by ${conflict.inviteeName} first.` }),
                 },
                 include: { eventType: { include: { user: true, coHosts: true } }, host: true, contact: true },
             });
