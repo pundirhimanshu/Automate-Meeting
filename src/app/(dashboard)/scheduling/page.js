@@ -70,7 +70,7 @@ function SchedulingContent() {
     const [inviteSending, setInviteSending] = useState(false);
     const [invitesSent, setInvitesSent] = useState(false);
 
-    const [form, setForm] = useState({
+    const initialForm = {
         title: '',
         description: '',
         duration: 30,
@@ -88,11 +88,14 @@ function SchedulingContent() {
         minNotice: 60,
         requiresPayment: false,
         price: '',
+        currency: 'USD',
         dodoProductId: '',
         paymentProvider: 'dodo', // 'dodo' or 'razorpay'
         customQuestions: [],
         coHostIds: [],
-    });
+    };
+
+    const [form, setForm] = useState(initialForm);
     const [editId, setEditId] = useState(null);
 
     const searchParams = useSearchParams();
@@ -346,6 +349,7 @@ function SchedulingContent() {
                     phoneCallSource: data.eventType.phoneCallSource || 'host',
                     maxBookingsPerDay: data.eventType.maxBookingsPerDay || '',
                     price: data.eventType.price || '',
+                    currency: data.eventType.currency || 'USD',
                     dodoProductId: data.eventType.dodoProductId || '',
                     paymentProvider: data.eventType.paymentProvider || 'dodo',
                     customQuestions: data.eventType.customQuestions || [],
@@ -431,7 +435,7 @@ function SchedulingContent() {
             minNotice: parseInt(form.minNotice),
             requiresPayment: form.requiresPayment,
             price: form.price ? parseFloat(form.price) : null,
-            currency: form.paymentProvider === 'stripe' ? 'USD' : (form.currency || 'INR'),
+            currency: form.currency || 'USD',
             dodoProductId: form.dodoProductId,
             paymentProvider: form.paymentProvider,
             customQuestions: (form.customQuestions || []).filter((q) => q.question.trim()),
@@ -711,7 +715,7 @@ function SchedulingContent() {
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => setIsEmbedModalOpen(true)} className="view-landing-link" style={{ background: 'none', border: 'none', padding: '0px 12px', height: '32px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6" /></svg>
                         Embed
                     </button>
                     <a href={`/book/${session?.user?.username || 'user'}`} target="_blank" className="view-landing-link">
@@ -1398,7 +1402,7 @@ function SchedulingContent() {
                                                 <div className="input-group">
                                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '8px' }}>Payment Provider</label>
                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             className={`btn ${form.paymentProvider === 'dodo' ? 'btn-primary' : 'btn-outline'}`}
                                                             style={{ fontSize: '0.8125rem', padding: '8px', justifyContent: 'center' }}
@@ -1406,7 +1410,7 @@ function SchedulingContent() {
                                                         >
                                                             🦤 Dodo {userData?.dodoApiKey ? '✅' : ''}
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             className={`btn ${form.paymentProvider === 'razorpay' ? 'btn-primary' : 'btn-outline'}`}
                                                             style={{ fontSize: '0.8125rem', padding: '8px', justifyContent: 'center' }}
@@ -1414,7 +1418,7 @@ function SchedulingContent() {
                                                         >
                                                             💳 Razorpay {userData?.razorpayKeyId ? '✅' : ''}
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             className={`btn ${form.paymentProvider === 'stripe' ? 'btn-primary' : 'btn-outline'}`}
                                                             style={{ fontSize: '0.8125rem', padding: '8px', justifyContent: 'center' }}
@@ -1423,19 +1427,41 @@ function SchedulingContent() {
                                                             💰 Stripe {(userData?.stripeAccountId || userData?.stripeSecretKey) ? '✅' : ''}
                                                         </button>
                                                     </div>
-                                                    
+
                                                     {/* Connection Warning */}
                                                     {((form.paymentProvider === 'dodo' && !userData?.dodoApiKey) || (form.paymentProvider === 'razorpay' && !userData?.razorpayKeyId) || (form.paymentProvider === 'stripe' && !userData?.stripeAccountId && !userData?.stripeSecretKey)) && (
                                                         <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                            ⚠️ Not connected. 
+                                                            ⚠️ Not connected.
                                                             <Link href={form.paymentProvider === 'stripe' ? '/integrations/stripe' : `/integrations/${form.paymentProvider}`} style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Connect now</Link>
                                                         </p>
                                                     )}
                                                 </div>
 
-                                                <div className="input-group">
-                                                    <label>Price ({form.paymentProvider === 'stripe' ? 'USD $' : 'INR ₹'})</label>
-                                                    <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step={form.paymentProvider === 'stripe' ? '0.01' : '1'} />
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                                    <div className="input-group">
+                                                        <label>Price</label>
+                                                        <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step={form.paymentProvider === 'stripe' ? '0.01' : '1'} />
+                                                    </div>
+
+                                                    {form.paymentProvider === 'stripe' && (
+                                                        <div className="input-group">
+                                                            <label>Currency</label>
+                                                            <select name="currency" className="input" value={form.currency} onChange={handleChange}>
+                                                                <option value="USD">USD ($)</option>
+                                                                <option value="EUR">EUR (€)</option>
+                                                                <option value="GBP">GBP (£)</option>
+                                                                <option value="CAD">CAD ($)</option>
+                                                                <option value="AUD">AUD ($)</option>
+                                                                <option value="SGD">SGD ($)</option>
+                                                                <option value="AED">AED (Dh)</option>
+                                                                <option value="JPY">JPY (¥)</option>
+                                                                <option value="CHF">CHF (Fr)</option>
+                                                                <option value="NZD">NZD ($)</option>
+                                                                <option value="HKD">HKD ($)</option>
+                                                                <option value="ZAR">ZAR (R)</option>
+                                                            </select>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {form.paymentProvider === 'dodo' && (

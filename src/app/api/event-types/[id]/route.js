@@ -44,7 +44,7 @@ export async function PUT(request, { params }) {
             title, description, duration, type, color, locationType, location, phoneCallSource,
             bufferTimeBefore, bufferTimeAfter, dateRangeType,
             dateRangeDays, maxBookingsPerDay, minNotice, isActive,
-            isSingleUse, requiresPayment, price, dodoProductId, paymentProvider, customQuestions,
+            isSingleUse, requiresPayment, price, currency, dodoProductId, paymentProvider, customQuestions,
             inviteeLimit, coHostIds,
         } = body;
 
@@ -93,6 +93,7 @@ export async function PUT(request, { params }) {
                 ...(isSingleUse !== undefined && { isSingleUse }),
                 ...(requiresPayment !== undefined && { requiresPayment }),
                 ...(price !== undefined && { price }),
+                ...(currency !== undefined && { currency }),
                 ...(dodoProductId !== undefined && { dodoProductId }),
                 ...(paymentProvider !== undefined && { paymentProvider }),
                 ...(inviteeLimit !== undefined && { inviteeLimit: parseInt(inviteeLimit) }),
