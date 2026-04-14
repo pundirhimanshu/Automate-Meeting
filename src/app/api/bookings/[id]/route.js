@@ -56,6 +56,24 @@ export async function GET(request, { params }) {
                     const order = await razorpay.orders.fetch(booking.paymentSessionId);
                     isPaid = order.status === 'paid';
                 }
+                
+                // 3. STRIPE VERIFICATION
+                else if (provider === 'stripe' && (booking.host.stripeAccountId || booking.host.stripeSecretKey)) {
+                    const Stripe = require('stripe');
+                    let stripe;
+                    
+                    if (booking.host.stripeAccountId) {
+                        const platformKey = process.env.STRIPE_SECRET_KEY;
+                        if (!platformKey) throw new Error('Platform Stripe key missing in environment');
+                        stripe = new Stripe(platformKey);
+                    } else {
+                        const userSecretKey = decrypt(booking.host.stripeSecretKey);
+                        stripe = new Stripe(userSecretKey);
+                    }
+                    
+                    const session = await stripe.checkout.sessions.retrieve(booking.paymentSessionId);
+                    isPaid = session.payment_status === 'paid';
+                }
 
                 if (isPaid) {
                     console.log(`[BOOKING_VERIFY] Payment confirmed via API for ${booking.id}. Updating status.`);
