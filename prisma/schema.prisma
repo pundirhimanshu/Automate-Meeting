@@ -54,6 +54,7 @@ model User {
   pageSocialFacebook     String?
   pageSocialWhatsApp     String?
   pageSocialInstagram    String?
+  pageSocialLinkedIn     String?
   pageSidePanelColor     String   @default("#d946ef")
   pageSelectedEventTypes String?  // comma-separated event-type IDs
   pageImage              String?

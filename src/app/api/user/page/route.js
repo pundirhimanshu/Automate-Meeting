@@ -25,6 +25,7 @@ export async function GET(request) {
                 pageSocialFacebook: true,
                 pageSocialWhatsApp: true,
                 pageSocialInstagram: true,
+                pageSocialLinkedIn: true,
                 pageSidePanelColor: true,
                 pageSelectedEventTypes: true,
                 pageImage: true,
@@ -65,6 +66,7 @@ export async function POST(request) {
         if (body.pageSocialFacebook !== undefined) updateData.pageSocialFacebook = body.pageSocialFacebook;
         if (body.pageSocialWhatsApp !== undefined) updateData.pageSocialWhatsApp = body.pageSocialWhatsApp;
         if (body.pageSocialInstagram !== undefined) updateData.pageSocialInstagram = body.pageSocialInstagram;
+        if (body.pageSocialLinkedIn !== undefined) updateData.pageSocialLinkedIn = body.pageSocialLinkedIn;
         if (body.pageSidePanelColor !== undefined) updateData.pageSidePanelColor = body.pageSidePanelColor;
         if (body.pageSelectedEventTypes !== undefined) updateData.pageSelectedEventTypes = body.pageSelectedEventTypes;
         if (body.pageImage !== undefined) updateData.pageImage = body.pageImage;
@@ -84,6 +86,7 @@ export async function POST(request) {
                 pageSocialFacebook: true,
                 pageSocialWhatsApp: true,
                 pageSocialInstagram: true,
+                pageSocialLinkedIn: true,
                 pageSidePanelColor: true,
                 pageSelectedEventTypes: true,
                 pageImage: true,

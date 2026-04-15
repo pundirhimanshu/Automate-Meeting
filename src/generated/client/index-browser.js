@@ -153,6 +153,7 @@ exports.Prisma.UserScalarFieldEnum = {
   pageSocialFacebook: 'pageSocialFacebook',
   pageSocialWhatsApp: 'pageSocialWhatsApp',
   pageSocialInstagram: 'pageSocialInstagram',
+  pageSocialLinkedIn: 'pageSocialLinkedIn',
   pageSidePanelColor: 'pageSidePanelColor',
   pageSelectedEventTypes: 'pageSelectedEventTypes',
   pageImage: 'pageImage',

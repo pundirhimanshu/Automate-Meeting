@@ -3351,6 +3351,7 @@ export namespace Prisma {
     pageSocialFacebook: string | null
     pageSocialWhatsApp: string | null
     pageSocialInstagram: string | null
+    pageSocialLinkedIn: string | null
     pageSidePanelColor: string | null
     pageSelectedEventTypes: string | null
     pageImage: string | null
@@ -3388,6 +3389,7 @@ export namespace Prisma {
     pageSocialFacebook: string | null
     pageSocialWhatsApp: string | null
     pageSocialInstagram: string | null
+    pageSocialLinkedIn: string | null
     pageSidePanelColor: string | null
     pageSelectedEventTypes: string | null
     pageImage: string | null
@@ -3425,6 +3427,7 @@ export namespace Prisma {
     pageSocialFacebook: number
     pageSocialWhatsApp: number
     pageSocialInstagram: number
+    pageSocialLinkedIn: number
     pageSidePanelColor: number
     pageSelectedEventTypes: number
     pageImage: number
@@ -3464,6 +3467,7 @@ export namespace Prisma {
     pageSocialFacebook?: true
     pageSocialWhatsApp?: true
     pageSocialInstagram?: true
+    pageSocialLinkedIn?: true
     pageSidePanelColor?: true
     pageSelectedEventTypes?: true
     pageImage?: true
@@ -3501,6 +3505,7 @@ export namespace Prisma {
     pageSocialFacebook?: true
     pageSocialWhatsApp?: true
     pageSocialInstagram?: true
+    pageSocialLinkedIn?: true
     pageSidePanelColor?: true
     pageSelectedEventTypes?: true
     pageImage?: true
@@ -3538,6 +3543,7 @@ export namespace Prisma {
     pageSocialFacebook?: true
     pageSocialWhatsApp?: true
     pageSocialInstagram?: true
+    pageSocialLinkedIn?: true
     pageSidePanelColor?: true
     pageSelectedEventTypes?: true
     pageImage?: true
@@ -3648,6 +3654,7 @@ export namespace Prisma {
     pageSocialFacebook: string | null
     pageSocialWhatsApp: string | null
     pageSocialInstagram: string | null
+    pageSocialLinkedIn: string | null
     pageSidePanelColor: string
     pageSelectedEventTypes: string | null
     pageImage: string | null
@@ -3702,6 +3709,7 @@ export namespace Prisma {
     pageSocialFacebook?: boolean
     pageSocialWhatsApp?: boolean
     pageSocialInstagram?: boolean
+    pageSocialLinkedIn?: boolean
     pageSidePanelColor?: boolean
     pageSelectedEventTypes?: boolean
     pageImage?: boolean
@@ -3752,6 +3760,7 @@ export namespace Prisma {
     pageSocialFacebook?: boolean
     pageSocialWhatsApp?: boolean
     pageSocialInstagram?: boolean
+    pageSocialLinkedIn?: boolean
     pageSidePanelColor?: boolean
     pageSelectedEventTypes?: boolean
     pageImage?: boolean
@@ -3789,6 +3798,7 @@ export namespace Prisma {
     pageSocialFacebook?: boolean
     pageSocialWhatsApp?: boolean
     pageSocialInstagram?: boolean
+    pageSocialLinkedIn?: boolean
     pageSidePanelColor?: boolean
     pageSelectedEventTypes?: boolean
     pageImage?: boolean
@@ -3859,6 +3869,7 @@ export namespace Prisma {
       pageSocialFacebook: string | null
       pageSocialWhatsApp: string | null
       pageSocialInstagram: string | null
+      pageSocialLinkedIn: string | null
       pageSidePanelColor: string
       pageSelectedEventTypes: string | null
       pageImage: string | null
@@ -4298,6 +4309,7 @@ export namespace Prisma {
     readonly pageSocialFacebook: FieldRef<"User", 'String'>
     readonly pageSocialWhatsApp: FieldRef<"User", 'String'>
     readonly pageSocialInstagram: FieldRef<"User", 'String'>
+    readonly pageSocialLinkedIn: FieldRef<"User", 'String'>
     readonly pageSidePanelColor: FieldRef<"User", 'String'>
     readonly pageSelectedEventTypes: FieldRef<"User", 'String'>
     readonly pageImage: FieldRef<"User", 'String'>
@@ -28453,6 +28465,7 @@ export namespace Prisma {
     pageSocialFacebook: 'pageSocialFacebook',
     pageSocialWhatsApp: 'pageSocialWhatsApp',
     pageSocialInstagram: 'pageSocialInstagram',
+    pageSocialLinkedIn: 'pageSocialLinkedIn',
     pageSidePanelColor: 'pageSidePanelColor',
     pageSelectedEventTypes: 'pageSelectedEventTypes',
     pageImage: 'pageImage',
@@ -28975,6 +28988,7 @@ export namespace Prisma {
     pageSocialFacebook?: StringNullableFilter<"User"> | string | null
     pageSocialWhatsApp?: StringNullableFilter<"User"> | string | null
     pageSocialInstagram?: StringNullableFilter<"User"> | string | null
+    pageSocialLinkedIn?: StringNullableFilter<"User"> | string | null
     pageSidePanelColor?: StringFilter<"User"> | string
     pageSelectedEventTypes?: StringNullableFilter<"User"> | string | null
     pageImage?: StringNullableFilter<"User"> | string | null
@@ -29024,6 +29038,7 @@ export namespace Prisma {
     pageSocialFacebook?: SortOrderInput | SortOrder
     pageSocialWhatsApp?: SortOrderInput | SortOrder
     pageSocialInstagram?: SortOrderInput | SortOrder
+    pageSocialLinkedIn?: SortOrderInput | SortOrder
     pageSidePanelColor?: SortOrder
     pageSelectedEventTypes?: SortOrderInput | SortOrder
     pageImage?: SortOrderInput | SortOrder
@@ -29076,6 +29091,7 @@ export namespace Prisma {
     pageSocialFacebook?: StringNullableFilter<"User"> | string | null
     pageSocialWhatsApp?: StringNullableFilter<"User"> | string | null
     pageSocialInstagram?: StringNullableFilter<"User"> | string | null
+    pageSocialLinkedIn?: StringNullableFilter<"User"> | string | null
     pageSidePanelColor?: StringFilter<"User"> | string
     pageSelectedEventTypes?: StringNullableFilter<"User"> | string | null
     pageImage?: StringNullableFilter<"User"> | string | null
@@ -29125,6 +29141,7 @@ export namespace Prisma {
     pageSocialFacebook?: SortOrderInput | SortOrder
     pageSocialWhatsApp?: SortOrderInput | SortOrder
     pageSocialInstagram?: SortOrderInput | SortOrder
+    pageSocialLinkedIn?: SortOrderInput | SortOrder
     pageSidePanelColor?: SortOrder
     pageSelectedEventTypes?: SortOrderInput | SortOrder
     pageImage?: SortOrderInput | SortOrder
@@ -29168,6 +29185,7 @@ export namespace Prisma {
     pageSocialFacebook?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageSocialWhatsApp?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageSocialInstagram?: StringNullableWithAggregatesFilter<"User"> | string | null
+    pageSocialLinkedIn?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageSidePanelColor?: StringWithAggregatesFilter<"User"> | string
     pageSelectedEventTypes?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageImage?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -31069,6 +31087,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -31118,6 +31137,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -31167,6 +31187,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31216,6 +31237,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31265,6 +31287,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -31302,6 +31325,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31339,6 +31363,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33583,6 +33608,7 @@ export namespace Prisma {
     pageSocialFacebook?: SortOrder
     pageSocialWhatsApp?: SortOrder
     pageSocialInstagram?: SortOrder
+    pageSocialLinkedIn?: SortOrder
     pageSidePanelColor?: SortOrder
     pageSelectedEventTypes?: SortOrder
     pageImage?: SortOrder
@@ -33620,6 +33646,7 @@ export namespace Prisma {
     pageSocialFacebook?: SortOrder
     pageSocialWhatsApp?: SortOrder
     pageSocialInstagram?: SortOrder
+    pageSocialLinkedIn?: SortOrder
     pageSidePanelColor?: SortOrder
     pageSelectedEventTypes?: SortOrder
     pageImage?: SortOrder
@@ -33657,6 +33684,7 @@ export namespace Prisma {
     pageSocialFacebook?: SortOrder
     pageSocialWhatsApp?: SortOrder
     pageSocialInstagram?: SortOrder
+    pageSocialLinkedIn?: SortOrder
     pageSidePanelColor?: SortOrder
     pageSelectedEventTypes?: SortOrder
     pageImage?: SortOrder
@@ -38021,6 +38049,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -38069,6 +38098,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -38133,6 +38163,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38181,6 +38212,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38229,6 +38261,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -38277,6 +38310,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -38330,6 +38364,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -38378,6 +38413,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -38607,6 +38643,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38655,6 +38692,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38722,6 +38760,7 @@ export namespace Prisma {
     pageSocialFacebook?: StringNullableFilter<"User"> | string | null
     pageSocialWhatsApp?: StringNullableFilter<"User"> | string | null
     pageSocialInstagram?: StringNullableFilter<"User"> | string | null
+    pageSocialLinkedIn?: StringNullableFilter<"User"> | string | null
     pageSidePanelColor?: StringFilter<"User"> | string
     pageSelectedEventTypes?: StringNullableFilter<"User"> | string | null
     pageImage?: StringNullableFilter<"User"> | string | null
@@ -38852,6 +38891,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -38900,6 +38940,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -39014,6 +39055,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -39062,6 +39104,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -39358,6 +39401,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -39406,6 +39450,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -39665,6 +39710,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -39713,6 +39759,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40163,6 +40210,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -40211,6 +40259,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -40334,6 +40383,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40382,6 +40432,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40619,6 +40670,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -40667,6 +40719,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -40760,6 +40813,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40808,6 +40862,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40908,6 +40963,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -40956,6 +41012,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -41106,6 +41163,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41154,6 +41212,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41570,6 +41629,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -41618,6 +41678,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -41682,6 +41743,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41730,6 +41792,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41778,6 +41841,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -41826,6 +41890,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -41971,6 +42036,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42019,6 +42085,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42083,6 +42150,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -42131,6 +42199,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -42293,6 +42362,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42341,6 +42411,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42871,6 +42942,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -42919,6 +42991,7 @@ export namespace Prisma {
     pageSocialFacebook?: string | null
     pageSocialWhatsApp?: string | null
     pageSocialInstagram?: string | null
+    pageSocialLinkedIn?: string | null
     pageSidePanelColor?: string
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
@@ -43048,6 +43121,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43096,6 +43170,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43903,6 +43978,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43951,6 +44027,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43999,6 +44076,7 @@ export namespace Prisma {
     pageSocialFacebook?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialWhatsApp?: NullableStringFieldUpdateOperationsInput | string | null
     pageSocialInstagram?: NullableStringFieldUpdateOperationsInput | string | null
+    pageSocialLinkedIn?: NullableStringFieldUpdateOperationsInput | string | null
     pageSidePanelColor?: StringFieldUpdateOperationsInput | string
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
