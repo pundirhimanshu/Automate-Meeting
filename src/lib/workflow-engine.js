@@ -11,6 +11,32 @@ const transporter = nodemailer.createTransport({
 });
 const EMAIL_FROM = process.env.EMAIL_FROM || `Scheduler <${process.env.GMAIL_USER}>`;
 
+// Helper to get a stable base URL for production links
+function getBaseUrl() {
+    // 1. Manual override (Best)
+    if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
+    
+    // 2. NextAuth URL (Standard) - filter out localhost
+    if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost')) {
+        return process.env.NEXTAUTH_URL.replace(/\/$/, '');
+    }
+
+    // 3. Vercel System Variable for the permanent production domain
+    // Check both prefixed and non-prefixed as Vercel sets these automatically
+    const vercelProd = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    if (vercelProd) {
+        return `https://${vercelProd}`;
+    }
+
+    // 4. Fallback to hardcoded domain for this project if it looks like we are on Vercel
+    if (process.env.VERCEL) {
+        return 'https://automate-meeting.vercel.app';
+    }
+
+    // 5. Local development fallback
+    return 'http://localhost:3000';
+}
+
 /**
  * Main entrance for triggering real-time workflows (Created, Canceled, Rescheduled)
  */
@@ -91,10 +117,7 @@ async function sendWorkflowEmail(workflow, booking) {
     
     // Ensure we have a token (fallback for older bookings)
     const secureToken = manageToken || booking.id; 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost') ? process.env.NEXTAUTH_URL : null) ||
-                    (process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}` : null) ||
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    const baseUrl = getBaseUrl();
 
     const variables = {
         'Event Name': eventType.title,
@@ -180,10 +203,7 @@ async function sendWorkflowSlackMessage(workflow, booking) {
     
     // Ensure we have a token (fallback for older bookings)
     const secureToken = manageToken || booking.id; 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost') ? process.env.NEXTAUTH_URL : null) ||
-                    (process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}` : null) ||
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    const baseUrl = getBaseUrl();
 
     const variables = {
         'Event Name': eventType.title,
