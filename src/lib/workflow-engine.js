@@ -91,7 +91,7 @@ async function sendWorkflowEmail(workflow, booking) {
     
     // Ensure we have a token (fallback for older bookings)
     const secureToken = manageToken || booking.id; 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
     const variables = {
         'Event Name': eventType.title,
@@ -177,7 +177,7 @@ async function sendWorkflowSlackMessage(workflow, booking) {
     
     // Ensure we have a token (fallback for older bookings)
     const secureToken = manageToken || booking.id; 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
     const variables = {
         'Event Name': eventType.title,
