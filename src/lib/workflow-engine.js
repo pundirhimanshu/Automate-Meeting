@@ -11,32 +11,39 @@ const transporter = nodemailer.createTransport({
 });
 const EMAIL_FROM = process.env.EMAIL_FROM || `Scheduler <${process.env.GMAIL_USER}>`;
 
-// Helper to get a stable base URL for production links
+/**
+ * Helper to get a stable base URL for production links.
+ * PRIORITIZES:
+ * 1. NEXT_PUBLIC_BASE_URL (Manual override)
+ * 2. NEXTAUTH_URL (Standard, sanitized)
+ * 3. VERCEL_PROJECT_PRODUCTION_URL (Automatic Vercel System Variable)
+ * 4. Hardcoded project-specific fallback
+ */
 function getBaseUrl() {
-    // 1. Check for manual override (Highest Priority)
-    if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
+    // 1. Manual override (Best practice)
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+        return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
+    }
     
-    // 2. Derive from NEXTAUTH_URL - This is the Most Reliable on Vercel
+    // 2. NextAuth URL (Highly reliable on Vercel)
+    // We sanitize it to remove trailing slashes and ensure it's not a localhost link if on Vercel
     if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost')) {
         return process.env.NEXTAUTH_URL.replace(/\/$/, '');
     }
 
-    // 3. Vercel System Variable for the permanent production domain
-    if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-        return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+    // 3. Official Vercel production domain variable
+    const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
+    if (vercelProd) {
+        return `https://${vercelProd}`;
     }
 
-    // 4. Check for preview URL (as a fallback, but might be temporary)
-    if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL}`;
-    }
-
-    // 5. Hardcoded Fallbacks for this project's possible names
+    // 4. Fallback based on project repo/name for this specific user
     if (process.env.VERCEL) {
+        // Try both possible repo names
         return 'https://automate-meeting.vercel.app';
     }
 
-    // 6. Local development
+    // 5. Local development fallback
     return 'http://localhost:3000';
 }
 
@@ -94,7 +101,7 @@ export async function executeWorkflow(workflow, booking) {
             await sendWorkflowSlackMessage(workflow, booking);
         }
 
-        // Mark as executed
+        // Mark as executed on the booking to prevent duplicates during cron
         await prisma.booking.update({
             where: { id: booking.id },
             data: {
@@ -117,6 +124,9 @@ async function sendWorkflowEmail(workflow, booking) {
     // Ensure we have a token (fallback for older bookings)
     const secureToken = manageToken || booking.id; 
     const baseUrl = getBaseUrl();
+    
+    // Debug log to help the user identify the production URL in Vercel logs
+    console.log(`[WORKFLOWS] Using Base URL: ${baseUrl}`);
 
     const variables = {
         'Event Name': eventType.title,
@@ -136,21 +146,28 @@ async function sendWorkflowEmail(workflow, booking) {
     let subject = workflow.subject;
     let body = workflow.body;
 
+    // Determine recipient
     let toEmail = '';
     if (workflow.sendTo === 'HOST') toEmail = host.email;
     else if (workflow.sendTo === 'INVITEE') toEmail = inviteeEmail;
     else toEmail = workflow.sendTo;
 
+    // Normalize for comparison: lowercase and alphanumeric only
     const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
     const replaceVars = (str) => {
         if (!str) return str;
         const pattern = /[\{\(]{2}\s*([^}\)]+)\s*[\}\)]{2}/gi;
+        
         return str.replace(pattern, (match, p1) => {
             const rawKey = p1.trim().replace(/<[^>]*>/g, '');
             const normalizedKey = normalize(rawKey);
             const matchKey = Object.keys(variables).find(k => normalize(k) === normalizedKey);
-            return matchKey ? (variables[matchKey] ?? '') : match;
+            
+            if (matchKey) {
+                return variables[matchKey] ?? '';
+            }
+            return match;
         });
     };
 
@@ -164,6 +181,7 @@ async function sendWorkflowEmail(workflow, booking) {
         if (sent) return;
     }
 
+    // Default: system SMTP
     await transporter.sendMail({
         from: EMAIL_FROM,
         to: toEmail,
@@ -217,6 +235,7 @@ async function sendWorkflowSlackMessage(workflow, booking) {
 
     if (!finalMessage) return;
 
+    // Trigger Slack notification using the helper
     const { sendSlackNotification } = await import('./integrations/slack');
     await sendSlackNotification(workflow.userId, finalMessage);
 }
@@ -234,6 +253,7 @@ async function sendViaGmail(userId, to, subject, body) {
 
         let accessToken = integration.accessToken;
 
+        // Check if token needs refresh
         if (integration.expiresAt && new Date() > new Date(integration.expiresAt)) {
             accessToken = await refreshGoogleToken(integration);
         }
@@ -301,7 +321,7 @@ async function refreshGoogleToken(integration) {
 }
 
 /**
- * Poller for time-based workflows
+ * Poller for time-based workflows (BEFORE_EVENT / AFTER_EVENT).
  */
 export async function processScheduledWorkflows() {
     console.log('[WORKFLOWS_CRON] Starting scheduled workflow processing...');
@@ -326,7 +346,8 @@ export async function processScheduledWorkflows() {
             else if (timeUnit === 'HOURS') offsetMs = timeValue * 60 * 60 * 1000;
             else if (timeUnit === 'DAYS') offsetMs = timeValue * 24 * 60 * 60 * 1000;
 
-            const SCAN_WINDOW_MS = 24 * 60 * 60 * 1000;
+            const SCAN_WINDOW_MS = 24 * 60 * 60 * 1000; 
+
             let windowStart, windowEnd;
 
             if (wf.trigger === 'BEFORE_EVENT') {
@@ -373,6 +394,7 @@ export async function processScheduledWorkflows() {
                 }
             }
         }
+
         console.log('[WORKFLOWS_CRON] Processing complete.');
     } catch (err) {
         console.error('[WORKFLOW_CRON_ERROR]', err);
