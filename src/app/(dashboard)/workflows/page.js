@@ -71,10 +71,22 @@ export default function WorkflowsPage() {
                                     </label>
                                 </div>
                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                                    <strong>Trigger:</strong> {wf.trigger.replace('_', ' ').toLowerCase()}
+                                    <strong>Trigger:</strong> {wf.trigger?.replace('_', ' ').toLowerCase()}
                                 </div>
                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-                                    <strong>Action:</strong> Send email to {wf.sendTo.toLowerCase()}
+                                    <strong>Actions:</strong> {
+                                        (Array.isArray(wf.action) ? wf.action : [wf.action]).map(a => {
+                                            if (a === 'SEND_EMAIL') {
+                                                const recipients = (Array.isArray(wf.sendTo) ? wf.sendTo : [wf.sendTo])
+                                                    .map(r => r?.toLowerCase())
+                                                    .filter(Boolean)
+                                                    .join(', ');
+                                                return `Email (${recipients})`;
+                                            }
+                                            if (a === 'SEND_SLACK_MESSAGE') return 'Slack Notification';
+                                            return a;
+                                        }).join(' & ')
+                                    }
                                 </div>
                                 <div style={{ marginTop: 'auto', display: 'flex', gap: '10px' }}>
                                     <button onClick={() => router.push(`/workflows/edit/${wf.id}`)} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Edit</button>

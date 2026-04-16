@@ -53,8 +53,9 @@ export async function PUT(request, { params }) {
             trigger: data.trigger,
             timeValue: data.timeValue !== undefined ? (data.timeValue ? parseInt(data.timeValue) : null) : undefined,
             timeUnit: data.timeUnit,
-            action: data.action,
-            sendTo: data.sendTo,
+            // Ensure these are arrays for the new schema
+            action: data.action ? (Array.isArray(data.action) ? data.action : [data.action]) : undefined,
+            sendTo: data.sendTo ? (Array.isArray(data.sendTo) ? data.sendTo : [data.sendTo]) : undefined,
             senderEmail: data.senderEmail,
             subject: data.subject,
             body: data.body,

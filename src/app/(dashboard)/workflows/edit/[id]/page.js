@@ -8,11 +8,17 @@ const TRIGGERS = [
     { label: 'After event ends', value: 'AFTER_EVENT', hasTime: true },
     { label: 'New event booked', value: 'EVENT_BOOKED', hasTime: false },
     { label: 'Event canceled', value: 'EVENT_CANCELED', hasTime: false },
+    { label: 'Event rescheduled', value: 'EVENT_RESCHEDULED', hasTime: false },
 ];
 
-const ACTIONS = [
-    { label: 'Send email to host', value: 'SEND_EMAIL_HOST' },
-    { label: 'Send email to invitee', value: 'SEND_EMAIL_INVITEE' },
+const ACTION_TYPES = [
+    { label: 'Send Email', value: 'SEND_EMAIL', icon: '✉️' },
+    { label: 'Send Slack Message', value: 'SEND_SLACK_MESSAGE', icon: '💬' },
+];
+
+const RECIPIENT_TYPES = [
+    { label: 'Host', value: 'HOST' },
+    { label: 'Invitee', value: 'INVITEE' },
 ];
 
 const VARIABLES = [
@@ -41,14 +47,18 @@ export default function EditWorkflowPage() {
     const [timeValue, setTimeValue] = useState(24);
     const [timeUnit, setTimeUnit] = useState('HOURS');
 
-    // Action
-    const [action, setAction] = useState('');
+    // Actions & Recipients
+    const [selectedActions, setSelectedActions] = useState([]);
+    const [selectedRecipients, setSelectedRecipients] = useState([]);
+    
+    // Content
     const [sender, setSender] = useState('system');
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
 
     // Connectors
     const [gmailConnected, setGmailConnected] = useState(false);
+    const [slackConnected, setSlackConnected] = useState(false);
     const [userEmail, setUserEmail] = useState('');
 
     useEffect(() => {
@@ -73,7 +83,11 @@ export default function EditWorkflowPage() {
                 setTrigger(wf.trigger || '');
                 setTimeValue(wf.timeValue || 24);
                 setTimeUnit(wf.timeUnit || 'HOURS');
-                setAction(wf.sendTo === 'HOST' ? 'SEND_EMAIL_HOST' : 'SEND_EMAIL_INVITEE');
+                
+                // Handle Migration: ensure they are arrays
+                setSelectedActions(Array.isArray(wf.action) ? wf.action : [wf.action || 'SEND_EMAIL']);
+                setSelectedRecipients(Array.isArray(wf.sendTo) ? wf.sendTo : [wf.sendTo || 'HOST']);
+                
                 setSender(wf.senderEmail || 'system');
                 setSubject(wf.subject || '');
                 setBody(wf.body || '');
@@ -112,18 +126,25 @@ export default function EditWorkflowPage() {
                 setGmailConnected(false);
                 setUserEmail('');
             }
+            setSlackConnected(data.integrations?.some(i => i.provider === 'slack'));
         }
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (isDropdownOpen && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsDropdownOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isDropdownOpen]);
+    const toggleAction = (val) => {
+        if (selectedActions.includes(val)) {
+            setSelectedActions(selectedActions.filter(a => a !== val));
+        } else {
+            setSelectedActions([...selectedActions, val]);
+        }
+    };
+
+    const toggleRecipient = (val) => {
+        if (selectedRecipients.includes(val)) {
+            setSelectedRecipients(selectedRecipients.filter(r => r !== val));
+        } else {
+            setSelectedRecipients([...selectedRecipients, val]);
+        }
+    };
 
     const insertVariable = (field, variable) => {
         const val = `{{${variable}}}`;
@@ -132,6 +153,15 @@ export default function EditWorkflowPage() {
     };
 
     const handleSave = async () => {
+        if (selectedActions.length === 0) {
+            alert('Please select at least one action.');
+            return;
+        }
+        if (selectedActions.includes('SEND_EMAIL') && selectedRecipients.length === 0) {
+            alert('Please select at least one recipient for the email.');
+            return;
+        }
+
         setSaving(true);
         try {
             const res = await fetch(`/api/workflows/${workflowId}`, {
@@ -142,10 +172,10 @@ export default function EditWorkflowPage() {
                     trigger,
                     timeValue: TRIGGERS.find(t => t.value === trigger)?.hasTime ? parseInt(timeValue) : null,
                     timeUnit: TRIGGERS.find(t => t.value === trigger)?.hasTime ? timeUnit : null,
-                    action: 'SEND_EMAIL',
-                    sendTo: action === 'SEND_EMAIL_HOST' ? 'HOST' : 'INVITEE',
+                    action: selectedActions,
+                    sendTo: selectedRecipients,
                     senderEmail: sender,
-                    subject,
+                    subject: subject || 'New Notification',
                     body,
                     eventTypes: selectedEventTypes,
                 })
@@ -166,11 +196,7 @@ export default function EditWorkflowPage() {
     };
 
     if (loading) {
-        return (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '100px' }}>
-                <div className="spinner" style={{ width: '40px', height: '40px' }} />
-            </div>
-        );
+        return <div style={{ textAlign: 'center', padding: '100px' }}>Loading...</div>;
     }
 
     return (
@@ -185,7 +211,7 @@ export default function EditWorkflowPage() {
                         <label>Workflow name</label>
                         <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Email reminder to host" />
                     </div>
-                    <div className="input-group" ref={dropdownRef} style={{ position: 'relative', zIndex: isDropdownOpen ? 1000 : 1 }}>
+                    <div className="input-group" ref={dropdownRef} style={{ position: 'relative' }}>
                         <label>Which event types will this apply to?</label>
                         <div
                             className="input"
@@ -198,137 +224,34 @@ export default function EditWorkflowPage() {
                                 background: 'var(--bg-white)',
                                 padding: '8px 12px',
                                 border: isDropdownOpen ? '2px solid var(--primary)' : '1px solid var(--border-color)',
-                                boxShadow: isDropdownOpen ? '0 0 0 4px var(--primary-light)' : 'none',
                                 transition: 'all 0.2s ease',
                                 borderRadius: 'var(--radius-md)'
                             }}
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         >
-                            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {selectedEventTypes.includes('ALL')
-                                    ? 'All Current and Future Event Types'
-                                    : selectedEventTypes.length === 0
-                                        ? 'Select event types...'
-                                        : `${selectedEventTypes.length} event types selected`}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-tertiary)' }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
+                            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-main)' }}>
+                                {selectedEventTypes.includes('ALL') ? 'All Event Types' : `${selectedEventTypes.length} selected`}
                             </span>
                         </div>
-
                         {isDropdownOpen && (
-                            <div style={{
-                                position: 'absolute',
-                                top: 'calc(100% + 4px)',
-                                left: 0,
-                                right: 0,
-                                background: '#ffffff',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: '12px',
-                                zIndex: 1000,
-                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                                padding: '16px',
-                                animation: 'fadeInScale 0.2s ease'
-                            }}>
-                                <style>{`
-                                    @keyframes fadeInScale {
-                                        from { opacity: 0; transform: scale(0.95); }
-                                        to { opacity: 1; transform: scale(1); }
-                                    }
-                                `}</style>
-                                <div style={{ position: 'relative', marginBottom: '12px' }}>
-                                    <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                    </span>
-                                    <input
-                                        className="input"
-                                        placeholder="Search event types..."
-                                        value={searchTerm}
-                                        onChange={e => setSearchTerm(e.target.value)}
-                                        onClick={e => e.stopPropagation()}
-                                        style={{ paddingLeft: '32px', height: '36px', fontSize: '0.875rem' }}
-                                    />
-                                </div>
-                                <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
-                                    <label style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '10px',
-                                        padding: '8px 10px',
-                                        cursor: 'pointer',
-                                        borderRadius: '6px',
-                                        background: selectedEventTypes.includes('ALL') ? 'var(--primary-light)' : 'transparent',
-                                        marginBottom: '4px',
-                                        transition: 'background 0.2s'
-                                    }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedEventTypes.includes('ALL')}
+                            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: '1px solid var(--border-color)', zIndex: 1001, padding: '12px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0' }}>
+                                    <input type="checkbox" checked={selectedEventTypes.includes('ALL')} onChange={() => setSelectedEventTypes(['ALL'])} /> All Event Types
+                                </label>
+                                {eventTypes.map(et => (
+                                    <label key={et.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0' }}>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={selectedEventTypes.includes(et.id)} 
                                             onChange={() => {
-                                                if (selectedEventTypes.includes('ALL')) {
-                                                    setSelectedEventTypes([]);
-                                                } else {
-                                                    setSelectedEventTypes(['ALL']);
-                                                }
+                                                const clean = selectedEventTypes.filter(id => id !== 'ALL');
+                                                if (clean.includes(et.id)) setSelectedEventTypes(clean.filter(id => id !== et.id));
+                                                else setSelectedEventTypes([...clean, et.id]);
                                             }}
-                                            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                                        />
-                                        <span style={{ fontSize: '0.875rem', fontWeight: selectedEventTypes.includes('ALL') ? 600 : 400 }}>All Current and Future Event Types</span>
+                                        /> {et.title}
                                     </label>
-
-                                    <div style={{ padding: '4px 0', borderTop: '1px solid var(--border-light)', marginTop: '4px', paddingTop: '8px' }}>
-                                        {eventTypes
-                                            .filter(et => et.title.toLowerCase().includes(searchTerm.toLowerCase()))
-                                            .map(et => (
-                                                <label key={et.id} style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '10px',
-                                                    padding: '8px 10px',
-                                                    cursor: 'pointer',
-                                                    borderRadius: '6px',
-                                                    background: selectedEventTypes.includes(et.id) ? 'var(--primary-light)' : 'transparent',
-                                                    transition: 'background 0.2s'
-                                                }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedEventTypes.includes(et.id)}
-                                                        onChange={() => {
-                                                            const isAllSelected = selectedEventTypes.includes('ALL');
-                                                            const newSelected = isAllSelected ? [] : [...selectedEventTypes];
-                                                            if (newSelected.includes(et.id)) {
-                                                                setSelectedEventTypes(newSelected.filter(id => id !== et.id));
-                                                            } else {
-                                                                setSelectedEventTypes([...newSelected, et.id]);
-                                                            }
-                                                        }}
-                                                        style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                                                    />
-                                                    <span style={{ fontSize: '0.875rem', fontWeight: selectedEventTypes.includes(et.id) ? 600 : 400 }}>{et.title}</span>
-                                                </label>
-                                            ))
-                                        }
-                                        {eventTypes.filter(et => et.title.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
-                                            <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>
-                                                No events found
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
-                                    <button
-                                        className="btn btn-primary btn-sm"
-                                        style={{ height: '32px', borderRadius: '6px' }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsDropdownOpen(false);
-                                        }}
-                                    >
-                                        Apply Selection
-                                    </button>
-                                </div>
+                                ))}
+                                <button className="btn btn-primary btn-sm w-full mt-2" onClick={() => setIsDropdownOpen(false)}>Apply</button>
                             </div>
                         )}
                     </div>
@@ -356,63 +279,90 @@ export default function EditWorkflowPage() {
             </div>
 
             <div className="card" style={{ padding: '24px', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '16px' }}>Do this</h2>
-                <select className="input" style={{ marginBottom: '24px' }} value={action} onChange={e => setAction(e.target.value)}>
-                    <option value="" disabled>Select action...</option>
-                    {ACTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
-                </select>
+                <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '16px' }}>Do these actions</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+                    {ACTION_TYPES.map(a => (
+                        <div 
+                            key={a.value} 
+                            onClick={() => toggleAction(a.value)}
+                            style={{
+                                padding: '16px',
+                                borderRadius: '12px',
+                                border: selectedActions.includes(a.value) ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                                background: selectedActions.includes(a.value) ? 'var(--primary-light)' : 'var(--bg-white)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span>{a.icon}</span>
+                                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{a.label}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-                {action && (
-                    <div style={{ border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+                {selectedActions.includes('SEND_EMAIL') && (
+                    <div style={{ marginTop: '24px', padding: '20px', background: 'var(--bg-light)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '12px' }}>Email Settings</h3>
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ fontSize: '0.8125rem', fontWeight: 500, marginBottom: '8px', display: 'block' }}>Send to</label>
+                            <div style={{ display: 'flex', gap: '16px' }}>
+                                {RECIPIENT_TYPES.map(r => (
+                                    <label key={r.value} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                        <input type="checkbox" checked={selectedRecipients.includes(r.value)} onChange={() => toggleRecipient(r.value)} />
+                                        <span style={{ fontSize: '0.875rem' }}>{r.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
                         <div className="input-group" style={{ marginBottom: '20px' }}>
                             <label>Send from</label>
                             <select className="input" value={sender} onChange={e => setSender(e.target.value)}>
-                                <option value="system">System Default (Automate Meetings)</option>
+                                <option value="system">System Default</option>
                                 {gmailConnected && <option value="gmail">Your Gmail ({userEmail})</option>}
                             </select>
-                            {!gmailConnected && (
-                                <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', marginTop: '8px' }}>
-                                    Want to send emails from your own address? <a href="/integrations" style={{ color: 'var(--primary)' }}>Connect Gmail in Integrations</a>.
-                                </p>
-                            )}
                         </div>
-
-                        <div className="input-group" style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                Subject
-                                <div className="dropdown" style={{ display: 'inline-block', position: 'relative' }}>
-                                    <button className="btn btn-sm btn-secondary" style={{ padding: '2px 8px', fontSize: '0.75rem', height: 'auto' }}>+ Variables</button>
-                                    <div className="dropdown-menu" style={{ right: 0, minWidth: '200px', display: 'none' }}>
-                                        {VARIABLES.map(v => <button key={v} type="button" onClick={() => insertVariable('subject', v)} className="dropdown-item">{v}</button>)}
-                                    </div>
-                                </div>
-                            </label>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Quick insert:</span>
-                                {VARIABLES.slice(0, 4).map(v => (
-                                    <button key={v} type="button" onClick={() => insertVariable('subject', v)} style={{ border: 'none', background: 'var(--primary-light)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}>{v}</button>
-                                ))}
-                            </div>
-                            <input className="input" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Email subject" />
-                        </div>
-
                         <div className="input-group">
-                            <label>Body</label>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Quick insert:</span>
-                                {VARIABLES.map(v => (
-                                    <button key={v} type="button" onClick={() => insertVariable('body', v)} style={{ border: 'none', background: 'var(--primary-light)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}>{v}</button>
+                            <label>Subject</label>
+                            <input className="input" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Email subject" />
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                                {VARIABLES.slice(0, 5).map(v => (
+                                    <button key={v} type="button" onClick={() => insertVariable('subject', v)} style={{ border: 'none', background: 'var(--bg-white)', color: 'var(--text-main)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer', border: '1px solid var(--border-color)' }}>{v}</button>
                                 ))}
                             </div>
-                            <textarea className="input" rows={10} value={body} onChange={e => setBody(e.target.value)} placeholder="Write your email body here..." style={{ fontFamily: 'monospace' }} />
                         </div>
+                    </div>
+                )}
+
+                {selectedActions.includes('SEND_SLACK_MESSAGE') && (
+                    <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-light)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '1.25rem' }}>💬</span>
+                            <div>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Slack Notification</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{slackConnected ? 'Connected.' : 'Not connected.'}</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {selectedActions.length > 0 && (
+                    <div className="input-group" style={{ marginTop: '24px' }}>
+                        <label>Message Body</label>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                            {VARIABLES.map(v => (
+                                <button key={v} type="button" onClick={() => insertVariable('body', v)} style={{ border: 'none', background: 'white', color: 'var(--text-main)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer', border: '1px solid var(--border-color)' }}>{v}</button>
+                            ))}
+                        </div>
+                        <textarea className="input" rows={8} value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message here..." style={{ fontFamily: 'monospace' }} />
                     </div>
                 )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', position: 'fixed', bottom: 0, left: '240px', right: 0, background: 'var(--bg-white)', padding: '16px 32px', borderTop: '1px solid var(--border-color)', zIndex: 10 }}>
                 <button type="button" className="btn btn-secondary" onClick={() => router.push('/workflows')}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving || !name || !trigger || !action || !subject || !body}>
+                <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving || !name || !trigger || selectedActions.length === 0 || !body}>
                     {saving ? 'Updating...' : 'Update Workflow'}
                 </button>
             </div>

@@ -330,8 +330,8 @@ model Workflow {
   timeUnit    String?     // "MINUTES", "HOURS", "DAYS"
 
   // ACTION
-  action      String      @default("SEND_EMAIL") // "SEND_EMAIL", "SEND_SMS" (future)
-  sendTo      String      // "HOST", "INVITEE", "SPECIFIC_EMAIL"
+  action      String[]    @default(["SEND_EMAIL"]) // e.g. ["SEND_EMAIL", "SEND_SLACK_MESSAGE"]
+  sendTo      String[]    // e.g. ["HOST", "INVITEE"]
   senderEmail String      @default("system") // "system" or specific connected gmail
   subject     String
   body        String

@@ -11,44 +11,18 @@ const transporter = nodemailer.createTransport({
 });
 const EMAIL_FROM = process.env.EMAIL_FROM || `Scheduler <${process.env.GMAIL_USER}>`;
 
-/**
- * Helper to get a stable base URL for production links.
- * PRIORITIZES:
- * 1. NEXT_PUBLIC_BASE_URL (Manual override)
- * 2. NEXTAUTH_URL (Standard, sanitized)
- * 3. VERCEL_PROJECT_PRODUCTION_URL (Automatic Vercel System Variable)
- * 4. Hardcoded project-specific fallback
- */
+// Helper to get a stable base URL for production links.
 function getBaseUrl() {
-    // 1. Manual override (Best practice)
-    if (process.env.NEXT_PUBLIC_BASE_URL) {
-        return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
-    }
-    
-    // 2. NextAuth URL (Highly reliable on Vercel)
-    // We sanitize it to remove trailing slashes and ensure it's not a localhost link if on Vercel
-    if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost')) {
-        return process.env.NEXTAUTH_URL.replace(/\/$/, '');
-    }
-
-    // 3. Official Vercel production domain variable
+    if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
+    if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost')) return process.env.NEXTAUTH_URL.replace(/\/$/, '');
     const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
-    if (vercelProd) {
-        return `https://${vercelProd}`;
-    }
-
-    // 4. Fallback based on project repo/name for this specific user
-    if (process.env.VERCEL) {
-        // Try both possible repo names
-        return 'https://automate-meeting.vercel.app';
-    }
-
-    // 5. Local development fallback
+    if (vercelProd) return `https://${vercelProd}`;
+    if (process.env.VERCEL) return 'https://automate-meeting.vercel.app';
     return 'http://localhost:3000';
 }
 
 /**
- * Main entrance for triggering real-time workflows (Created, Canceled, Rescheduled)
+ * Main entrance for triggering real-time workflows
  */
 export async function triggerWorkflows(triggerType, bookingId) {
     console.log(`[WORKFLOWS] Triggering ${triggerType} for booking ${bookingId}`);
@@ -65,14 +39,13 @@ export async function triggerWorkflows(triggerType, bookingId) {
 
         if (!booking) return;
 
-        // Find applicable workflows
         const workflows = await prisma.workflow.findMany({
             where: {
                 userId: booking.eventType.userId,
                 trigger: triggerType,
                 isActive: true,
                 OR: [
-                    { eventTypes: { none: {} } }, // All event types
+                    { eventTypes: { none: {} } },
                     { eventTypes: { some: { id: booking.eventTypeId } } }
                 ]
             }
@@ -89,19 +62,24 @@ export async function triggerWorkflows(triggerType, bookingId) {
 }
 
 /**
- * Logic to actually process a single workflow execution
+ * Logic to actually process a single workflow execution.
+ * UPDATED: Now supports multiple actions.
  */
 export async function executeWorkflow(workflow, booking) {
     console.log(`[WORKFLOWS] Executing workflow: ${workflow.name} (${workflow.id})`);
 
     try {
-        if (workflow.action === 'SEND_EMAIL') {
-            await sendWorkflowEmail(workflow, booking);
-        } else if (workflow.action === 'SEND_SLACK_MESSAGE') {
-            await sendWorkflowSlackMessage(workflow, booking);
+        // Handle migration period: handle both single string and array
+        const actions = Array.isArray(workflow.action) ? workflow.action : [workflow.action];
+        
+        for (const actionName of actions) {
+            if (actionName === 'SEND_EMAIL') {
+                await sendWorkflowEmail(workflow, booking);
+            } else if (actionName === 'SEND_SLACK_MESSAGE') {
+                await sendWorkflowSlackMessage(workflow, booking);
+            }
         }
 
-        // Mark as executed on the booking to prevent duplicates during cron
         await prisma.booking.update({
             where: { id: booking.id },
             data: {
@@ -116,16 +94,15 @@ export async function executeWorkflow(workflow, booking) {
 }
 
 /**
- * Handle variable replacement and email dispatch
+ * Handle variable replacement and email dispatch.
+ * UPDATED: Now supports multiple recipients.
  */
 async function sendWorkflowEmail(workflow, booking) {
     const { host, eventType, inviteeName, inviteeEmail, startTime, location, answers, manageToken } = booking;
     
-    // Ensure we have a token (fallback for older bookings)
     const secureToken = manageToken || booking.id; 
     const baseUrl = getBaseUrl();
     
-    // Debug log to help the user identify the production URL in Vercel logs
     console.log(`[WORKFLOWS] Using Base URL: ${baseUrl}`);
 
     const variables = {
@@ -146,49 +123,50 @@ async function sendWorkflowEmail(workflow, booking) {
     let subject = workflow.subject;
     let body = workflow.body;
 
-    // Determine recipient
-    let toEmail = '';
-    if (workflow.sendTo === 'HOST') toEmail = host.email;
-    else if (workflow.sendTo === 'INVITEE') toEmail = inviteeEmail;
-    else toEmail = workflow.sendTo;
-
-    // Normalize for comparison: lowercase and alphanumeric only
     const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
     const replaceVars = (str) => {
         if (!str) return str;
         const pattern = /[\{\(]{2}\s*([^}\)]+)\s*[\}\)]{2}/gi;
-        
         return str.replace(pattern, (match, p1) => {
             const rawKey = p1.trim().replace(/<[^>]*>/g, '');
             const normalizedKey = normalize(rawKey);
             const matchKey = Object.keys(variables).find(k => normalize(k) === normalizedKey);
-            
-            if (matchKey) {
-                return variables[matchKey] ?? '';
-            }
-            return match;
+            return matchKey ? (variables[matchKey] ?? '') : match;
         });
     };
 
     subject = replaceVars(subject);
     body = replaceVars(body);
 
-    if (!toEmail) return;
+    // Calculate all recipient emails
+    const sendTo = Array.isArray(workflow.sendTo) ? workflow.sendTo : [workflow.sendTo];
+    const recipientEmails = new Set();
 
-    if (workflow.senderEmail === 'gmail') {
-        const sent = await sendViaGmail(workflow.userId, toEmail, subject, body);
-        if (sent) return;
+    for (const target of sendTo) {
+        if (target === 'HOST') recipientEmails.add(host.email);
+        else if (target === 'INVITEE') recipientEmails.add(inviteeEmail);
+        else if (target && target.includes('@')) recipientEmails.add(target);
     }
 
-    // Default: system SMTP
-    await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: toEmail,
-        subject: subject,
-        text: body,
-        html: body.replace(/\n/g, '<br>')
-    });
+    if (recipientEmails.size === 0) return;
+
+    for (const toEmail of Array.from(recipientEmails)) {
+        console.log(`[WORKFLOWS] Sending email to: ${toEmail}`);
+        
+        if (workflow.senderEmail === 'gmail') {
+            const sent = await sendViaGmail(workflow.userId, toEmail, subject, body);
+            if (sent) continue;
+        }
+
+        await transporter.sendMail({
+            from: EMAIL_FROM,
+            to: toEmail,
+            subject: subject,
+            text: body,
+            html: body.replace(/\n/g, '<br>')
+        });
+    }
 }
 
 /**
@@ -235,7 +213,6 @@ async function sendWorkflowSlackMessage(workflow, booking) {
 
     if (!finalMessage) return;
 
-    // Trigger Slack notification using the helper
     const { sendSlackNotification } = await import('./integrations/slack');
     await sendSlackNotification(workflow.userId, finalMessage);
 }
@@ -253,7 +230,6 @@ async function sendViaGmail(userId, to, subject, body) {
 
         let accessToken = integration.accessToken;
 
-        // Check if token needs refresh
         if (integration.expiresAt && new Date() > new Date(integration.expiresAt)) {
             accessToken = await refreshGoogleToken(integration);
         }
@@ -321,7 +297,7 @@ async function refreshGoogleToken(integration) {
 }
 
 /**
- * Poller for time-based workflows (BEFORE_EVENT / AFTER_EVENT).
+ * Poller for time-based workflows
  */
 export async function processScheduledWorkflows() {
     console.log('[WORKFLOWS_CRON] Starting scheduled workflow processing...');
@@ -346,8 +322,7 @@ export async function processScheduledWorkflows() {
             else if (timeUnit === 'HOURS') offsetMs = timeValue * 60 * 60 * 1000;
             else if (timeUnit === 'DAYS') offsetMs = timeValue * 24 * 60 * 60 * 1000;
 
-            const SCAN_WINDOW_MS = 24 * 60 * 60 * 1000; 
-
+            const SCAN_WINDOW_MS = 24 * 60 * 60 * 1000;
             let windowStart, windowEnd;
 
             if (wf.trigger === 'BEFORE_EVENT') {
@@ -394,7 +369,6 @@ export async function processScheduledWorkflows() {
                 }
             }
         }
-
         console.log('[WORKFLOWS_CRON] Processing complete.');
     } catch (err) {
         console.error('[WORKFLOW_CRON_ERROR]', err);

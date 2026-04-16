@@ -22232,8 +22232,6 @@ export namespace Prisma {
     trigger: string | null
     timeValue: number | null
     timeUnit: string | null
-    action: string | null
-    sendTo: string | null
     senderEmail: string | null
     subject: string | null
     body: string | null
@@ -22249,8 +22247,6 @@ export namespace Prisma {
     trigger: string | null
     timeValue: number | null
     timeUnit: string | null
-    action: string | null
-    sendTo: string | null
     senderEmail: string | null
     subject: string | null
     body: string | null
@@ -22293,8 +22289,6 @@ export namespace Prisma {
     trigger?: true
     timeValue?: true
     timeUnit?: true
-    action?: true
-    sendTo?: true
     senderEmail?: true
     subject?: true
     body?: true
@@ -22310,8 +22304,6 @@ export namespace Prisma {
     trigger?: true
     timeValue?: true
     timeUnit?: true
-    action?: true
-    sendTo?: true
     senderEmail?: true
     subject?: true
     body?: true
@@ -22431,8 +22423,8 @@ export namespace Prisma {
     trigger: string
     timeValue: number | null
     timeUnit: string | null
-    action: string
-    sendTo: string
+    action: string[]
+    sendTo: string[]
     senderEmail: string
     subject: string
     body: string
@@ -22537,8 +22529,8 @@ export namespace Prisma {
       trigger: string
       timeValue: number | null
       timeUnit: string | null
-      action: string
-      sendTo: string
+      action: string[]
+      sendTo: string[]
       senderEmail: string
       subject: string
       body: string
@@ -22946,8 +22938,8 @@ export namespace Prisma {
     readonly trigger: FieldRef<"Workflow", 'String'>
     readonly timeValue: FieldRef<"Workflow", 'Int'>
     readonly timeUnit: FieldRef<"Workflow", 'String'>
-    readonly action: FieldRef<"Workflow", 'String'>
-    readonly sendTo: FieldRef<"Workflow", 'String'>
+    readonly action: FieldRef<"Workflow", 'String[]'>
+    readonly sendTo: FieldRef<"Workflow", 'String[]'>
     readonly senderEmail: FieldRef<"Workflow", 'String'>
     readonly subject: FieldRef<"Workflow", 'String'>
     readonly body: FieldRef<"Workflow", 'String'>
@@ -30566,8 +30558,8 @@ export namespace Prisma {
     trigger?: StringFilter<"Workflow"> | string
     timeValue?: IntNullableFilter<"Workflow"> | number | null
     timeUnit?: StringNullableFilter<"Workflow"> | string | null
-    action?: StringFilter<"Workflow"> | string
-    sendTo?: StringFilter<"Workflow"> | string
+    action?: StringNullableListFilter<"Workflow">
+    sendTo?: StringNullableListFilter<"Workflow">
     senderEmail?: StringFilter<"Workflow"> | string
     subject?: StringFilter<"Workflow"> | string
     body?: StringFilter<"Workflow"> | string
@@ -30607,8 +30599,8 @@ export namespace Prisma {
     trigger?: StringFilter<"Workflow"> | string
     timeValue?: IntNullableFilter<"Workflow"> | number | null
     timeUnit?: StringNullableFilter<"Workflow"> | string | null
-    action?: StringFilter<"Workflow"> | string
-    sendTo?: StringFilter<"Workflow"> | string
+    action?: StringNullableListFilter<"Workflow">
+    sendTo?: StringNullableListFilter<"Workflow">
     senderEmail?: StringFilter<"Workflow"> | string
     subject?: StringFilter<"Workflow"> | string
     body?: StringFilter<"Workflow"> | string
@@ -30651,8 +30643,8 @@ export namespace Prisma {
     trigger?: StringWithAggregatesFilter<"Workflow"> | string
     timeValue?: IntNullableWithAggregatesFilter<"Workflow"> | number | null
     timeUnit?: StringNullableWithAggregatesFilter<"Workflow"> | string | null
-    action?: StringWithAggregatesFilter<"Workflow"> | string
-    sendTo?: StringWithAggregatesFilter<"Workflow"> | string
+    action?: StringNullableListFilter<"Workflow">
+    sendTo?: StringNullableListFilter<"Workflow">
     senderEmail?: StringWithAggregatesFilter<"Workflow"> | string
     subject?: StringWithAggregatesFilter<"Workflow"> | string
     body?: StringWithAggregatesFilter<"Workflow"> | string
@@ -32872,8 +32864,8 @@ export namespace Prisma {
     trigger: string
     timeValue?: number | null
     timeUnit?: string | null
-    action?: string
-    sendTo: string
+    action?: WorkflowCreateactionInput | string[]
+    sendTo?: WorkflowCreatesendToInput | string[]
     senderEmail?: string
     subject: string
     body: string
@@ -32891,8 +32883,8 @@ export namespace Prisma {
     trigger: string
     timeValue?: number | null
     timeUnit?: string | null
-    action?: string
-    sendTo: string
+    action?: WorkflowCreateactionInput | string[]
+    sendTo?: WorkflowCreatesendToInput | string[]
     senderEmail?: string
     subject: string
     body: string
@@ -32908,8 +32900,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -32927,8 +32919,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -32945,8 +32937,8 @@ export namespace Prisma {
     trigger: string
     timeValue?: number | null
     timeUnit?: string | null
-    action?: string
-    sendTo: string
+    action?: WorkflowCreateactionInput | string[]
+    sendTo?: WorkflowCreatesendToInput | string[]
     senderEmail?: string
     subject: string
     body: string
@@ -32961,8 +32953,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -32978,8 +32970,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -34713,8 +34705,6 @@ export namespace Prisma {
     trigger?: SortOrder
     timeValue?: SortOrder
     timeUnit?: SortOrder
-    action?: SortOrder
-    sendTo?: SortOrder
     senderEmail?: SortOrder
     subject?: SortOrder
     body?: SortOrder
@@ -34730,8 +34720,6 @@ export namespace Prisma {
     trigger?: SortOrder
     timeValue?: SortOrder
     timeUnit?: SortOrder
-    action?: SortOrder
-    sendTo?: SortOrder
     senderEmail?: SortOrder
     subject?: SortOrder
     body?: SortOrder
@@ -36519,6 +36507,14 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSubscriptionInput, UserUpdateWithoutSubscriptionInput>, UserUncheckedUpdateWithoutSubscriptionInput>
   }
 
+  export type WorkflowCreateactionInput = {
+    set: string[]
+  }
+
+  export type WorkflowCreatesendToInput = {
+    set: string[]
+  }
+
   export type UserCreateNestedOneWithoutWorkflowsInput = {
     create?: XOR<UserCreateWithoutWorkflowsInput, UserUncheckedCreateWithoutWorkflowsInput>
     connectOrCreate?: UserCreateOrConnectWithoutWorkflowsInput
@@ -36535,6 +36531,16 @@ export namespace Prisma {
     create?: XOR<EventTypeCreateWithoutWorkflowsInput, EventTypeUncheckedCreateWithoutWorkflowsInput> | EventTypeCreateWithoutWorkflowsInput[] | EventTypeUncheckedCreateWithoutWorkflowsInput[]
     connectOrCreate?: EventTypeCreateOrConnectWithoutWorkflowsInput | EventTypeCreateOrConnectWithoutWorkflowsInput[]
     connect?: EventTypeWhereUniqueInput | EventTypeWhereUniqueInput[]
+  }
+
+  export type WorkflowUpdateactionInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type WorkflowUpdatesendToInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type UserUpdateOneRequiredWithoutWorkflowsNestedInput = {
@@ -37550,8 +37556,8 @@ export namespace Prisma {
     trigger: string
     timeValue?: number | null
     timeUnit?: string | null
-    action?: string
-    sendTo: string
+    action?: WorkflowCreateactionInput | string[]
+    sendTo?: WorkflowCreatesendToInput | string[]
     senderEmail?: string
     subject: string
     body: string
@@ -37567,8 +37573,8 @@ export namespace Prisma {
     trigger: string
     timeValue?: number | null
     timeUnit?: string | null
-    action?: string
-    sendTo: string
+    action?: WorkflowCreateactionInput | string[]
+    sendTo?: WorkflowCreatesendToInput | string[]
     senderEmail?: string
     subject: string
     body: string
@@ -37977,8 +37983,8 @@ export namespace Prisma {
     trigger?: StringFilter<"Workflow"> | string
     timeValue?: IntNullableFilter<"Workflow"> | number | null
     timeUnit?: StringNullableFilter<"Workflow"> | string | null
-    action?: StringFilter<"Workflow"> | string
-    sendTo?: StringFilter<"Workflow"> | string
+    action?: StringNullableListFilter<"Workflow">
+    sendTo?: StringNullableListFilter<"Workflow">
     senderEmail?: StringFilter<"Workflow"> | string
     subject?: StringFilter<"Workflow"> | string
     body?: StringFilter<"Workflow"> | string
@@ -38506,8 +38512,8 @@ export namespace Prisma {
     trigger: string
     timeValue?: number | null
     timeUnit?: string | null
-    action?: string
-    sendTo: string
+    action?: WorkflowCreateactionInput | string[]
+    sendTo?: WorkflowCreatesendToInput | string[]
     senderEmail?: string
     subject: string
     body: string
@@ -38524,8 +38530,8 @@ export namespace Prisma {
     trigger: string
     timeValue?: number | null
     timeUnit?: string | null
-    action?: string
-    sendTo: string
+    action?: WorkflowCreateactionInput | string[]
+    sendTo?: WorkflowCreatesendToInput | string[]
     senderEmail?: string
     subject: string
     body: string
@@ -43310,8 +43316,8 @@ export namespace Prisma {
     trigger: string
     timeValue?: number | null
     timeUnit?: string | null
-    action?: string
-    sendTo: string
+    action?: WorkflowCreateactionInput | string[]
+    sendTo?: WorkflowCreatesendToInput | string[]
     senderEmail?: string
     subject: string
     body: string
@@ -43819,8 +43825,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -43836,8 +43842,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -43853,8 +43859,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -44167,8 +44173,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -44185,8 +44191,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
@@ -44202,8 +44208,8 @@ export namespace Prisma {
     trigger?: StringFieldUpdateOperationsInput | string
     timeValue?: NullableIntFieldUpdateOperationsInput | number | null
     timeUnit?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    sendTo?: StringFieldUpdateOperationsInput | string
+    action?: WorkflowUpdateactionInput | string[]
+    sendTo?: WorkflowUpdatesendToInput | string[]
     senderEmail?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string

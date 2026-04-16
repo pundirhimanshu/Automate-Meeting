@@ -46,8 +46,9 @@ export async function POST(request) {
                 trigger: data.trigger,
                 timeValue: data.timeValue ? parseInt(data.timeValue) : null,
                 timeUnit: data.timeUnit,
-                action: data.action,
-                sendTo: data.sendTo,
+                // Ensure these are arrays for the new schema
+                action: Array.isArray(data.action) ? data.action : [data.action],
+                sendTo: Array.isArray(data.sendTo) ? data.sendTo : [data.sendTo],
                 senderEmail: data.senderEmail,
                 subject: data.subject,
                 body: data.body,
