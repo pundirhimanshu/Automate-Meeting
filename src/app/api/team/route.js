@@ -192,8 +192,19 @@ export async function POST(request) {
                 }
             });
 
-            // Prepare invite link (assuming /signup?invite=TOKEN)
-            const inviteLink = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/signup?invite=${token}`;
+            // Prepare invite link (Dynamic Header-based Detection)
+            const host = request.headers.get('host');
+            const forwardedProto = request.headers.get('x-forwarded-proto');
+            const protocol = forwardedProto || (host && (host.includes('localhost') || host.includes('127.0.0.1')) ? 'http' : 'https');
+            const detectedBaseUrl = `${protocol}://${host}`;
+            
+            // Prioritize NEXTAUTH_URL only if on localhost, otherwise trust the host header
+            const baseUrl = (host && !host.includes('localhost') && !host.includes('127.0.0.1'))
+                ? detectedBaseUrl
+                : (process.env.NEXTAUTH_URL || detectedBaseUrl);
+
+            const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+            const inviteLink = `${cleanBaseUrl}/signup?invite=${token}`;
 
             await sendTeamInvitation({
                 email,
