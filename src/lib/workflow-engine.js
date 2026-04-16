@@ -63,17 +63,21 @@ export async function triggerWorkflows(triggerType, bookingId) {
 
 /**
  * Logic to actually process a single workflow execution.
- * UPDATED: Now supports multiple actions.
+ * UPDATED: Added backward compatibility for legacy string actions.
  */
 export async function executeWorkflow(workflow, booking) {
     console.log(`[WORKFLOWS] Executing workflow: ${workflow.name} (${workflow.id})`);
 
     try {
         // Handle migration period: handle both single string and array
-        const actions = Array.isArray(workflow.action) ? workflow.action : [workflow.action];
+        const rawAction = workflow.action;
+        const actions = Array.isArray(rawAction) ? rawAction : [rawAction];
         
         for (const actionName of actions) {
-            if (actionName === 'SEND_EMAIL') {
+            if (!actionName) continue;
+
+            // Check for new array action OR legacy string actions (SEND_EMAIL_HOST, etc.)
+            if (actionName === 'SEND_EMAIL' || actionName.startsWith('SEND_EMAIL_')) {
                 await sendWorkflowEmail(workflow, booking);
             } else if (actionName === 'SEND_SLACK_MESSAGE') {
                 await sendWorkflowSlackMessage(workflow, booking);
@@ -95,7 +99,7 @@ export async function executeWorkflow(workflow, booking) {
 
 /**
  * Handle variable replacement and email dispatch.
- * UPDATED: Now supports multiple recipients.
+ * UPDATED: Hardened recipient detection for both new and legacy formats.
  */
 async function sendWorkflowEmail(workflow, booking) {
     const { host, eventType, inviteeName, inviteeEmail, startTime, location, answers, manageToken } = booking;
@@ -103,8 +107,6 @@ async function sendWorkflowEmail(workflow, booking) {
     const secureToken = manageToken || booking.id; 
     const baseUrl = getBaseUrl();
     
-    console.log(`[WORKFLOWS] Using Base URL: ${baseUrl}`);
-
     const variables = {
         'Event Name': eventType.title,
         'Invitee Full Name': inviteeName,
@@ -140,16 +142,30 @@ async function sendWorkflowEmail(workflow, booking) {
     body = replaceVars(body);
 
     // Calculate all recipient emails
-    const sendTo = Array.isArray(workflow.sendTo) ? workflow.sendTo : [workflow.sendTo];
-    const recipientEmails = new Set();
+    const rawSendTo = workflow.sendTo;
+    const sendTo = Array.isArray(rawSendTo) ? rawSendTo : (rawSendTo ? [rawSendTo] : []);
+    
+    // Legacy support: If the workflow's action was a string like SEND_EMAIL_INVITEE
+    const legacyRecipient = (typeof workflow.action === 'string' && workflow.action.startsWith('SEND_EMAIL_'))
+        ? workflow.action.replace('SEND_EMAIL_', '')
+        : null;
 
-    for (const target of sendTo) {
+    const recipientEmails = new Set();
+    const allPossibleTargets = [...sendTo, legacyRecipient].filter(Boolean);
+
+    for (const target of allPossibleTargets) {
         if (target === 'HOST') recipientEmails.add(host.email);
-        else if (target === 'INVITEE') recipientEmails.add(inviteeEmail);
+        else if (target === 'INVITEE') {
+            if (inviteeEmail) recipientEmails.add(inviteeEmail);
+            else console.warn('[WORKFLOWS] Invitee email is missing for booking', booking.id);
+        }
         else if (target && target.includes('@')) recipientEmails.add(target);
     }
 
-    if (recipientEmails.size === 0) return;
+    if (recipientEmails.size === 0) {
+        console.warn(`[WORKFLOWS] No valid recipients found for workflow ${workflow.name}`);
+        return;
+    }
 
     for (const toEmail of Array.from(recipientEmails)) {
         console.log(`[WORKFLOWS] Sending email to: ${toEmail}`);
@@ -175,7 +191,6 @@ async function sendWorkflowEmail(workflow, booking) {
 async function sendWorkflowSlackMessage(workflow, booking) {
     const { host, eventType, inviteeName, inviteeEmail, startTime, location, answers, manageToken } = booking;
     
-    // Ensure we have a token (fallback for older bookings)
     const secureToken = manageToken || booking.id; 
     const baseUrl = getBaseUrl();
 
@@ -213,8 +228,12 @@ async function sendWorkflowSlackMessage(workflow, booking) {
 
     if (!finalMessage) return;
 
-    const { sendSlackNotification } = await import('./integrations/slack');
-    await sendSlackNotification(workflow.userId, finalMessage);
+    try {
+        const { sendSlackNotification } = await import('./integrations/slack');
+        await sendSlackNotification(workflow.userId, finalMessage);
+    } catch (err) {
+        console.error('[WORKFLOWS] Slack notification failed:', err);
+    }
 }
 
 /**
