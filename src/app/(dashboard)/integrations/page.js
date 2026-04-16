@@ -21,23 +21,109 @@ export default async function IntegrationsPage() {
     };
 
     const integrations = [
-        { id: 'google_calendar', name: 'Google Calendar', desc: 'Two-way calendar sync', icon: '📅', connected: isConnected('google_calendar'), connectUrl: '/api/integrations/google/connect' },
-        { id: 'google_meet', name: 'Google Meet', desc: 'Google Meet integration', icon: '📹', connected: isConnected('google_calendar'), connectUrl: isConnected('google_calendar') ? null : '/api/integrations/google/connect' },
+        { 
+            id: 'google_calendar', 
+            name: 'Google Calendar', 
+            desc: 'Two-way calendar sync', 
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="#4285F4" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                    <path fill="#FBBC05" d="M11 10H7v4h4v-4z"/>
+                </svg>
+            ),
+            connected: isConnected('google_calendar'), 
+            connectUrl: '/api/integrations/google/connect' 
+        },
+        { 
+            id: 'google_meet', 
+            name: 'Google Meet', 
+            desc: 'Google Meet integration', 
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="#00AA47" d="M16 10v-3.5c0-.83-.67-1.5-1.5-1.5h-10c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h10c.83 0 1.5-.67 1.5-1.5v-3.5l4 4v-11l-4 4z"/>
+                </svg>
+            ),
+            connected: isConnected('google_calendar'), 
+            connectUrl: isConnected('google_calendar') ? null : '/api/integrations/google/connect' 
+        },
         {
             id: 'gmail',
             name: 'Gmail',
             desc: isConnected('gmail')
                 ? `Connected: ${userIntegrations.find(i => i.provider === 'gmail')?.email || 'Connected'}`
                 : 'Send workflow emails from your Gmail',
-            icon: '✉️',
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="#EA4335" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                </svg>
+            ),
             connected: isConnected('gmail'),
             connectUrl: '/api/integrations/gmail/connect'
         },
-        { id: 'zoom', name: 'Zoom', desc: 'Auto-create Zoom meetings', icon: '🎥', connected: isConnected('zoom'), connectUrl: '/api/integrations/zoom/connect', requiresPlan: 'pro' },
-        { id: 'dodo', name: 'Dodo Payments', desc: 'Accept payments directly', icon: '🦤', connected: isConnected('dodo'), connectUrl: '/integrations/dodo' },
-        { id: 'razorpay', name: 'Razorpay', desc: 'Accept payments via UPI, Card, Netbanking', icon: '💳', connected: isConnected('razorpay'), connectUrl: '/integrations/razorpay' },
-        { id: 'stripe', name: 'Stripe', desc: 'Accept payments via cards globally', icon: '💳', connected: isConnected('stripe'), connectUrl: '/integrations/stripe' },
-        { id: 'slack', name: 'Slack', desc: 'Booking notifications', icon: '💬', connected: isConnected('slack'), connectUrl: '/api/integrations/slack/connect' },
+        { 
+            id: 'zoom', 
+            name: 'Zoom', 
+            desc: 'Auto-create Zoom meetings', 
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#2D8CFF">
+                    <path d="M16 10v-3.5c0-.83-.67-1.5-1.5-1.5h-10c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h10c.83 0 1.5-.67 1.5-1.5v-3.5l4 4v-11l-4 4z"/>
+                </svg>
+            ),
+            connected: isConnected('zoom'), 
+            connectUrl: '/api/integrations/zoom/connect', 
+            requiresPlan: 'pro' 
+        },
+        { 
+            id: 'dodo', 
+            name: 'Dodo Payments', 
+            desc: 'Accept payments directly', 
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#FF9500">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+                </svg>
+            ),
+            connected: isConnected('dodo'), 
+            connectUrl: '/integrations/dodo' 
+        },
+        { 
+            id: 'razorpay', 
+            name: 'Razorpay', 
+            desc: 'Accept payments via UPI, Card, Netbanking', 
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#02042B">
+                    <path d="M18.5 7.5L12 11 5.5 7.5 12 4l6.5 3.5zM20 18.5L13.5 15l6.5-3.5v7zM4 18.5V11.5L10.5 15l-6.5 3.5z"/>
+                </svg>
+            ),
+            connected: isConnected('razorpay'), 
+            connectUrl: '/integrations/razorpay' 
+        },
+        { 
+            id: 'stripe', 
+            name: 'Stripe', 
+            desc: 'Accept payments via cards globally', 
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#635BFF">
+                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 6h16v2H4V6zm0 12v-8h16v8H4z"/>
+                </svg>
+            ),
+            connected: isConnected('stripe'), 
+            connectUrl: '/integrations/stripe' 
+        },
+        { 
+            id: 'slack', 
+            name: 'Slack', 
+            desc: 'Booking notifications', 
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="#36C5F0" d="M6 12a1.5 1.5 0 01-1.5 1.5h-1V15a1.5 1.5 0 01-3 0V9a1.5 1.5 0 011.5-1.5h1V6a1.5 1.5 0 013 0v6z"/>
+                    <path fill="#2EB67D" d="M12 6a1.5 1.5 0 011.5-1.5h1V3a1.5 1.5 0 010-3h-6a1.5 1.5 0 01-1.5 1.5v1h-1.5a1.5 1.5 0 110-3v6z"/>
+                    <path fill="#ECB22E" d="M18 12a1.5 1.5 0 011.5-1.5h1V9a1.5 1.5 0 013 0v6a1.5 1.5 0 01-1.5 1.5h-1v1.5a1.5 1.5 0 11-3 0v-6z"/>
+                    <path fill="#E01E5A" d="M12 18a1.5 1.5 0 01-1.5 1.5h-1V21a1.5 1.5 0 110 3h6a1.5 1.5 0 011.5-1.5v-1h1.5a1.5 1.5 0 110 3v-6z"/>
+                </svg>
+            ),
+            connected: isConnected('slack'), 
+            connectUrl: '/api/integrations/slack/connect' 
+        },
     ];
 
     return (
