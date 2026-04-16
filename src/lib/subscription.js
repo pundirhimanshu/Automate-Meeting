@@ -13,8 +13,8 @@ export async function getUserSubscription(userId) {
             where: { userId },
         });
 
-        // If user has an active pro or enterprise plan, return it
-        if (userSubscription && userSubscription.status === 'active' && userSubscription.plan !== 'free') {
+        // If user has an active pro or enterprise plan natively, return it
+        if (userSubscription && userSubscription.status === 'active' && (userSubscription.plan === 'pro' || userSubscription.plan === 'enterprise')) {
             return {
                 plan: userSubscription.plan,
                 status: userSubscription.status,
@@ -23,9 +23,9 @@ export async function getUserSubscription(userId) {
             };
         }
 
-        // 2. Check if user is a member of any teams
+        // 2. Check if user is a member of any teams (Inheritance)
         const teamMemberships = await prisma.teamMember.findMany({
-            where: { userId, role: { not: 'owner' } },
+            where: { userId },
             include: {
                 team: {
                     include: {
@@ -44,18 +44,21 @@ export async function getUserSubscription(userId) {
 
         if (teamMemberships.length > 0) {
             let bestPlan = userSubscription?.plan || 'free';
-            let bestSubscription = userSubscription || { plan: 'free', status: 'active' };
+            let bestSubscription = userSubscription || { plan: 'free', status: 'active', validUntil: null };
             let isInherited = false;
 
             for (const membership of teamMemberships) {
-                const owner = membership.team.members[0]?.user;
-                const ownerSub = owner?.subscription;
+                // Find owners of the team (usually just one)
+                const owners = membership.team.members;
+                for (const ownerRecord of owners) {
+                    const ownerSub = ownerRecord.user?.subscription;
 
-                if (ownerSub && ownerSub.status === 'active') {
-                    if (isPlanBetter(ownerSub.plan, bestPlan)) {
-                        bestPlan = ownerSub.plan;
-                        bestSubscription = ownerSub;
-                        isInherited = true;
+                    if (ownerSub && ownerSub.status === 'active') {
+                        if (isPlanBetter(ownerSub.plan, bestPlan)) {
+                            bestPlan = ownerSub.plan;
+                            bestSubscription = ownerSub;
+                            isInherited = true;
+                        }
                     }
                 }
             }
