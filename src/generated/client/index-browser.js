@@ -256,6 +256,8 @@ exports.Prisma.BookingScalarFieldEnum = {
   paymentStatus: 'paymentStatus',
   paymentSessionId: 'paymentSessionId',
   contactId: 'contactId',
+  calendarEventId: 'calendarEventId',
+  meetingId: 'meetingId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

@@ -10264,6 +10264,8 @@ export namespace Prisma {
     paymentStatus: string | null
     paymentSessionId: string | null
     contactId: string | null
+    calendarEventId: string | null
+    meetingId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -10288,6 +10290,8 @@ export namespace Prisma {
     paymentStatus: string | null
     paymentSessionId: string | null
     contactId: string | null
+    calendarEventId: string | null
+    meetingId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -10313,6 +10317,8 @@ export namespace Prisma {
     paymentStatus: number
     paymentSessionId: number
     contactId: number
+    calendarEventId: number
+    meetingId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -10339,6 +10345,8 @@ export namespace Prisma {
     paymentStatus?: true
     paymentSessionId?: true
     contactId?: true
+    calendarEventId?: true
+    meetingId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -10363,6 +10371,8 @@ export namespace Prisma {
     paymentStatus?: true
     paymentSessionId?: true
     contactId?: true
+    calendarEventId?: true
+    meetingId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -10388,6 +10398,8 @@ export namespace Prisma {
     paymentStatus?: true
     paymentSessionId?: true
     contactId?: true
+    calendarEventId?: true
+    meetingId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -10486,6 +10498,8 @@ export namespace Prisma {
     paymentStatus: string | null
     paymentSessionId: string | null
     contactId: string | null
+    calendarEventId: string | null
+    meetingId: string | null
     createdAt: Date
     updatedAt: Date
     _count: BookingCountAggregateOutputType | null
@@ -10528,6 +10542,8 @@ export namespace Prisma {
     paymentStatus?: boolean
     paymentSessionId?: boolean
     contactId?: boolean
+    calendarEventId?: boolean
+    meetingId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     eventType?: boolean | EventTypeDefaultArgs<ExtArgs>
@@ -10560,6 +10576,8 @@ export namespace Prisma {
     paymentStatus?: boolean
     paymentSessionId?: boolean
     contactId?: boolean
+    calendarEventId?: boolean
+    meetingId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     eventType?: boolean | EventTypeDefaultArgs<ExtArgs>
@@ -10588,6 +10606,8 @@ export namespace Prisma {
     paymentStatus?: boolean
     paymentSessionId?: boolean
     contactId?: boolean
+    calendarEventId?: boolean
+    meetingId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -10638,6 +10658,8 @@ export namespace Prisma {
       paymentStatus: string | null
       paymentSessionId: string | null
       contactId: string | null
+      calendarEventId: string | null
+      meetingId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["booking"]>
@@ -11059,6 +11081,8 @@ export namespace Prisma {
     readonly paymentStatus: FieldRef<"Booking", 'String'>
     readonly paymentSessionId: FieldRef<"Booking", 'String'>
     readonly contactId: FieldRef<"Booking", 'String'>
+    readonly calendarEventId: FieldRef<"Booking", 'String'>
+    readonly meetingId: FieldRef<"Booking", 'String'>
     readonly createdAt: FieldRef<"Booking", 'DateTime'>
     readonly updatedAt: FieldRef<"Booking", 'DateTime'>
   }
@@ -28578,6 +28602,8 @@ export namespace Prisma {
     paymentStatus: 'paymentStatus',
     paymentSessionId: 'paymentSessionId',
     contactId: 'contactId',
+    calendarEventId: 'calendarEventId',
+    meetingId: 'meetingId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -29685,6 +29711,8 @@ export namespace Prisma {
     paymentStatus?: StringNullableFilter<"Booking"> | string | null
     paymentSessionId?: StringNullableFilter<"Booking"> | string | null
     contactId?: StringNullableFilter<"Booking"> | string | null
+    calendarEventId?: StringNullableFilter<"Booking"> | string | null
+    meetingId?: StringNullableFilter<"Booking"> | string | null
     createdAt?: DateTimeFilter<"Booking"> | Date | string
     updatedAt?: DateTimeFilter<"Booking"> | Date | string
     eventType?: XOR<EventTypeRelationFilter, EventTypeWhereInput>
@@ -29716,6 +29744,8 @@ export namespace Prisma {
     paymentStatus?: SortOrderInput | SortOrder
     paymentSessionId?: SortOrderInput | SortOrder
     contactId?: SortOrderInput | SortOrder
+    calendarEventId?: SortOrderInput | SortOrder
+    meetingId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     eventType?: EventTypeOrderByWithRelationInput
@@ -29750,6 +29780,8 @@ export namespace Prisma {
     isSingleUse?: BoolFilter<"Booking"> | boolean
     paymentStatus?: StringNullableFilter<"Booking"> | string | null
     contactId?: StringNullableFilter<"Booking"> | string | null
+    calendarEventId?: StringNullableFilter<"Booking"> | string | null
+    meetingId?: StringNullableFilter<"Booking"> | string | null
     createdAt?: DateTimeFilter<"Booking"> | Date | string
     updatedAt?: DateTimeFilter<"Booking"> | Date | string
     eventType?: XOR<EventTypeRelationFilter, EventTypeWhereInput>
@@ -29781,6 +29813,8 @@ export namespace Prisma {
     paymentStatus?: SortOrderInput | SortOrder
     paymentSessionId?: SortOrderInput | SortOrder
     contactId?: SortOrderInput | SortOrder
+    calendarEventId?: SortOrderInput | SortOrder
+    meetingId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BookingCountOrderByAggregateInput
@@ -29812,6 +29846,8 @@ export namespace Prisma {
     paymentStatus?: StringNullableWithAggregatesFilter<"Booking"> | string | null
     paymentSessionId?: StringNullableWithAggregatesFilter<"Booking"> | string | null
     contactId?: StringNullableWithAggregatesFilter<"Booking"> | string | null
+    calendarEventId?: StringNullableWithAggregatesFilter<"Booking"> | string | null
+    meetingId?: StringNullableWithAggregatesFilter<"Booking"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Booking"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Booking"> | Date | string
   }
@@ -31928,6 +31964,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     eventType: EventTypeCreateNestedOneWithoutBookingsInput
@@ -31959,6 +31997,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     answers?: BookingAnswerUncheckedCreateNestedManyWithoutBookingInput
@@ -31984,6 +32024,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     eventType?: EventTypeUpdateOneRequiredWithoutBookingsNestedInput
@@ -32015,6 +32057,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: BookingAnswerUncheckedUpdateManyWithoutBookingNestedInput
@@ -32043,6 +32087,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -32065,6 +32111,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -32090,6 +32138,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -34217,6 +34267,8 @@ export namespace Prisma {
     paymentStatus?: SortOrder
     paymentSessionId?: SortOrder
     contactId?: SortOrder
+    calendarEventId?: SortOrder
+    meetingId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -34241,6 +34293,8 @@ export namespace Prisma {
     paymentStatus?: SortOrder
     paymentSessionId?: SortOrder
     contactId?: SortOrder
+    calendarEventId?: SortOrder
+    meetingId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -34265,6 +34319,8 @@ export namespace Prisma {
     paymentStatus?: SortOrder
     paymentSessionId?: SortOrder
     contactId?: SortOrder
+    calendarEventId?: SortOrder
+    meetingId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -37240,6 +37296,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     eventType: EventTypeCreateNestedOneWithoutBookingsInput
@@ -37269,6 +37327,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     answers?: BookingAnswerUncheckedCreateNestedManyWithoutBookingInput
@@ -37753,6 +37813,8 @@ export namespace Prisma {
     paymentStatus?: StringNullableFilter<"Booking"> | string | null
     paymentSessionId?: StringNullableFilter<"Booking"> | string | null
     contactId?: StringNullableFilter<"Booking"> | string | null
+    calendarEventId?: StringNullableFilter<"Booking"> | string | null
+    meetingId?: StringNullableFilter<"Booking"> | string | null
     createdAt?: DateTimeFilter<"Booking"> | Date | string
     updatedAt?: DateTimeFilter<"Booking"> | Date | string
   }
@@ -38460,6 +38522,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     host: UserCreateNestedOneWithoutBookingsAsHostInput
@@ -38489,6 +38553,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     answers?: BookingAnswerUncheckedCreateNestedManyWithoutBookingInput
@@ -40079,6 +40145,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     eventType: EventTypeCreateNestedOneWithoutBookingsInput
@@ -40109,6 +40177,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     review?: ReviewUncheckedCreateNestedOneWithoutBookingInput
@@ -40149,6 +40219,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     eventType?: EventTypeUpdateOneRequiredWithoutBookingsNestedInput
@@ -40179,6 +40251,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     review?: ReviewUncheckedUpdateOneWithoutBookingNestedInput
@@ -40306,6 +40380,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     eventType: EventTypeCreateNestedOneWithoutBookingsInput
@@ -40336,6 +40412,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     answers?: BookingAnswerUncheckedCreateNestedManyWithoutBookingInput
@@ -40485,6 +40563,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     eventType?: EventTypeUpdateOneRequiredWithoutBookingsNestedInput
@@ -40515,6 +40595,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: BookingAnswerUncheckedUpdateManyWithoutBookingNestedInput
@@ -41059,6 +41141,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     eventType: EventTypeCreateNestedOneWithoutBookingsInput
@@ -41088,6 +41172,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     answers?: BookingAnswerUncheckedCreateNestedManyWithoutBookingInput
@@ -42876,6 +42962,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     eventType: EventTypeCreateNestedOneWithoutBookingsInput
@@ -42906,6 +42994,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     answers?: BookingAnswerUncheckedCreateNestedManyWithoutBookingInput
@@ -43049,6 +43139,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     eventType?: EventTypeUpdateOneRequiredWithoutBookingsNestedInput
@@ -43079,6 +43171,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: BookingAnswerUncheckedUpdateManyWithoutBookingNestedInput
@@ -43255,6 +43349,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -43492,6 +43588,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     eventType?: EventTypeUpdateOneRequiredWithoutBookingsNestedInput
@@ -43521,6 +43619,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: BookingAnswerUncheckedUpdateManyWithoutBookingNestedInput
@@ -43548,6 +43648,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -43928,6 +44030,8 @@ export namespace Prisma {
     paymentStatus?: string | null
     paymentSessionId?: string | null
     contactId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -44107,6 +44211,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     host?: UserUpdateOneRequiredWithoutBookingsAsHostNestedInput
@@ -44136,6 +44242,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: BookingAnswerUncheckedUpdateManyWithoutBookingNestedInput
@@ -44163,6 +44271,8 @@ export namespace Prisma {
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -44493,6 +44603,8 @@ export namespace Prisma {
     isSingleUse?: boolean
     paymentStatus?: string | null
     paymentSessionId?: string | null
+    calendarEventId?: string | null
+    meetingId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -44521,6 +44633,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     eventType?: EventTypeUpdateOneRequiredWithoutBookingsNestedInput
@@ -44550,6 +44664,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: BookingAnswerUncheckedUpdateManyWithoutBookingNestedInput
@@ -44577,6 +44693,8 @@ export namespace Prisma {
     isSingleUse?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: NullableStringFieldUpdateOperationsInput | string | null
     paymentSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    calendarEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    meetingId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

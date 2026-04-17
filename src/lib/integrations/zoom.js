@@ -87,5 +87,8 @@ export async function createZoomMeeting({ topic, startTime, duration, userId }) 
         throw new Error(data.message || 'Failed to create Zoom meeting');
     }
 
-    return data.join_url;
+    return {
+        joinUrl: data.join_url,
+        meetingId: String(data.id),
+    };
 }

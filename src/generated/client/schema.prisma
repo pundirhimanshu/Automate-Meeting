@@ -181,6 +181,8 @@ model Booking {
   paymentSessionId     String?         @unique
   contactId            String?
   contact              Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  calendarEventId      String?
+  meetingId            String?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
 }

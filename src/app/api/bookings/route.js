@@ -331,29 +331,58 @@ export async function POST(request) {
 
         // Generate dynamic meeting link if needed
         let meetingLink = eventType.location || '';
+        let calendarEventId = null;
+        let meetingId = null;
+
+        // Check for existing meeting link in Group sessions to share the same session
+        if (eventType.type === 'group') {
+            const existingGroupBooking = await prisma.booking.findFirst({
+                where: {
+                    eventTypeId,
+                    startTime: new Date(startTime),
+                    status: 'confirmed',
+                    location: { not: null },
+                    location: { startsWith: 'http' }, // Ensure it's a link
+                },
+                orderBy: { createdAt: 'asc' }
+            });
+
+            if (existingGroupBooking) {
+                meetingLink = existingGroupBooking.location;
+                calendarEventId = existingGroupBooking.calendarEventId;
+                meetingId = existingGroupBooking.meetingId;
+                console.log('[BOOKING] Reusing existing group meeting link:', meetingLink);
+            }
+        }
+
         if (eventType.locationType === 'phone') {
             if (eventType.phoneCallSource === 'invitee') {
                 meetingLink = inviteePhone || 'Invitee forgot to provide phone';
             } else {
-                // Host phone: combine countryCode and location
                 meetingLink = `${eventType.countryCode || '+1'} ${eventType.location || ''}`.trim();
             }
         } else if (eventType.locationType === 'zoom') {
-            try {
-                meetingLink = await createZoomMeeting({
-                    topic: `${inviteeName} & ${eventType.title}`,
-                    startTime: new Date(startTime),
-                    duration: eventType.duration,
-                    userId: assignedHostId
-                });
-            } catch (zoomErr) {
-                console.error('[BOOKING] Zoom meeting creation failed:', zoomErr.message);
-                meetingLink = 'Zoom link unavailable — host has not connected Zoom';
+            if (meetingLink && meetingLink.startsWith('http')) {
+                // Already have a link from existing group booking
+            } else {
+                try {
+                    const result = await createZoomMeeting({
+                        topic: eventType.type === 'group' ? eventType.title : `${inviteeName} & ${eventType.title}`,
+                        startTime: new Date(startTime),
+                        duration: eventType.duration,
+                        userId: assignedHostId
+                    });
+                    meetingLink = result.joinUrl;
+                    meetingId = result.meetingId;
+                } catch (zoomErr) {
+                    console.error('[BOOKING] Zoom meeting creation failed:', zoomErr.message);
+                    meetingLink = 'Zoom link unavailable — host has not connected Zoom';
+                }
             }
         } else if (eventType.locationType === 'teams') {
             try {
                 meetingLink = await createTeamsMeeting({
-                    subject: `${inviteeName} & ${eventType.title}`,
+                    subject: eventType.type === 'group' ? eventType.title : `${inviteeName} & ${eventType.title}`,
                     startTime: new Date(startTime),
                     endTime: new Date(endTime),
                     userId: assignedHostId
@@ -363,19 +392,33 @@ export async function POST(request) {
                 meetingLink = 'Teams link unavailable — host has not connected Teams';
             }
         } else if (eventType.locationType === 'google_meet') {
-            try {
-                const result = await createGoogleMeetEvent({
-                    title: `${inviteeName} & ${eventType.title}`,
-                    description: `Booking via Scheduler\n\nInvitee: ${inviteeName}\nEmail: ${inviteeEmail}${notes ? '\nNotes: ' + notes : ''}`,
-                    startTime: new Date(startTime),
-                    endTime: new Date(endTime),
-                    attendeeEmail: inviteeEmail,
-                    userId: assignedHostId,
-                });
-                meetingLink = result.meetLink || 'Google Meet link unavailable';
-            } catch (googleErr) {
-                console.error('[BOOKING] Google Meet creation failed:', googleErr.message);
-                meetingLink = 'Google Meet link unavailable — host has not connected Google Calendar';
+            if (calendarEventId) {
+                // Reuse existing Google Meet event and add this attendee
+                try {
+                    await addAttendeeToGoogleEvent({
+                        calendarEventId,
+                        attendeeEmail: inviteeEmail,
+                        userId: assignedHostId
+                    });
+                } catch (googleUpdateErr) {
+                    console.error('[BOOKING] Failed to add attendee to shared Google Meet:', googleUpdateErr.message);
+                }
+            } else {
+                try {
+                    const result = await createGoogleMeetEvent({
+                        title: eventType.type === 'group' ? eventType.title : `${inviteeName} & ${eventType.title}`,
+                        description: `Booking via Scheduler\n\nInvitee: ${inviteeName}\nEmail: ${inviteeEmail}${notes ? '\nNotes: ' + notes : ''}`,
+                        startTime: new Date(startTime),
+                        endTime: new Date(endTime),
+                        attendeeEmail: inviteeEmail,
+                        userId: assignedHostId,
+                    });
+                    meetingLink = result.meetLink || 'Google Meet link unavailable';
+                    calendarEventId = result.calendarEventId;
+                } catch (googleErr) {
+                    console.error('[BOOKING] Google Meet creation failed:', googleErr.message);
+                    meetingLink = 'Google Meet link unavailable — host has not connected Google Calendar';
+                }
             }
         }
 
@@ -443,6 +486,8 @@ export async function POST(request) {
             timezone: timezone || 'UTC',
             notes: notes || '',
             location: meetingLink,
+            calendarEventId,
+            meetingId,
             status: eventType.requiresPayment ? 'pending' : 'confirmed',
             paymentStatus: eventType.requiresPayment ? 'pending' : 'none',
             contactId: contactId, // Link the specific contact we just created

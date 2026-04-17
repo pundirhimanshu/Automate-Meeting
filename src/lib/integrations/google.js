@@ -109,6 +109,60 @@ export async function createGoogleMeetEvent({ title, description, startTime, end
     };
 }
 
+export async function addAttendeeToGoogleEvent({ calendarEventId, attendeeEmail, userId }) {
+    const token = await getValidGoogleToken(userId);
+    if (!token) {
+        throw new Error('Google Calendar not connected');
+    }
+
+    // First, fetch the existing event to get the current attendees
+    const getRes = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${calendarEventId}`,
+        {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }
+    );
+
+    if (!getRes.ok) {
+        const err = await getRes.json();
+        console.error('[GOOGLE_CALENDAR_FETCH_ERROR]', err);
+        throw new Error('Failed to fetch existing Google Calendar event');
+    }
+
+    const event = await getRes.json();
+    const currentAttendees = event.attendees || [];
+
+    // Add new attendee if not already present
+    if (attendeeEmail && !currentAttendees.some(a => a.email === attendeeEmail)) {
+        currentAttendees.push({ email: attendeeEmail });
+    }
+
+    // Patch the event with the updated attendee list
+    const patchRes = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${calendarEventId}?sendUpdates=all`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ attendees: currentAttendees }),
+        }
+    );
+
+    const data = await patchRes.json();
+
+    if (!patchRes.ok) {
+        console.error('[GOOGLE_CALENDAR_PATCH_ERROR]', data);
+        throw new Error(data.error?.message || 'Failed to update Google Calendar event attendees');
+    }
+
+    return {
+        calendarEventId: data.id,
+        calendarLink: data.htmlLink,
+    };
+}
+
 export async function createGoogleCalendarEvent({ title, description, location, startTime, endTime, attendeeEmail, userId }) {
     const token = await getValidGoogleToken(userId);
     if (!token) {
