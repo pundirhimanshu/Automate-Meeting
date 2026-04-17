@@ -45,7 +45,7 @@ export async function PUT(request, { params }) {
             bufferTimeBefore, bufferTimeAfter, dateRangeType,
             dateRangeDays, maxBookingsPerDay, minNotice, isActive,
             isSingleUse, requiresPayment, price, currency, dodoProductId, paymentProvider, customQuestions,
-            inviteeLimit, coHostIds,
+            inviteeLimit, coHostIds, webhookUrl,
         } = body;
 
         // Plan enforcement: check integration, payments, and co-hosting
@@ -97,6 +97,7 @@ export async function PUT(request, { params }) {
                 ...(dodoProductId !== undefined && { dodoProductId }),
                 ...(paymentProvider !== undefined && { paymentProvider }),
                 ...(inviteeLimit !== undefined && { inviteeLimit: parseInt(inviteeLimit) }),
+                ...(webhookUrl !== undefined && { webhookUrl: webhookUrl || null }),
                 ...(coHostIds !== undefined && {
                     coHosts: {
                         set: coHostIds.map(id => ({ id }))

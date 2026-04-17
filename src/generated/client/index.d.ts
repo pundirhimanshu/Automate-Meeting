@@ -3356,6 +3356,8 @@ export namespace Prisma {
     pageSelectedEventTypes: string | null
     pageImage: string | null
     pageSchedulerHeader: string | null
+    webhookUrl: string | null
+    webhookEvents: string | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -3394,6 +3396,8 @@ export namespace Prisma {
     pageSelectedEventTypes: string | null
     pageImage: string | null
     pageSchedulerHeader: string | null
+    webhookUrl: string | null
+    webhookEvents: string | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -3432,6 +3436,8 @@ export namespace Prisma {
     pageSelectedEventTypes: number
     pageImage: number
     pageSchedulerHeader: number
+    webhookUrl: number
+    webhookEvents: number
     _all: number
   }
 
@@ -3472,6 +3478,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: true
     pageImage?: true
     pageSchedulerHeader?: true
+    webhookUrl?: true
+    webhookEvents?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -3510,6 +3518,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: true
     pageImage?: true
     pageSchedulerHeader?: true
+    webhookUrl?: true
+    webhookEvents?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -3548,6 +3558,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: true
     pageImage?: true
     pageSchedulerHeader?: true
+    webhookUrl?: true
+    webhookEvents?: true
     _all?: true
   }
 
@@ -3659,6 +3671,8 @@ export namespace Prisma {
     pageSelectedEventTypes: string | null
     pageImage: string | null
     pageSchedulerHeader: string | null
+    webhookUrl: string | null
+    webhookEvents: string | null
     _count: UserCountAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
     _max: UserMaxAggregateOutputType | null
@@ -3714,6 +3728,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: boolean
     pageImage?: boolean
     pageSchedulerHeader?: boolean
+    webhookUrl?: boolean
+    webhookEvents?: boolean
     eventTypes?: boolean | User$eventTypesArgs<ExtArgs>
     schedules?: boolean | User$schedulesArgs<ExtArgs>
     bookingsAsHost?: boolean | User$bookingsAsHostArgs<ExtArgs>
@@ -3765,6 +3781,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: boolean
     pageImage?: boolean
     pageSchedulerHeader?: boolean
+    webhookUrl?: boolean
+    webhookEvents?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -3803,6 +3821,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: boolean
     pageImage?: boolean
     pageSchedulerHeader?: boolean
+    webhookUrl?: boolean
+    webhookEvents?: boolean
   }
 
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3874,6 +3894,8 @@ export namespace Prisma {
       pageSelectedEventTypes: string | null
       pageImage: string | null
       pageSchedulerHeader: string | null
+      webhookUrl: string | null
+      webhookEvents: string | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -4314,6 +4336,8 @@ export namespace Prisma {
     readonly pageSelectedEventTypes: FieldRef<"User", 'String'>
     readonly pageImage: FieldRef<"User", 'String'>
     readonly pageSchedulerHeader: FieldRef<"User", 'String'>
+    readonly webhookUrl: FieldRef<"User", 'String'>
+    readonly webhookEvents: FieldRef<"User", 'String'>
   }
     
 
@@ -5960,6 +5984,8 @@ export namespace Prisma {
     inviteeLimit: number | null
     roundRobinIndex: number | null
     userId: string | null
+    webhookUrl: string | null
+    webhookEvents: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -5994,6 +6020,8 @@ export namespace Prisma {
     inviteeLimit: number | null
     roundRobinIndex: number | null
     userId: string | null
+    webhookUrl: string | null
+    webhookEvents: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -6028,6 +6056,8 @@ export namespace Prisma {
     inviteeLimit: number
     roundRobinIndex: number
     userId: number
+    webhookUrl: number
+    webhookEvents: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -6088,6 +6118,8 @@ export namespace Prisma {
     inviteeLimit?: true
     roundRobinIndex?: true
     userId?: true
+    webhookUrl?: true
+    webhookEvents?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6122,6 +6154,8 @@ export namespace Prisma {
     inviteeLimit?: true
     roundRobinIndex?: true
     userId?: true
+    webhookUrl?: true
+    webhookEvents?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6156,6 +6190,8 @@ export namespace Prisma {
     inviteeLimit?: true
     roundRobinIndex?: true
     userId?: true
+    webhookUrl?: true
+    webhookEvents?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -6277,6 +6313,8 @@ export namespace Prisma {
     inviteeLimit: number
     roundRobinIndex: number
     userId: string
+    webhookUrl: string | null
+    webhookEvents: string | null
     createdAt: Date
     updatedAt: Date
     _count: EventTypeCountAggregateOutputType | null
@@ -6330,6 +6368,8 @@ export namespace Prisma {
     inviteeLimit?: boolean
     roundRobinIndex?: boolean
     userId?: boolean
+    webhookUrl?: boolean
+    webhookEvents?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6371,6 +6411,8 @@ export namespace Prisma {
     inviteeLimit?: boolean
     roundRobinIndex?: boolean
     userId?: boolean
+    webhookUrl?: boolean
+    webhookEvents?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6406,6 +6448,8 @@ export namespace Prisma {
     inviteeLimit?: boolean
     roundRobinIndex?: boolean
     userId?: boolean
+    webhookUrl?: boolean
+    webhookEvents?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -6463,6 +6507,8 @@ export namespace Prisma {
       inviteeLimit: number
       roundRobinIndex: number
       userId: string
+      webhookUrl: string | null
+      webhookEvents: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["eventType"]>
@@ -6893,6 +6939,8 @@ export namespace Prisma {
     readonly inviteeLimit: FieldRef<"EventType", 'Int'>
     readonly roundRobinIndex: FieldRef<"EventType", 'Int'>
     readonly userId: FieldRef<"EventType", 'String'>
+    readonly webhookUrl: FieldRef<"EventType", 'String'>
+    readonly webhookEvents: FieldRef<"EventType", 'String'>
     readonly createdAt: FieldRef<"EventType", 'DateTime'>
     readonly updatedAt: FieldRef<"EventType", 'DateTime'>
   }
@@ -28485,7 +28533,9 @@ export namespace Prisma {
     pageSidePanelColor: 'pageSidePanelColor',
     pageSelectedEventTypes: 'pageSelectedEventTypes',
     pageImage: 'pageImage',
-    pageSchedulerHeader: 'pageSchedulerHeader'
+    pageSchedulerHeader: 'pageSchedulerHeader',
+    webhookUrl: 'webhookUrl',
+    webhookEvents: 'webhookEvents'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -28539,6 +28589,8 @@ export namespace Prisma {
     inviteeLimit: 'inviteeLimit',
     roundRobinIndex: 'roundRobinIndex',
     userId: 'userId',
+    webhookUrl: 'webhookUrl',
+    webhookEvents: 'webhookEvents',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -29011,6 +29063,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: StringNullableFilter<"User"> | string | null
     pageImage?: StringNullableFilter<"User"> | string | null
     pageSchedulerHeader?: StringNullableFilter<"User"> | string | null
+    webhookUrl?: StringNullableFilter<"User"> | string | null
+    webhookEvents?: StringNullableFilter<"User"> | string | null
     eventTypes?: EventTypeListRelationFilter
     schedules?: ScheduleListRelationFilter
     bookingsAsHost?: BookingListRelationFilter
@@ -29061,6 +29115,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: SortOrderInput | SortOrder
     pageImage?: SortOrderInput | SortOrder
     pageSchedulerHeader?: SortOrderInput | SortOrder
+    webhookUrl?: SortOrderInput | SortOrder
+    webhookEvents?: SortOrderInput | SortOrder
     eventTypes?: EventTypeOrderByRelationAggregateInput
     schedules?: ScheduleOrderByRelationAggregateInput
     bookingsAsHost?: BookingOrderByRelationAggregateInput
@@ -29114,6 +29170,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: StringNullableFilter<"User"> | string | null
     pageImage?: StringNullableFilter<"User"> | string | null
     pageSchedulerHeader?: StringNullableFilter<"User"> | string | null
+    webhookUrl?: StringNullableFilter<"User"> | string | null
+    webhookEvents?: StringNullableFilter<"User"> | string | null
     eventTypes?: EventTypeListRelationFilter
     schedules?: ScheduleListRelationFilter
     bookingsAsHost?: BookingListRelationFilter
@@ -29164,6 +29222,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: SortOrderInput | SortOrder
     pageImage?: SortOrderInput | SortOrder
     pageSchedulerHeader?: SortOrderInput | SortOrder
+    webhookUrl?: SortOrderInput | SortOrder
+    webhookEvents?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
     _min?: UserMinOrderByAggregateInput
@@ -29208,6 +29268,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageImage?: StringNullableWithAggregatesFilter<"User"> | string | null
     pageSchedulerHeader?: StringNullableWithAggregatesFilter<"User"> | string | null
+    webhookUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
+    webhookEvents?: StringNullableWithAggregatesFilter<"User"> | string | null
   }
 
   export type IntegrationWhereInput = {
@@ -29334,6 +29396,8 @@ export namespace Prisma {
     inviteeLimit?: IntFilter<"EventType"> | number
     roundRobinIndex?: IntFilter<"EventType"> | number
     userId?: StringFilter<"EventType"> | string
+    webhookUrl?: StringNullableFilter<"EventType"> | string | null
+    webhookEvents?: StringNullableFilter<"EventType"> | string | null
     createdAt?: DateTimeFilter<"EventType"> | Date | string
     updatedAt?: DateTimeFilter<"EventType"> | Date | string
     user?: XOR<UserRelationFilter, UserWhereInput>
@@ -29374,6 +29438,8 @@ export namespace Prisma {
     inviteeLimit?: SortOrder
     roundRobinIndex?: SortOrder
     userId?: SortOrder
+    webhookUrl?: SortOrderInput | SortOrder
+    webhookEvents?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -29418,6 +29484,8 @@ export namespace Prisma {
     inviteeLimit?: IntFilter<"EventType"> | number
     roundRobinIndex?: IntFilter<"EventType"> | number
     userId?: StringFilter<"EventType"> | string
+    webhookUrl?: StringNullableFilter<"EventType"> | string | null
+    webhookEvents?: StringNullableFilter<"EventType"> | string | null
     createdAt?: DateTimeFilter<"EventType"> | Date | string
     updatedAt?: DateTimeFilter<"EventType"> | Date | string
     user?: XOR<UserRelationFilter, UserWhereInput>
@@ -29458,6 +29526,8 @@ export namespace Prisma {
     inviteeLimit?: SortOrder
     roundRobinIndex?: SortOrder
     userId?: SortOrder
+    webhookUrl?: SortOrderInput | SortOrder
+    webhookEvents?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: EventTypeCountOrderByAggregateInput
@@ -29500,6 +29570,8 @@ export namespace Prisma {
     inviteeLimit?: IntWithAggregatesFilter<"EventType"> | number
     roundRobinIndex?: IntWithAggregatesFilter<"EventType"> | number
     userId?: StringWithAggregatesFilter<"EventType"> | string
+    webhookUrl?: StringNullableWithAggregatesFilter<"EventType"> | string | null
+    webhookEvents?: StringNullableWithAggregatesFilter<"EventType"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EventType"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EventType"> | Date | string
   }
@@ -31120,6 +31192,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -31170,6 +31244,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -31220,6 +31296,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -31270,6 +31348,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -31320,6 +31400,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -31358,6 +31440,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -31396,6 +31480,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type IntegrationCreateInput = {
@@ -31531,6 +31617,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutEventTypesInput
@@ -31571,6 +31659,8 @@ export namespace Prisma {
     inviteeLimit?: number
     roundRobinIndex?: number
     userId: string
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     coHosts?: UserUncheckedCreateNestedManyWithoutCoHostedEventTypesInput
@@ -31609,6 +31699,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutEventTypesNestedInput
@@ -31649,6 +31741,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     coHosts?: UserUncheckedUpdateManyWithoutCoHostedEventTypesNestedInput
@@ -31688,6 +31782,8 @@ export namespace Prisma {
     inviteeLimit?: number
     roundRobinIndex?: number
     userId: string
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -31721,6 +31817,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -31755,6 +31853,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -33655,6 +33755,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: SortOrder
     pageImage?: SortOrder
     pageSchedulerHeader?: SortOrder
+    webhookUrl?: SortOrder
+    webhookEvents?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -33693,6 +33795,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: SortOrder
     pageImage?: SortOrder
     pageSchedulerHeader?: SortOrder
+    webhookUrl?: SortOrder
+    webhookEvents?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -33731,6 +33835,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: SortOrder
     pageImage?: SortOrder
     pageSchedulerHeader?: SortOrder
+    webhookUrl?: SortOrder
+    webhookEvents?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -33958,6 +34064,8 @@ export namespace Prisma {
     inviteeLimit?: SortOrder
     roundRobinIndex?: SortOrder
     userId?: SortOrder
+    webhookUrl?: SortOrder
+    webhookEvents?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -34004,6 +34112,8 @@ export namespace Prisma {
     inviteeLimit?: SortOrder
     roundRobinIndex?: SortOrder
     userId?: SortOrder
+    webhookUrl?: SortOrder
+    webhookEvents?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -34038,6 +34148,8 @@ export namespace Prisma {
     inviteeLimit?: SortOrder
     roundRobinIndex?: SortOrder
     userId?: SortOrder
+    webhookUrl?: SortOrder
+    webhookEvents?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -37191,6 +37303,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     coHosts?: UserCreateNestedManyWithoutCoHostedEventTypesInput
@@ -37229,6 +37343,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     coHosts?: UserUncheckedCreateNestedManyWithoutCoHostedEventTypesInput
@@ -37531,6 +37647,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutEventTypesInput
@@ -37570,6 +37688,8 @@ export namespace Prisma {
     inviteeLimit?: number
     roundRobinIndex?: number
     userId: string
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     bookings?: BookingUncheckedCreateNestedManyWithoutEventTypeInput
@@ -37741,6 +37861,8 @@ export namespace Prisma {
     inviteeLimit?: IntFilter<"EventType"> | number
     roundRobinIndex?: IntFilter<"EventType"> | number
     userId?: StringFilter<"EventType"> | string
+    webhookUrl?: StringNullableFilter<"EventType"> | string | null
+    webhookEvents?: StringNullableFilter<"EventType"> | string | null
     createdAt?: DateTimeFilter<"EventType"> | Date | string
     updatedAt?: DateTimeFilter<"EventType"> | Date | string
   }
@@ -38122,6 +38244,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -38171,6 +38295,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -38236,6 +38362,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -38285,6 +38413,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -38334,6 +38464,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
     reviewsReceived?: ReviewCreateNestedManyWithoutHostInput
@@ -38383,6 +38515,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
     reviewsReceived?: ReviewUncheckedCreateNestedManyWithoutHostInput
@@ -38437,6 +38571,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -38486,6 +38622,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -38720,6 +38858,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
     reviewsReceived?: ReviewUpdateManyWithoutHostNestedInput
@@ -38769,6 +38909,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
     reviewsReceived?: ReviewUncheckedUpdateManyWithoutHostNestedInput
@@ -38837,6 +38979,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: StringNullableFilter<"User"> | string | null
     pageImage?: StringNullableFilter<"User"> | string | null
     pageSchedulerHeader?: StringNullableFilter<"User"> | string | null
+    webhookUrl?: StringNullableFilter<"User"> | string | null
+    webhookEvents?: StringNullableFilter<"User"> | string | null
   }
 
   export type BookingUpsertWithWhereUniqueWithoutEventTypeInput = {
@@ -38968,6 +39112,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
     reviewsReceived?: ReviewCreateNestedManyWithoutHostInput
@@ -39017,6 +39163,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
     reviewsReceived?: ReviewUncheckedCreateNestedManyWithoutHostInput
@@ -39132,6 +39280,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
     reviewsReceived?: ReviewUpdateManyWithoutHostNestedInput
@@ -39181,6 +39331,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
     reviewsReceived?: ReviewUncheckedUpdateManyWithoutHostNestedInput
@@ -39390,6 +39542,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutEventTypesInput
@@ -39429,6 +39583,8 @@ export namespace Prisma {
     inviteeLimit?: number
     roundRobinIndex?: number
     userId: string
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     coHosts?: UserUncheckedCreateNestedManyWithoutCoHostedEventTypesInput
@@ -39478,6 +39634,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     reviewsReceived?: ReviewCreateNestedManyWithoutHostInput
@@ -39527,6 +39685,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     reviewsReceived?: ReviewUncheckedCreateNestedManyWithoutHostInput
@@ -39693,6 +39853,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutEventTypesNestedInput
@@ -39732,6 +39894,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     coHosts?: UserUncheckedUpdateManyWithoutCoHostedEventTypesNestedInput
@@ -39787,6 +39951,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     reviewsReceived?: ReviewUpdateManyWithoutHostNestedInput
@@ -39836,6 +40002,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     reviewsReceived?: ReviewUncheckedUpdateManyWithoutHostNestedInput
@@ -39988,6 +40156,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutEventTypesInput
@@ -40027,6 +40197,8 @@ export namespace Prisma {
     inviteeLimit?: number
     roundRobinIndex?: number
     userId: string
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     coHosts?: UserUncheckedCreateNestedManyWithoutCoHostedEventTypesInput
@@ -40080,6 +40252,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutEventTypesNestedInput
@@ -40119,6 +40293,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     coHosts?: UserUncheckedUpdateManyWithoutCoHostedEventTypesNestedInput
@@ -40295,6 +40471,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -40344,6 +40522,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -40472,6 +40652,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -40521,6 +40703,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -40763,6 +40947,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -40812,6 +40998,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -40906,6 +41094,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -40955,6 +41145,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -41056,6 +41248,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -41105,6 +41299,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -41260,6 +41456,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -41309,6 +41507,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -41551,6 +41751,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutEventTypesInput
@@ -41590,6 +41792,8 @@ export namespace Prisma {
     inviteeLimit?: number
     roundRobinIndex?: number
     userId: string
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     coHosts?: UserUncheckedCreateNestedManyWithoutCoHostedEventTypesInput
@@ -41643,6 +41847,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutEventTypesNestedInput
@@ -41682,6 +41888,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     coHosts?: UserUncheckedUpdateManyWithoutCoHostedEventTypesNestedInput
@@ -41726,6 +41934,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -41775,6 +41985,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -41840,6 +42052,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -41889,6 +42103,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -41938,6 +42154,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -41987,6 +42205,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -42034,6 +42254,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutEventTypesInput
@@ -42073,6 +42295,8 @@ export namespace Prisma {
     inviteeLimit?: number
     roundRobinIndex?: number
     userId: string
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     coHosts?: UserUncheckedCreateNestedManyWithoutCoHostedEventTypesInput
@@ -42133,6 +42357,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -42182,6 +42408,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -42247,6 +42475,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -42296,6 +42526,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -42459,6 +42691,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -42508,6 +42742,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -43043,6 +43279,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeCreateNestedManyWithoutUserInput
     schedules?: ScheduleCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingCreateNestedManyWithoutHostInput
@@ -43092,6 +43330,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: string | null
     pageImage?: string | null
     pageSchedulerHeader?: string | null
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     eventTypes?: EventTypeUncheckedCreateNestedManyWithoutUserInput
     schedules?: ScheduleUncheckedCreateNestedManyWithoutUserInput
     bookingsAsHost?: BookingUncheckedCreateNestedManyWithoutHostInput
@@ -43226,6 +43466,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -43275,6 +43517,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -43317,6 +43561,8 @@ export namespace Prisma {
     paymentProvider?: string | null
     inviteeLimit?: number
     roundRobinIndex?: number
+    webhookUrl?: string | null
+    webhookEvents?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -43462,6 +43708,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     coHosts?: UserUpdateManyWithoutCoHostedEventTypesNestedInput
@@ -43500,6 +43748,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     coHosts?: UserUncheckedUpdateManyWithoutCoHostedEventTypesNestedInput
@@ -43538,6 +43788,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -43840,6 +44092,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutEventTypesNestedInput
@@ -43879,6 +44133,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     bookings?: BookingUncheckedUpdateManyWithoutEventTypeNestedInput
@@ -43917,6 +44173,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -44093,6 +44351,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUpdateManyWithoutHostNestedInput
@@ -44142,6 +44402,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     eventTypes?: EventTypeUncheckedUpdateManyWithoutUserNestedInput
     schedules?: ScheduleUncheckedUpdateManyWithoutUserNestedInput
     bookingsAsHost?: BookingUncheckedUpdateManyWithoutHostNestedInput
@@ -44191,6 +44453,8 @@ export namespace Prisma {
     pageSelectedEventTypes?: NullableStringFieldUpdateOperationsInput | string | null
     pageImage?: NullableStringFieldUpdateOperationsInput | string | null
     pageSchedulerHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type BookingUpdateWithoutEventTypeInput = {
@@ -44770,6 +45034,8 @@ export namespace Prisma {
     paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutEventTypesNestedInput
@@ -44809,6 +45075,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     coHosts?: UserUncheckedUpdateManyWithoutCoHostedEventTypesNestedInput
@@ -44847,6 +45115,8 @@ export namespace Prisma {
     inviteeLimit?: IntFieldUpdateOperationsInput | number
     roundRobinIndex?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookEvents?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { sendBookingCancellation, sendBookingReschedule } from '@/lib/email';
+import { triggerWebhook } from '@/lib/webhook-dispatcher';
 
 export const dynamic = 'force-dynamic';
 
@@ -152,6 +153,20 @@ export async function PUT(request, { params }) {
                 timezone: booking.timezone,
             });
 
+            // Trigger Webhook
+            triggerWebhook(booking.hostId, 'booking.cancelled', {
+                bookingId: booking.id,
+                eventTitle: booking.eventType.title,
+                inviteeName: booking.inviteeName,
+                inviteeEmail: booking.inviteeEmail,
+                startTime: booking.startTime,
+                endTime: booking.endTime,
+                cancelReason: cancelReason || 'Cancelled by invitee',
+                cancel_reason: cancelReason || 'Cancelled by invitee', // Added for snake_case compatibility
+                timezone: booking.timezone,
+                status: 'cancelled'
+            }, { eventTypeId: booking.eventTypeId }).catch(e => console.error('Webhook trigger error:', e));
+
             return NextResponse.json({ message: 'Booking cancelled successfully' });
         }
 
@@ -249,6 +264,20 @@ export async function PUT(request, { params }) {
                 newEndTime: new Date(endTime),
                 timezone: booking.timezone,
             });
+
+            // Trigger Webhook
+            triggerWebhook(booking.hostId, 'booking.rescheduled', {
+                bookingId: booking.id,
+                eventTitle: booking.eventType.title,
+                inviteeName: booking.inviteeName,
+                inviteeEmail: booking.inviteeEmail,
+                originalStartTime: booking.startTime,
+                newStartTime: new Date(startTime),
+                newEndTime: new Date(endTime),
+                timezone: booking.timezone,
+                status: 'rescheduled',
+                cancel_reason: ''
+            }, { eventTypeId: booking.eventTypeId }).catch(e => console.error('Webhook trigger error:', e));
 
             return NextResponse.json({ message: 'Booking rescheduled successfully' });
         }

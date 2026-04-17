@@ -124,6 +124,18 @@ export default async function IntegrationsPage() {
             connected: isConnected('slack'), 
             connectUrl: '/api/integrations/slack/connect' 
         },
+        { 
+            id: 'webhooks', 
+            name: 'Pabbly / Webhooks', 
+            desc: 'Automate with 1000+ apps', 
+            icon: (
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#0069ff">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+            ),
+            connected: !!user?.webhookUrl, 
+            connectUrl: '/integrations/webhooks' 
+        },
     ];
 
     return (

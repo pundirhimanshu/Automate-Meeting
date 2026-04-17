@@ -356,6 +356,8 @@ function SchedulingContent() {
                     customQuestions: data.eventType.customQuestions || [],
                     coHostIds: data.eventType.coHosts?.map(h => h.id) || [],
                     inviteeLimit: data.eventType.inviteeLimit || 1,
+                    webhookUrl: data.eventType.webhookUrl || '',
+                    webhookEvents: data.eventType.webhookEvents || 'booking.confirmed,booking.cancelled,booking.rescheduled',
                 });
             }
         } catch (e) { } finally {
@@ -443,6 +445,8 @@ function SchedulingContent() {
             customQuestions: (form.customQuestions || []).filter((q) => q.question.trim()),
             coHostIds: form.coHostIds,
             inviteeLimit: parseInt(form.inviteeLimit) || 1,
+            webhookUrl: form.webhookUrl,
+            webhookEvents: form.webhookEvents,
         };
 
         try {
@@ -1148,6 +1152,52 @@ function SchedulingContent() {
                                                                 />
                                                                 <span style={{ fontWeight: 500 }}>{member.user.name}</span>
                                                                 <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>({member.user.email})</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="input-group">
+                                                <label>Webhook URL (Pabbly)</label>
+                                                <input
+                                                    name="webhookUrl"
+                                                    type="url"
+                                                    className="input"
+                                                    placeholder="https://connect.pabbly.com/webhook/..."
+                                                    value={form.webhookUrl || ''}
+                                                    onChange={handleChange}
+                                                />
+                                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                                    Optional: Specific automation for this event type.
+                                                </p>
+                                            </div>
+
+                                            {form.webhookUrl && (
+                                                <div className="input-group" style={{ marginTop: '12px' }}>
+                                                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, marginBottom: '8px', display: 'block' }}>
+                                                        Events to trigger
+                                                    </label>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                        {[
+                                                            { id: 'booking.confirmed', label: 'Booking Confirmed' },
+                                                            { id: 'booking.cancelled', label: 'Booking Cancelled' },
+                                                            { id: 'booking.rescheduled', label: 'Booking Rescheduled' }
+                                                        ].map(event => (
+                                                            <label key={event.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.875rem' }}>
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    checked={(form.webhookEvents || '').split(',').includes(event.id)}
+                                                                    onChange={(e) => {
+                                                                        const current = (form.webhookEvents || '').split(',').filter(Boolean);
+                                                                        const updated = e.target.checked 
+                                                                            ? [...current, event.id]
+                                                                            : current.filter(id => id !== event.id);
+                                                                        setForm(prev => ({ ...prev, webhookEvents: updated.join(',') }));
+                                                                    }}
+                                                                    style={{ width: '16px', height: '16px' }}
+                                                                />
+                                                                <span>{event.label}</span>
                                                             </label>
                                                         ))}
                                                     </div>

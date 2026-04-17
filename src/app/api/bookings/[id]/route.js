@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { sendBookingCancellation, sendBookingReschedule, sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
+import { triggerWebhook } from '@/lib/webhook-dispatcher';
 import { decrypt } from '@/lib/encryption';
 import DodoPayments from 'dodopayments';
 import Razorpay from 'razorpay';
@@ -81,7 +82,11 @@ export async function GET(request, { params }) {
                     const updatedBooking = await prisma.booking.update({
                         where: { id: booking.id },
                         data: { status: 'confirmed', paymentStatus: 'paid' },
-                        include: { eventType: { include: { user: true, coHosts: true } }, host: true }
+                        include: { 
+                            eventType: { include: { user: true, coHosts: true, customQuestions: true } }, 
+                            host: true,
+                            answers: true 
+                        }
                     });
 
                     // Finalize (Workflows, Emails)
@@ -104,6 +109,43 @@ export async function GET(request, { params }) {
                         manageUrl,
                         timezone: updatedBooking.timezone,
                     });
+
+                    // Trigger Pabbly / Global Webhook
+                    triggerWebhook(updatedBooking.hostId, 'booking.confirmed', {
+                        bookingId: updatedBooking.id,
+                        eventTitle: updatedBooking.eventType.title,
+                        inviteeName: updatedBooking.inviteeName,
+                        inviteeEmail: updatedBooking.inviteeEmail,
+                        startTime: updatedBooking.startTime,
+                        endTime: updatedBooking.endTime,
+                        location: updatedBooking.location,
+                        timezone: updatedBooking.timezone,
+                        notes: updatedBooking.notes,
+                        status: 'confirmed',
+                        cancel_reason: '',
+                        // CRM Friendly Fields
+                        first_name: updatedBooking.inviteeName.split(' ')[0] || updatedBooking.inviteeName,
+                        last_name: updatedBooking.inviteeName.split(' ').slice(1).join(' ') || '.', // Default to '.' for CRMs that require a Last Name
+                        phone: (() => {
+                            const answers = updatedBooking.answers || [];
+                            const phoneAnswer = answers.find(a => {
+                                const qText = updatedBooking.eventType.customQuestions?.find(cq => cq.id === a.questionId)?.question?.toLowerCase() || '';
+                                return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
+                            });
+                            return phoneAnswer?.answer || '';
+                        })(),
+                        price: updatedBooking.eventType.price || 0,
+                        currency: updatedBooking.eventType.currency || 'USD',
+                        event_title: updatedBooking.eventType.title,
+                        invitee_name: updatedBooking.inviteeName,
+                        invitee_email: updatedBooking.inviteeEmail,
+                        booking_id: updatedBooking.id,
+                        start_time: updatedBooking.startTime,
+                        end_time: updatedBooking.endTime,
+                        host_name: updatedBooking.host.name,
+                        host_email: updatedBooking.host.email,
+                        host_id: updatedBooking.hostId
+                    }, { eventTypeId: updatedBooking.eventTypeId }).catch(e => console.error('Webhook trigger error:', e));
 
                     return NextResponse.json({ booking: updatedBooking });
                 }
@@ -182,6 +224,20 @@ export async function PUT(request, { params }) {
             // Trigger Workflows
             triggerWorkflows('EVENT_CANCELED', booking.id).catch(e => console.error('Workflow trigger error:', e));
 
+            // Trigger Webhook
+            triggerWebhook(booking.hostId, 'booking.cancelled', {
+                bookingId: booking.id,
+                eventTitle: booking.eventType.title,
+                inviteeName: booking.inviteeName,
+                inviteeEmail: booking.inviteeEmail,
+                startTime: booking.startTime,
+                endTime: booking.endTime,
+                cancelReason: cancelReason || '',
+                cancel_reason: cancelReason || '', // Added for snake_case compatibility
+                timezone: booking.timezone,
+                status: 'cancelled'
+            }, { eventTypeId: booking.eventTypeId }).catch(e => console.error('Webhook trigger error:', e));
+
             return NextResponse.json({ message: 'Booking cancelled' });
         }
 
@@ -231,6 +287,20 @@ export async function PUT(request, { params }) {
 
             // Trigger Workflows
             triggerWorkflows('EVENT_RESCHEDULED', booking.id).catch(e => console.error('Workflow trigger error:', e));
+
+            // Trigger Webhook
+            triggerWebhook(booking.hostId, 'booking.rescheduled', {
+                bookingId: booking.id,
+                eventTitle: booking.eventType.title,
+                inviteeName: booking.inviteeName,
+                inviteeEmail: booking.inviteeEmail,
+                originalStartTime: booking.startTime,
+                newStartTime: new Date(startTime),
+                newEndTime: new Date(endTime),
+                timezone: booking.timezone,
+                status: 'rescheduled',
+                cancel_reason: ''
+            }, { eventTypeId: booking.eventTypeId }).catch(e => console.error('Webhook trigger error:', e));
 
             return NextResponse.json({ message: 'Booking rescheduled' });
         }

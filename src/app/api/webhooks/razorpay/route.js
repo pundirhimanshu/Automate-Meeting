@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { decrypt } from '@/lib/encryption';
 import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
+import { triggerWebhook } from '@/lib/webhook-dispatcher';
 import { createGoogleCalendarEvent } from '@/lib/integrations/google';
 import crypto from 'crypto';
 
@@ -120,6 +121,20 @@ export async function POST(request) {
             
             // Trigger Workflows
             triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[RAZORPAY_WEBHOOK] Workflow error:', e));
+
+            // Trigger Pabbly / Global Webhook
+            triggerWebhook(hostId, 'booking.confirmed', {
+                bookingId: updatedBooking.id,
+                eventTitle: updatedBooking.eventType.title,
+                inviteeName: updatedBooking.inviteeName,
+                inviteeEmail: updatedBooking.inviteeEmail,
+                startTime: updatedBooking.startTime,
+                endTime: updatedBooking.endTime,
+                location: updatedBooking.location,
+                timezone: updatedBooking.timezone,
+                notes: updatedBooking.notes,
+                answers: updatedBooking.answers
+            }, { eventTypeId: updatedBooking.eventTypeId }).catch(e => console.error('[RAZORPAY_WEBHOOK] Webhook trigger error:', e));
 
             // Host recipients (Main + Co-hosts)
             const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];

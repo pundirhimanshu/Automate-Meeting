@@ -76,7 +76,7 @@ export async function POST(request) {
             locationType, location, phoneCallSource, bufferTimeBefore, bufferTimeAfter,
             dateRangeType, dateRangeDays, dateRangeStart, dateRangeEnd,
             maxBookingsPerDay, minNotice, requiresPayment, price, currency, dodoProductId, paymentProvider,
-            customQuestions, coHostIds, inviteeLimit,
+            customQuestions, coHostIds, inviteeLimit, webhookUrl,
         } = body;
 
         // 1. Check event type limit
@@ -147,6 +147,7 @@ export async function POST(request) {
                 dodoProductId: dodoProductId || null,
                 paymentProvider: paymentProvider || null,
                 inviteeLimit: inviteeLimit ? parseInt(inviteeLimit) : 1,
+                webhookUrl: webhookUrl || null,
                 roundRobinIndex: 0,
                 userId: session.user.id,
                 coHosts: body.coHostIds?.length ? {

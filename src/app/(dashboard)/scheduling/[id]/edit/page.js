@@ -42,6 +42,8 @@ export default function EditEventType() {
                     phoneCallSource: data.eventType.phoneCallSource || 'host',
                     inviteeLimit: data.eventType.inviteeLimit || 1,
                     customQuestions: data.eventType.customQuestions || [],
+                    webhookUrl: data.eventType.webhookUrl || '',
+                    webhookEvents: data.eventType.webhookEvents || 'booking.confirmed,booking.cancelled,booking.rescheduled',
                 });
             }
         } catch (e) {
@@ -126,6 +128,8 @@ export default function EditEventType() {
                     price: form.price ? parseFloat(form.price) : null,
                     inviteeLimit: parseInt(form.inviteeLimit) || 1,
                     customQuestions: form.customQuestions.filter((q) => q.question.trim()),
+                    webhookUrl: form.webhookUrl,
+                    webhookEvents: form.webhookEvents,
                 }),
             });
 
@@ -309,6 +313,52 @@ export default function EditEventType() {
                                 </p>
                             </div>
                         )}
+                        <div className="input-group">
+                            <label>Webhook URL (Pabbly)</label>
+                            <input
+                                name="webhookUrl"
+                                type="url"
+                                className="input"
+                                placeholder="https://connect.pabbly.com/webhook/..."
+                                value={form.webhookUrl || ''}
+                                onChange={handleChange}
+                            />
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                Optional: Unique automation URL for this specific event type.
+                            </p>
+                        </div>
+
+                        {form.webhookUrl && (
+                            <div className="input-group" style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9375rem', marginBottom: '12px' }}>
+                                    Events to trigger
+                                </label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {[
+                                        { id: 'booking.confirmed', label: 'Booking Confirmed' },
+                                        { id: 'booking.cancelled', label: 'Booking Cancelled' },
+                                        { id: 'booking.rescheduled', label: 'Booking Rescheduled' }
+                                    ].map(event => (
+                                        <label key={event.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.9375rem' }}>
+                                            <input 
+                                                type="checkbox" 
+                                                checked={(form.webhookEvents || '').split(',').includes(event.id)}
+                                                onChange={(e) => {
+                                                    const current = (form.webhookEvents || '').split(',').filter(Boolean);
+                                                    const updated = e.target.checked 
+                                                        ? [...current, event.id]
+                                                        : current.filter(id => id !== event.id);
+                                                    setForm(prev => ({ ...prev, webhookEvents: updated.join(',') }));
+                                                }}
+                                                style={{ width: '18px', height: '18px' }}
+                                            />
+                                            <span>{event.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="input-group">
                             <label>Color</label>
                             <div style={{ display: 'flex', gap: '8px' }}>

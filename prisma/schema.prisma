@@ -59,6 +59,8 @@ model User {
   pageSelectedEventTypes String?  // comma-separated event-type IDs
   pageImage              String?
   pageSchedulerHeader    String?
+  webhookUrl             String?
+  webhookEvents          String?   @default("booking.confirmed,booking.cancelled,booking.rescheduled")
 }
 
 model Integration {
@@ -117,6 +119,8 @@ model EventType {
   workflows         Workflow[]
   customQuestions   CustomQuestion[]
   singleUseLinks    SingleUseLink[]
+  webhookUrl        String?
+  webhookEvents     String?   @default("booking.confirmed,booking.cancelled,booking.rescheduled")
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 

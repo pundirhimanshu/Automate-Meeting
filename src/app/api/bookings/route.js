@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
+import { triggerWebhook } from '@/lib/webhook-dispatcher';
 import { sendSlackNotification } from '@/lib/integrations/slack';
 import { createZoomMeeting } from '@/lib/integrations/zoom';
 import { createTeamsMeeting } from '@/lib/integrations/teams';
@@ -506,9 +507,10 @@ export async function POST(request) {
                 prisma.booking.create({
                     data: bookingData,
                     include: { 
-                        eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, 
+                        eventType: { include: { user: true, coHosts: true, customQuestions: true } }, 
                         host: true,
-                        contact: true
+                        contact: true,
+                        answers: true
                     },
                 }),
                 prisma.singleUseLink.update({
@@ -521,9 +523,10 @@ export async function POST(request) {
             booking = await prisma.booking.create({
                 data: bookingData,
                 include: { 
-                    eventType: { select: { title: true, type: true, price: true, requiresPayment: true, user: true } }, 
+                    eventType: { include: { user: true, coHosts: true, customQuestions: true } }, 
                     host: true,
-                    contact: true
+                    contact: true,
+                    answers: true
                 },
             });
         }
@@ -726,6 +729,43 @@ export async function POST(request) {
                 // Send Automatic Slack Notification
                 const slackMessage = `🆕 *New Booking: ${eventType.title}*\n👤 *Invitee:* ${inviteeName}\n📧 *Email:* ${inviteeEmail}\n📅 *Time:* ${new Date(startTime).toLocaleString()}\n🔗 *Meeting Link:* ${meetingLink || 'None'}`;
                 sendSlackNotification(assignedHostId, slackMessage).catch(e => console.error('Slack notification error:', e));
+
+                // Trigger Pabbly / Global Webhook
+                triggerWebhook(assignedHostId, 'booking.confirmed', {
+                    bookingId: booking.id,
+                    eventTitle: eventType.title,
+                    inviteeName,
+                    inviteeEmail,
+                    startTime: booking.startTime,
+                    endTime: booking.endTime,
+                    location: booking.location,
+                    timezone: booking.timezone,
+                    notes: booking.notes,
+                    answers: booking.answers,
+                    status: 'confirmed',
+                    cancel_reason: '',
+                    // CRM Friendly Fields
+                    first_name: inviteeName.split(' ')[0] || inviteeName,
+                    last_name: inviteeName.split(' ').slice(1).join(' ') || '.', // Default to '.' for CRMs that require a Last Name
+                    phone: (() => {
+                        const phoneAnswer = booking.answers?.find(a => {
+                            const qText = eventType.customQuestions?.find(cq => cq.id === a.questionId)?.question?.toLowerCase() || '';
+                            return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
+                        });
+                        return phoneAnswer?.answer || '';
+                    })(),
+                    price: eventType.price || 0,
+                    currency: eventType.currency || 'USD',
+                    event_title: eventType.title,
+                    invitee_name: inviteeName,
+                    invitee_email: inviteeEmail,
+                    booking_id: booking.id,
+                    start_time: booking.startTime,
+                    end_time: booking.endTime,
+                    host_name: booking.host.name,
+                    host_email: booking.host.email,
+                    host_id: booking.hostId
+                }, { eventTypeId: booking.eventTypeId }).catch(e => console.error('Webhook trigger error:', e));
             }
         }
 

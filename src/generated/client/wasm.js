@@ -157,7 +157,9 @@ exports.Prisma.UserScalarFieldEnum = {
   pageSidePanelColor: 'pageSidePanelColor',
   pageSelectedEventTypes: 'pageSelectedEventTypes',
   pageImage: 'pageImage',
-  pageSchedulerHeader: 'pageSchedulerHeader'
+  pageSchedulerHeader: 'pageSchedulerHeader',
+  webhookUrl: 'webhookUrl',
+  webhookEvents: 'webhookEvents'
 };
 
 exports.Prisma.IntegrationScalarFieldEnum = {
@@ -205,6 +207,8 @@ exports.Prisma.EventTypeScalarFieldEnum = {
   inviteeLimit: 'inviteeLimit',
   roundRobinIndex: 'roundRobinIndex',
   userId: 'userId',
+  webhookUrl: 'webhookUrl',
+  webhookEvents: 'webhookEvents',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

@@ -81,6 +81,8 @@ export async function executeWorkflow(workflow, booking) {
                 await sendWorkflowEmail(workflow, booking);
             } else if (actionName === 'SEND_SLACK_MESSAGE') {
                 await sendWorkflowSlackMessage(workflow, booking);
+            } else if (actionName === 'SEND_WEBHOOK') {
+                await sendWorkflowWebhook(workflow, booking);
             }
         }
 
@@ -233,6 +235,27 @@ async function sendWorkflowSlackMessage(workflow, booking) {
         await sendSlackNotification(workflow.userId, finalMessage);
     } catch (err) {
         console.error('[WORKFLOWS] Slack notification failed:', err);
+    }
+}
+
+/**
+ * Handle Webhook (Pabbly, etc.) as a workflow action
+ */
+async function sendWorkflowWebhook(workflow, booking) {
+    try {
+        const { triggerWebhook } = await import('./webhook-dispatcher');
+        await triggerWebhook(workflow.userId, `workflow.${workflow.trigger.toLowerCase()}`, {
+            workflowName: workflow.name,
+            bookingId: booking.id,
+            eventTitle: booking.eventType.title,
+            inviteeName: booking.inviteeName,
+            inviteeEmail: booking.inviteeEmail,
+            startTime: booking.startTime,
+            location: booking.location,
+            notes: booking.notes,
+        });
+    } catch (err) {
+        console.error('[WORKFLOWS] Webhook dispatch failed:', err);
     }
 }
 
