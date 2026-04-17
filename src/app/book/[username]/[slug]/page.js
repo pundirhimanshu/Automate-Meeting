@@ -150,10 +150,20 @@ export default function BookingPage() {
         const bufferBefore = data.eventType.bufferTimeBefore || 0;
         const bufferAfter = data.eventType.bufferTimeAfter || 0;
         const inviteeLimit = data.eventType.inviteeLimit || 1;
+        const maxBookingsPerDay = data.eventType.maxBookingsPerDay;
         const slots = [];
 
+        const selectedDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+        const bookingsToday = data.existingBookings?.filter((b) => {
+            const bDate = new Date(b.startTime);
+            const bDateStr = `${bDate.getFullYear()}-${String(bDate.getMonth() + 1).padStart(2, '0')}-${String(bDate.getDate()).padStart(2, '0')}`;
+            return bDateStr === selectedDateStr && b.eventTypeId === data.eventType.id;
+        }) || [];
+        
+        const totalDailyInvitees = bookingsToday.length;
+
         // Helper to get offset difference in minutes (Host - Invitee)
-        // Note: JS offset is negative for positive zones, so we do our own math
         const hostOffset = getTzOffset(date, hostTz);
         const inviteeOffset = getTzOffset(date, inviteeTimezone);
         const shiftMinutes = hostOffset - inviteeOffset;
@@ -165,29 +175,13 @@ export default function BookingPage() {
             const endMin = endH * 60 + endM;
 
             for (let m = startMin; m + duration <= endMin; m += 30) {
-                // slotStartHost is the time as defined by host
                 const slotStartInvitee = new Date(date);
                 slotStartInvitee.setHours(0, 0, 0, 0);
                 slotStartInvitee.setMinutes(m - shiftMinutes);
 
-                const slotStartHost = new Date(date);
-                slotStartHost.setHours(Math.floor(m / 60), m % 60, 0, 0);
-
-                const slotEndInvitee = new Date(slotStartInvitee);
-                slotEndInvitee.setMinutes(slotEndInvitee.getMinutes() + duration);
-
-                // For conflict checking, we use absolute time (UTC)
-                // slotStartHost is relative to host timezone? No, it's just a Date object.
-                // Actually, the most reliable way is to store the actual UTC start/end.
-                const absoluteStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-                // This is getting complex. Let's simplify:
-                // Create a date object that represents the slot in Host Time, then convert to UTC.
-                
-                const hostDateStr = `${date.toISOString().split('T')[0]}T${avail.startTime}:00`;
-                // Wait, I can just use the shiftMinutes we calculated.
-                
                 const slotStart = slotStartInvitee;
-                const slotEnd = slotEndInvitee;
+                const slotEnd = new Date(slotStartInvitee);
+                slotEnd.setMinutes(slotEnd.getMinutes() + duration);
 
                 // Buffer zones for checking conflicts
                 const bufStart = new Date(slotStart);
@@ -202,39 +196,47 @@ export default function BookingPage() {
                 }
 
                 let available = false;
-                let spotsLeft = null;
+                let spotsRemainingInSlot = null;
+
+                // --- CAPACITY LOGIC ---
+                
+                // Check if the global daily limit for this event has already been reached
+                const globalDailyRemaining = maxBookingsPerDay ? (maxBookingsPerDay - totalDailyInvitees) : Infinity;
+                
+                if (globalDailyRemaining <= 0) {
+                    continue; // Entire day is full for this event
+                }
 
                 if (data.eventType.type === 'group') {
+                    // For group events, count bookings in THIS EXACT slot
                     const bookingsInSlot = data.existingBookings?.filter((b) => {
                         const bStart = new Date(b.startTime);
-                        return bStart.getTime() === slotStart.getTime();
+                        return bStart.getTime() === slotStart.getTime() && String(b.eventTypeId) === String(data.eventType.id);
                     }) || [];
-                    spotsLeft = inviteeLimit - bookingsInSlot.length;
-                    available = spotsLeft > 0;
-                } else if (data.eventType.type === 'collective') {
+                    
+                    const slotRemaining = inviteeLimit - bookingsInSlot.length;
+                    
+                    // Show only the session-specific capacity on the badge (Independent)
+                    spotsRemainingInSlot = slotRemaining;
+                    
+                    // Available if slot itself has room AND daily limit hasn't been hit yet
+                    available = slotRemaining > 0 && globalDailyRemaining > 0;
+                } else {
+                    // One-on-One, Collective, etc.
                     const hostIds = [data.host.id, ...(data.eventType.coHosts?.map(ch => ch.id) || [])];
                     const hasConflict = data.existingBookings?.some((b) => {
                         const bStart = new Date(b.startTime);
                         const bEnd = new Date(b.endTime);
                         return hostIds.includes(b.hostId) && bufStart < bEnd && bufEnd > bStart;
                     });
-                    available = !hasConflict;
-                } else if (data.eventType.type === 'round-robin') {
-                    const hostIds = [data.host.id, ...(data.eventType.coHosts?.map(ch => ch.id) || [])];
-                    const busyHosts = new Set(data.existingBookings?.filter((b) => {
-                        const bStart = new Date(b.startTime);
-                        const bEnd = new Date(b.endTime);
-                        return bufStart < bEnd && bufEnd > bStart;
-                    }).map(b => b.hostId));
-                    available = hostIds.some(hId => !busyHosts.has(hId));
-                } else {
-                    const hasConflict = data.existingBookings?.some((b) => {
-                        if (b.hostId !== data.host.id) return false;
-                        const bStart = new Date(b.startTime);
-                        const bEnd = new Date(b.endTime);
-                        return bufStart < bEnd && bufEnd > bStart;
-                    });
-                    available = !hasConflict;
+                    
+                    available = !hasConflict && globalDailyRemaining > 0;
+                    
+                    // For 1-on-1s, if a daily limit is set, show the daily pool on the badge
+                    // ONLY if the user explicitly wants that feedback, otherwise stay silent
+                    if (maxBookingsPerDay) {
+                        spotsRemainingInSlot = globalDailyRemaining;
+                    }
                 }
 
                 if (available) {
@@ -242,11 +244,12 @@ export default function BookingPage() {
                         start: slotStart,
                         end: slotEnd,
                         label: slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-                        spotsLeft,
+                        spotsLeft: spotsRemainingInSlot,
                     });
                 }
             }
         });
+
 
         return slots;
     };

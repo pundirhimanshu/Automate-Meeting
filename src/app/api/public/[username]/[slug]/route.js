@@ -34,14 +34,16 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: 'Event type not found' }, { status: 404 });
         }
 
-        // Get existing bookings for conflict checking
-        const now = new Date();
+        // Get bookings from the start of TODAY to correctly calculate daily limits
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        
         const hostIds = [user.id, ...(eventType.coHosts?.map(ch => ch.id) || [])];
 
-        const futureBookings = await prisma.booking.findMany({
+        const existingBookings = await prisma.booking.findMany({
             where: {
                 hostId: { in: hostIds },
-                startTime: { gte: now },
+                startTime: { gte: startOfToday },
                 status: { in: ['confirmed', 'pending', 'rescheduled'] },
             },
             select: { id: true, startTime: true, endTime: true, hostId: true, eventTypeId: true },
@@ -85,7 +87,7 @@ export async function GET(request, { params }) {
             },
             availability: schedule ? schedule.availabilities : [],
             dateOverrides: schedule ? schedule.dateOverrides : [],
-            existingBookings: futureBookings,
+            existingBookings: existingBookings,
         });
     } catch (error) {
         console.error('Error:', error);

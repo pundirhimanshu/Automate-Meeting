@@ -93,6 +93,7 @@ function SchedulingContent() {
         paymentProvider: 'dodo', // 'dodo' or 'razorpay'
         customQuestions: [],
         coHostIds: [],
+        inviteeLimit: 1,
     };
 
     const [form, setForm] = useState(initialForm);
@@ -354,6 +355,7 @@ function SchedulingContent() {
                     paymentProvider: data.eventType.paymentProvider || 'dodo',
                     customQuestions: data.eventType.customQuestions || [],
                     coHostIds: data.eventType.coHosts?.map(h => h.id) || [],
+                    inviteeLimit: data.eventType.inviteeLimit || 1,
                 });
             }
         } catch (e) { } finally {
@@ -440,6 +442,7 @@ function SchedulingContent() {
             paymentProvider: form.paymentProvider,
             customQuestions: (form.customQuestions || []).filter((q) => q.question.trim()),
             coHostIds: form.coHostIds,
+            inviteeLimit: parseInt(form.inviteeLimit) || 1,
         };
 
         try {
@@ -995,6 +998,22 @@ function SchedulingContent() {
                                                     </select>
                                                 </div>
                                             </div>
+
+                                            {form.type === 'group' && (
+                                                <div className="input-group">
+                                                    <label>Invitee Limit (Group Capacity)</label>
+                                                    <input
+                                                        name="inviteeLimit"
+                                                        type="number"
+                                                        className="input"
+                                                        placeholder="Number of people who can attend"
+                                                        value={form.inviteeLimit}
+                                                        onChange={handleChange}
+                                                        min={1}
+                                                        required
+                                                    />
+                                                </div>
+                                            )}
                                             <div className="input-group">
                                                 <label>Location</label>
                                                 <select name="locationType" className="input" value={form.locationType} onChange={handleChange}>

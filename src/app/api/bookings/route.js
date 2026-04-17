@@ -314,6 +314,21 @@ export async function POST(request) {
             }
         }
 
+        // Check per-slot invitee limit for Group sessions
+        if (eventType.type === 'group') {
+            const slotBookings = await prisma.booking.count({
+                where: {
+                    eventTypeId,
+                    startTime: new Date(startTime),
+                    status: { in: ['confirmed', 'pending'] },
+                },
+            });
+
+            if (slotBookings >= (eventType.inviteeLimit || 1)) {
+                return NextResponse.json({ error: 'This time slot is full' }, { status: 409 });
+            }
+        }
+
         // Generate dynamic meeting link if needed
         let meetingLink = eventType.location || '';
         if (eventType.locationType === 'phone') {

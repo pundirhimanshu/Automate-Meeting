@@ -40,6 +40,7 @@ export default function EditEventType() {
                     location: data.eventType.location || '',
                     countryCode: data.eventType.countryCode || '+1',
                     phoneCallSource: data.eventType.phoneCallSource || 'host',
+                    inviteeLimit: data.eventType.inviteeLimit || 1,
                     customQuestions: data.eventType.customQuestions || [],
                 });
             }
@@ -123,6 +124,7 @@ export default function EditEventType() {
                     isActive: form.isActive,
                     requiresPayment: form.requiresPayment,
                     price: form.price ? parseFloat(form.price) : null,
+                    inviteeLimit: parseInt(form.inviteeLimit) || 1,
                     customQuestions: form.customQuestions.filter((q) => q.question.trim()),
                 }),
             });
@@ -210,6 +212,25 @@ export default function EditEventType() {
                                 </select>
                             </div>
                         </div>
+
+                        {form.type === 'group' && (
+                            <div className="input-group">
+                                <label>Invitee Limit (Group Capacity)</label>
+                                <input
+                                    name="inviteeLimit"
+                                    type="number"
+                                    className="input"
+                                    placeholder="Number of people who can attend"
+                                    value={form.inviteeLimit}
+                                    onChange={handleChange}
+                                    min={1}
+                                    required
+                                />
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                    How many people can book the same time slot?
+                                </p>
+                            </div>
+                        )}
                         {form.locationType === 'phone' && (
                             <div className="input-group" style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)' }}>
                                 <label style={{ fontWeight: 600, marginBottom: '12px', display: 'block' }}>How will you get in touch?</label>
