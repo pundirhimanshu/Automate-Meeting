@@ -114,7 +114,7 @@ export default function StartPageEditor() {
     const presetColors = ['#d946ef', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6', '#14b8a6', '#f43f5e', '#000000'];
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#f9fafb' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'transparent' }}>
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .page-content {
@@ -126,7 +126,7 @@ export default function StartPageEditor() {
                 }
             `}} />
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', backgroundColor: '#fff', borderBottom: '1px solid var(--border-light)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', backgroundColor: '#fff', borderBottom: '1px solid var(--border-light)', borderTopLeftRadius: '32px' }}>
                 <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-secondary)', padding: '4px', borderRadius: '8px' }}>
                     <button
                         className={`btn btn-sm ${viewMode === 'mobile' ? 'btn-primary' : 'btn-ghost'}`}
@@ -192,7 +192,7 @@ export default function StartPageEditor() {
 
                     {activeTab === 'details' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Personal Details</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'Inria Serif', fontStyle: 'italic', marginBottom: '8px' }}>Personal Details</h2>
 
                             <div className="input-group">
                                 <label>Headline</label>
@@ -251,7 +251,7 @@ export default function StartPageEditor() {
 
                     {activeTab === 'styling' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Appearance</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'Inria Serif', fontStyle: 'italic', marginBottom: '8px' }}>Appearance</h2>
 
                             <div className="input-group">
                                 <label>Side Panel Color</label>
@@ -285,7 +285,7 @@ export default function StartPageEditor() {
 
                     {activeTab === 'meetings' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Scheduler Settings</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'Inria Serif', fontStyle: 'italic', marginBottom: '8px' }}>Scheduler Settings</h2>
 
                             <div className="input-group">
                                 <label>Scheduler Header Text</label>
@@ -354,7 +354,7 @@ export default function StartPageEditor() {
                                 style={{ width: '120px', height: '120px', borderRadius: '24px', objectFit: 'cover', marginBottom: '24px', border: '4px solid rgba(255,255,255,0.2)' }}
                                 onError={(e) => { e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"; e.target.style.background = "rgba(255,255,255,0.2)"; e.target.style.padding = "20px"; }}
                             />
-                            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>{user?.name || 'Your Name'}</h1>
+                            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 8px 0', letterSpacing: '-0.02em', fontFamily: 'Inria Serif', fontStyle: 'italic' }}>{user?.name || 'Your Name'}</h1>
                             <p style={{ fontSize: '1rem', opacity: 0.9, margin: 0, fontWeight: 500 }}>{form.pageHeadline || 'Your Headline'}</p>
 
                             <div style={{ marginTop: 'auto', paddingTop: '40px' }}>
@@ -370,7 +370,7 @@ export default function StartPageEditor() {
                         {/* Preview: Right / Bottom Panel */}
                         <div style={{ flex: 1, padding: '40px 30px', overflowY: 'auto' }}>
                             <div style={{ marginBottom: '32px' }}>
-                                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 16px 0', color: '#111' }}>About me</h2>
+                                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 16px 0', color: '#111', fontFamily: 'Inria Serif', fontStyle: 'italic' }}>About me</h2>
                                 <p style={{ color: '#4b5563', lineHeight: '1.6', fontSize: '0.9375rem', whiteSpace: 'pre-wrap' }}>
                                     {form.pageAboutMe || 'Your about me text will appear here...'}
                                 </p>
@@ -407,7 +407,7 @@ export default function StartPageEditor() {
                             {/* Testimonials Preview */}
                             {user?.reviewsReceived && user.reviewsReceived.length > 0 && (
                                 <div style={{ marginBottom: '40px' }}>
-                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#111', marginBottom: '16px', fontFamily: 'Inria Serif', fontStyle: 'italic' }}>
                                         What people say
                                     </h3>
                                     <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'mobile' ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
@@ -427,7 +427,7 @@ export default function StartPageEditor() {
                             )}
 
                             <div>
-                                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: '0 0 16px 0', color: '#111' }}>
+                                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 16px 0', color: '#111', fontFamily: 'Inria Serif', fontStyle: 'italic' }}>
                                     {form.pageSchedulerHeader || 'Meet with me'}
                                 </h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

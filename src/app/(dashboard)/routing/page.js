@@ -115,12 +115,7 @@ export default function RoutingPage() {
                         <div key={form.id} className="card routing-card">
                             <div className="routing-card-body">
                                 <div className="routing-card-header">
-                                    <div className="routing-info">
-                                        <h3 className="routing-name">{form.name}</h3>
-                                        <p className="routing-desc text-tertiary">
-                                            {form.description || 'No description provided.'}
-                                        </p>
-                                    </div>
+                                    <h3 className="routing-name">{form.name}</h3>
                                     <div className="header-actions">
                                         <button 
                                             className={`toggle-btn ${form.isActive ? 'active' : ''}`}
@@ -138,6 +133,9 @@ export default function RoutingPage() {
                                         </button>
                                     </div>
                                 </div>
+                                <p className="routing-desc text-tertiary">
+                                    {form.description || 'No description provided.'}
+                                </p>
                                 
                                 <div className="routing-card-stats">
                                     <Link href={`/routing/${form.id}/edit?tab=responses`} className="stat-item clickable-stat">
@@ -238,6 +236,10 @@ export default function RoutingPage() {
                     display: flex;
                     flex-direction: column;
                     transition: all 0.2s ease;
+                    background: #ffffff;
+                    border: 1px solid var(--border-color);
+                    border-radius: var(--radius-lg);
+                    box-shadow: var(--shadow-sm);
                 }
                 .routing-card:hover {
                     box-shadow: var(--shadow-lg);
@@ -250,19 +252,22 @@ export default function RoutingPage() {
                 .routing-card-header {
                     display: flex;
                     justify-content: space-between;
-                    align-items: flex-start;
-                    margin-bottom: 20px;
+                    align-items: center;
+                    margin-bottom: 8px;
                     gap: 12px;
                 }
                 .routing-name {
-                    font-size: 18px;
+                    font-size: 1.25rem;
                     font-weight: 700;
+                    font-family: 'Inria Serif', serif;
+                    font-style: italic;
                     margin-bottom: 4px;
-                    color: var(--text-primary);
+                    color: #1a1a1a;
                 }
                 .routing-desc {
                     font-size: 13px;
                     line-height: 1.5;
+                    margin-bottom: 20px;
                 }
                 .routing-card-stats {
                     display: flex;
@@ -271,7 +276,8 @@ export default function RoutingPage() {
                 }
                 .stat-item {
                     display: flex;
-                    flex-direction: column;
+                    align-items: baseline;
+                    gap: 6px;
                 }
                 .clickable-stat {
                     cursor: pointer;
@@ -353,8 +359,8 @@ export default function RoutingPage() {
                     gap: 12px;
                 }
                 .toggle-btn {
-                    width: 40px;
-                    height: 20px;
+                    width: 44px;
+                    height: 24px;
                     background: #e2e8f0;
                     border-radius: 20px;
                     padding: 2px;
@@ -364,14 +370,15 @@ export default function RoutingPage() {
                     position: relative;
                 }
                 .toggle-btn.active {
-                    background: #10b981;
+                    background: #1a1a1a;
                 }
                 .toggle-slider {
-                    width: 16px;
-                    height: 16px;
+                    width: 20px;
+                    height: 20px;
                     background: white;
                     border-radius: 50%;
                     transition: all 0.2s;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
                 }
                 .toggle-btn.active .toggle-slider {
                     transform: translateX(20px);

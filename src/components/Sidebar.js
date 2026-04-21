@@ -168,9 +168,14 @@ export default function Sidebar() {
                 {!collapsed && (
                     <Link href="/scheduling" className="logo-container">
                         <img
-                            src="/uploads/logos/Not Collapse.png"
+                            src="/uploads/logos/White Logo.png"
                             alt="Logo"
-                            className="sidebar-main-logo"
+                            style={{ 
+                                height: '95px', 
+                                maxWidth: '190px', 
+                                objectFit: 'contain',
+                                transition: 'all 0.2s ease'
+                            }}
                         />
                     </Link>
                 )}
@@ -179,7 +184,13 @@ export default function Sidebar() {
                         <img
                             src="/uploads/logos/Collapse Logo.png"
                             alt="Logo"
-                            className="sidebar-collapsed-logo"
+                            style={{ 
+                                width: '64px', 
+                                height: '64px', 
+                                objectFit: 'contain', 
+                                filter: 'brightness(1.25) contrast(1.1)',
+                                margin: '0 auto'
+                            }}
                         />
                     </Link>
                 )}

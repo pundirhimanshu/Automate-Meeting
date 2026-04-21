@@ -710,16 +710,7 @@ function SchedulingContent() {
             </div>
 
             <div className="user-section">
-                <div className="user-section-left">
-                    <div className="avatar" style={{ background: 'var(--primary)', fontSize: '0.75rem', width: '28px', height: '28px', overflow: 'hidden' }}>
-                        {userData?.logo ? (
-                            <img src={userData.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                            session?.user?.name?.charAt(0)?.toUpperCase() || 'U'
-                        )}
-                    </div>
-                    <span className="user-name">{session?.user?.name || 'User'}</span>
-                </div>
+
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => setIsEmbedModalOpen(true)} className="view-landing-link" style={{ background: 'none', border: 'none', padding: '0px 12px', height: '32px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6" /></svg>
@@ -834,48 +825,97 @@ function SchedulingContent() {
                 <>
                     <div className="drawer-overlay" onClick={closeDrawer} />
                     <div className="drawer">
-                        <div className="drawer-header">
-                            <h2>{drawerMode === 'create' ? 'New Event Type' : 'Edit Event Type'}</h2>
-                            <button className="drawer-close" onClick={closeDrawer}>✕</button>
+                        <div className="drawer-header" style={{ borderBottom: 'none', paddingBottom: '0' }}>
+                            <h2 style={{ fontFamily: 'Inria Serif', fontWeight: 800, fontSize: '1.75rem', fontStyle: 'italic' }}>
+                                {drawerMode === 'create' ? 'New Event Type' : 'Edit Event Type'}
+                            </h2>
+                            <button className="drawer-close" onClick={closeDrawer} style={{ background: '#f5f6f7', borderRadius: '50%', width: '36px', height: '36px' }}>✕</button>
                         </div>
 
                         {drawerLoading && drawerMode === 'edit' ? (
                             <div className="drawer-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <div className="spinner" style={{ width: 28, height: 28 }}></div>
                             </div>
-
                         ) : drawerStep === 'type-picker' && drawerMode === 'create' ? (
                             /* ===== STEP 1: EVENT TYPE PICKER ===== */
-                            <div className="drawer-body">
+                            <div className="drawer-body" style={{ paddingTop: '10px' }}>
                                 <div className="drawer-section">
-                                    <div className="drawer-section-title">Event type</div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                                    <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.8125rem', fontWeight: 500, color: '#666', marginBottom: '20px' }}>Select an event type</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                         {[
-                                            { value: 'one-on-one', label: 'One-on-one', hosts: '1 host', arrow: '→', invitees: '1 invitee', desc: 'Good for coffee chats, 1:1 interviews, etc.' },
-                                            { value: 'group', label: 'Group', hosts: '1 host', arrow: '→', invitees: 'Multiple invitees', desc: 'Webinars, online classes, etc.' },
-                                            { value: 'round-robin', label: 'Round robin', hosts: 'Rotating hosts', arrow: '→', invitees: '1 invitee', desc: 'Distribute meetings between team members' },
-                                            { value: 'collective', label: 'Collective', hosts: 'Multiple hosts', arrow: '→', invitees: '1 invitee', desc: 'Panel interviews, group sales calls, etc.' },
-                                        ].map((t, i) => (
+                                            { value: 'one-on-one', label: 'One-on-one', hosts: '1 host', arrow: '→', invitees: '1 invitee', desc: 'Good for coffee chats, 1:1 interviews, etc.', icon: '👤' },
+                                            { value: 'group', label: 'Group', hosts: '1 host', arrow: '→', invitees: 'Multiple invitees', desc: 'Webinars, online classes, etc.', icon: '👥' },
+                                            { value: 'round-robin', label: 'Round robin', hosts: 'Rotating hosts', arrow: '→', invitees: '1 invitee', desc: 'Distribute meetings between team members', icon: '♻️' },
+                                            { value: 'collective', label: 'Collective', hosts: 'Multiple hosts', arrow: '→', invitees: '1 invitee', desc: 'Panel interviews, group sales calls, etc.', icon: '🤝' },
+                                        ].map((t) => (
                                             <button
                                                 key={t.value}
                                                 type="button"
                                                 onClick={() => selectEventType(t.value)}
+                                                className="premium-event-picker-card"
                                                 style={{
-                                                    display: 'flex', flexDirection: 'column', gap: '4px',
-                                                    padding: '16px 0',
-                                                    borderBottom: i < 3 ? '1px solid var(--border-light)' : 'none',
-                                                    background: 'none', border: 'none', borderBottomStyle: i < 3 ? 'solid' : 'none',
-                                                    cursor: 'pointer', textAlign: 'left', width: '100%',
-                                                    transition: 'background 0.1s',
+                                                    display: 'flex', 
+                                                    alignItems: 'center',
+                                                    gap: '20px',
+                                                    padding: '24px',
+                                                    background: '#fff',
+                                                    borderRadius: '16px',
+                                                    border: '1px solid #eef0f2',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'left',
+                                                    width: '100%',
+                                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                                                    position: 'relative',
+                                                    overflow: 'hidden'
                                                 }}
-                                                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
+                                                    e.currentTarget.style.borderColor = '#1a1a1a';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
+                                                    e.currentTarget.style.borderColor = '#eef0f2';
+                                                }}
                                             >
-                                                <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--primary)' }}>{t.label}</div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>
-                                                    {t.hosts} <span style={{ color: 'var(--text-tertiary)' }}>{t.arrow}</span> {t.invitees}
+                                                <div style={{
+                                                    width: '56px',
+                                                    height: '56px',
+                                                    background: '#1a1a1a',
+                                                    borderRadius: '12px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '1.5rem',
+                                                    flexShrink: 0
+                                                }}>
+                                                    {t.icon}
                                                 </div>
-                                                <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>{t.desc}</div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ 
+                                                        fontFamily: 'Inria Serif', 
+                                                        fontWeight: 700, 
+                                                        fontStyle: 'italic',
+                                                        fontSize: '1.25rem', 
+                                                        color: '#1a1a1a',
+                                                        marginBottom: '4px'
+                                                    }}>
+                                                        {t.label}
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: '#666', fontWeight: 600, marginBottom: '4px' }}>
+                                                        <span style={{ background: '#f5f6f7', padding: '2px 8px', borderRadius: '4px' }}>{t.hosts}</span>
+                                                        <span style={{ color: '#ccc' }}>{t.arrow}</span>
+                                                        <span style={{ background: '#f5f6f7', padding: '2px 8px', borderRadius: '4px' }}>{t.invitees}</span>
+                                                    </div>
+                                                    <div style={{ fontSize: '0.8125rem', color: '#888', fontWeight: 400 }}>{t.desc}</div>
+                                                </div>
+                                                <div className="hover-arrow" style={{ opacity: 0.2, transition: 'opacity 0.3s' }}>
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5">
+                                                        <polyline points="9 18 15 12 9 6" />
+                                                    </svg>
+                                                </div>
                                             </button>
                                         ))}
                                     </div>

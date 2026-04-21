@@ -347,7 +347,7 @@ export default function ContactsPage() {
             </div>
 
             {/* Table */}
-            <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'auto', background: 'var(--bg-white)' }}>
+            <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: '#ffffff', boxShadow: 'var(--shadow-sm)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: `${visibleCols.length * 160}px` }}>
                     <thead>
                         <tr>
@@ -423,9 +423,10 @@ export default function ContactsPage() {
                                                 key={col.id}
                                                 style={{
                                                     padding: '10px 16px', fontSize: '0.8125rem',
-                                                    color: col.id === 'email' ? 'var(--primary)' : 'var(--text-primary)',
+                                                    color: col.id === 'email' ? '#1a1a1a' : 'var(--text-primary)',
                                                     cursor: isEditable ? 'pointer' : 'default',
                                                     maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                    fontWeight: col.id === 'email' ? 500 : 400
                                                 }}
                                                 onClick={() => isEditable && !isEditing && startEdit(contact.id, col.id, value)}
                                             >
@@ -447,14 +448,14 @@ export default function ContactsPage() {
                                                                 onClick={(e) => { e.stopPropagation(); setSelectedContact(contact); setDetailsDrawer(true); }}
                                                             >
                                                                 <span style={{
-                                                                    width: '22px', height: '22px', borderRadius: '50%', background: 'var(--primary-light)',
-                                                                    color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                                                    width: '22px', height: '22px', borderRadius: '50%', background: '#e2e4e9',
+                                                                    color: '#1a1a1a', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                                                                     fontSize: '0.625rem', fontWeight: 700, flexShrink: 0,
                                                                 }}>
                                                                     {contact.name?.charAt(0)?.toUpperCase()}
                                                                 </span>
-                                                                <span style={{ fontWeight: 600, color: 'var(--primary)', borderBottom: '1px solid transparent' }}
-                                                                    onMouseEnter={(e) => e.target.style.borderBottom = '1px solid var(--primary)'}
+                                                                <span style={{ fontWeight: 600, color: '#1a1a1a', borderBottom: '1px solid transparent' }}
+                                                                    onMouseEnter={(e) => e.target.style.borderBottom = '1px solid #1a1a1a'}
                                                                     onMouseLeave={(e) => e.target.style.borderBottom = '1px solid transparent'}
                                                                 >
                                                                     {value}
@@ -698,96 +699,112 @@ export default function ContactsPage() {
                 <>
                     <div className="drawer-overlay" onClick={() => { setDetailsDrawer(false); setSelectedContact(null); }} />
                     <div className="drawer">
-                        <div className="drawer-header">
-                            <h2>Contact Details</h2>
-                            <button className="drawer-close" onClick={() => { setDetailsDrawer(false); setSelectedContact(null); }}>✕</button>
+                        <div className="drawer-header" style={{ borderBottom: 'none', paddingBottom: '0' }}>
+                            <h2 style={{ fontFamily: 'Inria Serif', fontWeight: 800, fontSize: '1.75rem', fontStyle: 'italic' }}>Contact Details</h2>
+                            <button className="drawer-close" onClick={() => { setDetailsDrawer(false); setSelectedContact(null); }} style={{ background: '#f5f6f7', borderRadius: '50%', width: '36px', height: '36px' }}>✕</button>
                         </div>
-                        <div className="drawer-body">
-                            {/* Header Info */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                        <div className="drawer-body" style={{ paddingTop: '10px' }}>
+                            {/* Header Info / Hero Card */}
+                            <div style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '20px', 
+                                marginBottom: '32px',
+                                padding: '24px',
+                                background: '#fcfcfc',
+                                border: '1px solid #eef0f2',
+                                borderRadius: '16px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+                            }}>
                                 <div style={{
-                                    width: '56px', height: '56px', borderRadius: '50%', background: 'var(--primary-light)',
-                                    color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '1.5rem', fontWeight: 700, flexShrink: 0
+                                    width: '64px', height: '64px', borderRadius: '16px', background: '#1a1a1a',
+                                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '1.75rem', fontWeight: 700, flexShrink: 0,
+                                    fontFamily: 'Inria Serif'
                                 }}>
                                     {selectedContact.name?.charAt(0)?.toUpperCase()}
                                 </div>
                                 <div>
-                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '4px' }}>{selectedContact.name}</h3>
-                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>{selectedContact.company || 'No company'}</div>
+                                    <h3 style={{ fontFamily: 'Inria Serif', fontSize: '1.5rem', fontWeight: 700, fontStyle: 'italic', color: '#1a1a1a', marginBottom: '4px' }}>
+                                        {selectedContact.name}
+                                    </h3>
+                                    <div style={{ fontSize: '0.875rem', color: '#888', fontWeight: 500 }}>{selectedContact.company || 'Private Contact'}</div>
                                 </div>
                             </div>
 
-                            {/* Contact Details */}
-                            <div className="drawer-section">
-                                <div className="drawer-section-title">Contact Information</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ color: 'var(--text-tertiary)' }}>
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                            {/* Details Grid */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                {/* Contact Info Section */}
+                                <div className="drawer-section" style={{ border: 'none', background: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #eef0f2' }}>
+                                    <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.75rem', color: '#888', marginBottom: '16px' }}>CONTACT INFORMATION</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: 0 }}>
+                                            <div style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '2px' }}>Email</div>
+                                                <a href={`mailto:${selectedContact.email}`} style={{ fontSize: '0.9375rem', color: '#1a1a1a', fontWeight: 600, textDecoration: 'underline' }}>{selectedContact.email}</a>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Email</div>
-                                            <a href={`mailto:${selectedContact.email}`} style={{ fontSize: '0.9375rem', color: 'var(--primary)', textDecoration: 'none' }}>{selectedContact.email}</a>
+                                        <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: 0 }}>
+                                            <div style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '2px' }}>Phone</div>
+                                                <div style={{ fontSize: '0.9375rem', fontWeight: 600 }}>{selectedContact.phone || '—'}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ color: 'var(--text-tertiary)' }}>
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Phone</div>
-                                            <div style={{ fontSize: '0.9375rem' }}>{selectedContact.phone || '—'}</div>
-                                        </div>
-                                    </div>
-                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ color: 'var(--text-tertiary)' }}>
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Company</div>
-                                            <div style={{ fontSize: '0.9375rem' }}>{selectedContact.company || '—'}</div>
+                                        <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: 0 }}>
+                                            <div style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '2px' }}>Company</div>
+                                                <div style={{ fontSize: '0.9375rem', fontWeight: 600 }}>{selectedContact.company || '—'}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Activity */}
-                            <div className="drawer-section">
-                                <div className="drawer-section-title">Activity</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ color: 'var(--text-tertiary)' }}>
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                                {/* Activity Section */}
+                                <div className="drawer-section" style={{ border: 'none', background: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #eef0f2' }}>
+                                    <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.75rem', color: '#888', marginBottom: '16px' }}>ACTIVITY</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: 0 }}>
+                                            <div style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '2px' }}>Last Meeting</div>
+                                                <div style={{ fontSize: '0.9375rem', fontWeight: 600 }}>{formatDate(selectedContact.lastMeetingDate) || 'No past meetings'}</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Last Meeting</div>
-                                            <div style={{ fontSize: '0.9375rem' }}>{formatDate(selectedContact.lastMeetingDate) || 'No past meetings'}</div>
-                                        </div>
-                                    </div>
-                                    <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ color: 'var(--text-tertiary)' }}>
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Next Meeting</div>
-                                            <div style={{ fontSize: '0.9375rem', color: selectedContact.nextMeetingDate ? 'var(--primary)' : 'inherit', fontWeight: selectedContact.nextMeetingDate ? 600 : 400 }}>
-                                                {formatDate(selectedContact.nextMeetingDate) || 'No upcoming meetings'}
+                                        <div className="drawer-detail-row" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: 0 }}>
+                                            <div style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '2px' }}>Next Meeting</div>
+                                                <div style={{ fontSize: '0.9375rem', color: selectedContact.nextMeetingDate ? '#1a1a1a' : 'inherit', fontWeight: 700 }}>
+                                                    {formatDate(selectedContact.nextMeetingDate) || 'None scheduled'}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Custom Fields */}
+                            {/* Additional Info Section */}
                             {(customFields.length > 0 || selectedContact.notes) && (
-                                <div className="drawer-section">
-                                    <div className="drawer-section-title">Additional Info</div>
+                                <div className="drawer-section" style={{ border: 'none', background: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #eef0f2', marginTop: '24px' }}>
+                                    <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.75rem', color: '#888', marginBottom: '16px' }}>ADDITIONAL INFO</div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                         {selectedContact.notes && (
                                             <div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '4px', fontWeight: 500 }}>Notes</div>
-                                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', background: 'var(--bg-page)', padding: '12px', borderRadius: 'var(--radius-md)', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                                                <div style={{ fontSize: '0.8125rem', color: '#888', marginBottom: '6px', fontWeight: 500 }}>Notes</div>
+                                                <div style={{ fontSize: '0.9375rem', color: '#1a1a1a', background: '#f5f6f7', padding: '16px', borderRadius: '12px', whiteSpace: 'pre-line', lineHeight: 1.6, fontWeight: 500 }}>
                                                     {selectedContact.notes}
                                                 </div>
                                             </div>
@@ -797,8 +814,8 @@ export default function ContactsPage() {
                                             if (!val) return null;
                                             return (
                                                 <div key={f.id}>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px' }}>{f.name}</div>
-                                                    <div style={{ fontSize: '0.9375rem' }}>{val}</div>
+                                                    <div style={{ fontSize: '0.8125rem', color: '#888', marginBottom: '6px', fontWeight: 500 }}>{f.name}</div>
+                                                    <div style={{ fontSize: '0.9375rem', color: '#1a1a1a', fontWeight: 600 }}>{val}</div>
                                                 </div>
                                             );
                                         })}
@@ -806,8 +823,24 @@ export default function ContactsPage() {
                                 </div>
                             )}
                         </div>
-                        <div className="drawer-footer">
-                            <button className="btn btn-secondary w-full" onClick={() => { setDetailsDrawer(false); setSelectedContact(null); }}>Close</button>
+                        {/* Drawer Footer Actions */}
+                        <div className="drawer-footer" style={{ borderTop: '1px solid #f5f6f7', padding: '24px' }}>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => { setDetailsDrawer(false); setSelectedContact(null); }}
+                                style={{ 
+                                    width: '100%', 
+                                    padding: '14px', 
+                                    borderRadius: '12px', 
+                                    fontWeight: 700,
+                                    fontSize: '0.9375rem',
+                                    background: '#1a1a1a',
+                                    color: '#fff',
+                                    border: 'none'
+                                }}
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </>

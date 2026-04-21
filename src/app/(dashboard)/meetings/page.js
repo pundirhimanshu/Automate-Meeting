@@ -339,97 +339,124 @@ export default function MeetingsPage() {
                 <>
                     <div className="drawer-overlay" onClick={() => setSelectedBooking(null)} />
                     <div className="drawer">
-                        <div className="drawer-header">
-                            <h2>Meeting Details</h2>
-                            <button className="drawer-close" onClick={() => setSelectedBooking(null)}>✕</button>
+                        <div className="drawer-header" style={{ borderBottom: 'none', paddingBottom: '0' }}>
+                            <h2 style={{ fontFamily: 'Inria Serif', fontWeight: 800, fontSize: '1.75rem', fontStyle: 'italic' }}>Meeting Details</h2>
+                            <button className="drawer-close" onClick={() => setSelectedBooking(null)} style={{ background: '#f5f6f7', borderRadius: '50%', width: '36px', height: '36px' }}>✕</button>
                         </div>
-                        <div className="drawer-body">
+                        <div className="drawer-body" style={{ paddingTop: '10px' }}>
                             {/* Event Title & Status */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                                <div style={{ width: '10px', height: '40px', borderRadius: '4px', background: selectedBooking.eventType?.color || '#ff9500', flexShrink: 0 }} />
+                            <div style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '16px', 
+                                marginBottom: '32px',
+                                padding: '24px',
+                                background: '#fcfcfc',
+                                border: '1px solid #eef0f2',
+                                borderRadius: '16px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+                            }}>
+                                <div style={{ 
+                                    width: '12px', 
+                                    height: '48px', 
+                                    borderRadius: '6px', 
+                                    background: selectedBooking.eventType?.color || '#1a1a1a', 
+                                    flexShrink: 0 
+                                }} />
                                 <div style={{ flex: 1 }}>
-                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>{selectedBooking.eventType?.title || 'Meeting'}</h3>
-                                    {statusBadge(selectedBooking.status)}
+                                    <h3 style={{ fontFamily: 'Inria Serif', fontSize: '1.5rem', fontWeight: 700, fontStyle: 'italic', color: '#1a1a1a', marginBottom: '4px' }}>
+                                        {selectedBooking.eventType?.title || 'Meeting'}
+                                    </h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {statusBadge(selectedBooking.status)}
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Date & Time */}
-                            <div className="drawer-section">
-                                <div className="drawer-section-title">Schedule</div>
-                                <div className="drawer-detail-row">
-                                    <div className="detail-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-                                    </div>
-                                    <div>
-                                        <div className="detail-value">{formatDate(selectedBooking.startTime).full}</div>
-                                    </div>
-                                </div>
-                                <div className="drawer-detail-row">
-                                    <div className="detail-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                                    </div>
-                                    <div>
-                                        <div className="detail-value">{formatTime(selectedBooking.startTime, selectedBooking.endTime)}</div>
-                                        <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>{selectedBooking.eventType?.duration || 30} minutes</div>
-                                    </div>
-                                </div>
-                                <div className="drawer-detail-row">
-                                    <div className="detail-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-                                    </div>
-                                    <div className="detail-value">{selectedBooking.timezone}</div>
-                                </div>
-                            </div>
-
-                            {/* Invitee Info */}
-                            <div className="drawer-section">
-                                <div className="drawer-section-title">Invitee</div>
-                                <div className="drawer-detail-row">
-                                    <div className="detail-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                                    </div>
-                                    <div className="detail-value">{selectedBooking.inviteeName}</div>
-                                </div>
-                                <div className="drawer-detail-row">
-                                    <div className="detail-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
-                                    </div>
-                                    <div className="detail-value" style={{ color: 'var(--primary)' }}>{selectedBooking.inviteeEmail}</div>
-                                </div>
-                            </div>
-
-                            {/* Meeting Type */}
-                            <div className="drawer-section">
-                                <div className="drawer-section-title">Meeting Type</div>
-                                <div className="drawer-detail-row">
-                                    <div className="detail-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
-                                    </div>
-                                    <div className="detail-value">{selectedBooking.eventType?.type === 'one-on-one' ? 'One-on-One' : selectedBooking.eventType?.type || '—'}</div>
-                                </div>
-                                {selectedBooking.location && (
-                                    <div className="drawer-detail-row">
-                                        <div className="detail-icon">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                            {/* Details Grid */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                {/* Schedule Section */}
+                                <div className="drawer-section" style={{ border: 'none', background: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #eef0f2' }}>
+                                    <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.75rem', color: '#888', marginBottom: '16px' }}>SCHEDULE</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <div className="drawer-detail-row" style={{ padding: 0 }}>
+                                            <div className="detail-icon" style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                                            </div>
+                                            <div className="detail-value" style={{ fontSize: '0.9375rem', fontWeight: 600 }}>{formatDate(selectedBooking.startTime).full}</div>
                                         </div>
-                                        <div className="detail-value">{selectedBooking.location}</div>
+                                        <div className="drawer-detail-row" style={{ padding: 0 }}>
+                                            <div className="detail-icon" style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                            </div>
+                                            <div>
+                                                <div className="detail-value" style={{ fontSize: '0.9375rem', fontWeight: 600 }}>{formatTime(selectedBooking.startTime, selectedBooking.endTime)}</div>
+                                                <div style={{ fontSize: '0.8125rem', color: '#888' }}>{selectedBooking.eventType?.duration || 30} minutes</div>
+                                            </div>
+                                        </div>
+                                        <div className="drawer-detail-row" style={{ padding: 0 }}>
+                                            <div className="detail-icon" style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+                                            </div>
+                                            <div className="detail-value" style={{ fontSize: '0.875rem', color: '#666' }}>{selectedBooking.timezone}</div>
+                                        </div>
                                     </div>
-                                )}
+                                </div>
+
+                                {/* Invitee Info */}
+                                <div className="drawer-section" style={{ border: 'none', background: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #eef0f2' }}>
+                                    <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.75rem', color: '#888', marginBottom: '16px' }}>INVITEE</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <div className="drawer-detail-row" style={{ padding: 0 }}>
+                                            <div className="detail-icon" style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                                            </div>
+                                            <div className="detail-value" style={{ fontSize: '0.9375rem', fontWeight: 600 }}>{selectedBooking.inviteeName}</div>
+                                        </div>
+                                        <div className="drawer-detail-row" style={{ padding: 0 }}>
+                                            <div className="detail-icon" style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                                            </div>
+                                            <div className="detail-value" style={{ fontSize: '0.875rem', color: '#1a1a1a', textDecoration: 'underline' }}>{selectedBooking.inviteeEmail}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Meeting Info */}
+                                <div className="drawer-section" style={{ border: 'none', background: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #eef0f2' }}>
+                                    <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.75rem', color: '#888', marginBottom: '16px' }}>MEETING INFO</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <div className="drawer-detail-row" style={{ padding: 0 }}>
+                                            <div className="detail-icon" style={{ color: '#1a1a1a' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+                                            </div>
+                                            <div className="detail-value" style={{ fontSize: '0.875rem', fontWeight: 500 }}>{selectedBooking.eventType?.type === 'one-on-one' ? 'One-on-One' : selectedBooking.eventType?.type || '—'}</div>
+                                        </div>
+                                        {selectedBooking.location && (
+                                            <div className="drawer-detail-row" style={{ padding: 0 }}>
+                                                <div className="detail-icon" style={{ color: '#1a1a1a' }}>
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                                                </div>
+                                                <div className="detail-value" style={{ fontSize: '0.875rem', color: '#666' }}>{selectedBooking.location}</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Custom Questions */}
                             {selectedBooking.answers?.length > 0 && (
-                                <div className="drawer-section">
-                                    <div className="drawer-section-title">Questionnaire</div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div className="drawer-section" style={{ border: 'none', background: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #eef0f2', marginTop: '24px' }}>
+                                    <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.75rem', color: '#888', marginBottom: '16px' }}>QUESTIONNAIRE</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                         {selectedBooking.answers.map((ans) => {
                                             const question = selectedBooking.eventType?.customQuestions?.find(q => q.id === ans.questionId);
                                             return (
                                                 <div key={ans.id}>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '2px', fontWeight: 500 }}>
+                                                    <div style={{ fontSize: '0.8125rem', color: '#888', marginBottom: '6px', fontWeight: 500 }}>
                                                         {question?.question || 'Question'}
                                                     </div>
-                                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', background: 'var(--bg-page)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
+                                                    <div style={{ fontSize: '0.9375rem', color: '#1a1a1a', background: '#f5f6f7', padding: '12px 16px', borderRadius: '12px', fontWeight: 500 }}>
                                                         {ans.answer || '—'}
                                                     </div>
                                                 </div>
@@ -480,9 +507,9 @@ export default function MeetingsPage() {
                             )}
 
                             {/* Created At */}
-                            <div className="drawer-section">
-                                <div className="drawer-section-title">Booked On</div>
-                                <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+                            <div className="drawer-section" style={{ border: 'none', padding: '20px', textAlign: 'center' }}>
+                                <div className="drawer-section-title" style={{ border: 'none', fontSize: '0.75rem', color: '#bbb', marginBottom: '8px', justifyContent: 'center' }}>BOOKED ON</div>
+                                <div style={{ fontSize: '0.8125rem', color: '#aaa', fontWeight: 500 }}>
                                     {new Date(selectedBooking.createdAt).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
                                 </div>
                             </div>
@@ -490,11 +517,20 @@ export default function MeetingsPage() {
 
                         {/* Drawer Footer Actions */}
                         {selectedBooking.status === 'confirmed' && (
-                            <div className="drawer-footer">
+                            <div className="drawer-footer" style={{ borderTop: '1px solid #f5f6f7', padding: '24px' }}>
                                 <button
                                     className="btn btn-danger"
                                     onClick={() => {
                                         setCancelModal(selectedBooking.id);
+                                    }}
+                                    style={{ 
+                                        width: '100%', 
+                                        padding: '14px', 
+                                        borderRadius: '12px', 
+                                        fontWeight: 700,
+                                        fontSize: '0.9375rem',
+                                        background: '#e11d48', // Tailwind rose-600
+                                        border: 'none'
                                     }}
                                 >
                                     Cancel Meeting
