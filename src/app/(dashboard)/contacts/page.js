@@ -12,6 +12,69 @@ const FIELD_TYPES = [
     { value: 'select', label: 'Select', icon: '💜' },
 ];
 
+const renderCustomFieldInput = ({ field, value, onChange, onBlur, className, style, autoFocus, placeholder }) => {
+    if (field.type === 'select') {
+        const options = field.options ? field.options.split(',').map(o => o.trim()) : [];
+        return (
+            <select 
+                className={className} 
+                style={style} 
+                value={value} 
+                onChange={(e) => onChange(e.target.value)}
+                onBlur={onBlur}
+                autoFocus={autoFocus}
+            >
+                <option value="">Select an option</option>
+                {options.map(o => (
+                    <option key={o} value={o}>{o}</option>
+                ))}
+            </select>
+        );
+    }
+
+    if (field.type === 'date') {
+        return (
+            <input
+                type="date"
+                className={className}
+                style={style}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onBlur={onBlur}
+                autoFocus={autoFocus}
+            />
+        );
+    }
+
+    if (field.type === 'number' || field.type === 'currency') {
+        return (
+            <input
+                type="number"
+                className={className}
+                style={style}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onBlur={onBlur}
+                autoFocus={autoFocus}
+                placeholder={placeholder}
+            />
+        );
+    }
+
+    return (
+        <input
+            type="text"
+            className={className}
+            style={style}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={onBlur}
+            autoFocus={autoFocus}
+            placeholder={placeholder}
+        />
+    );
+};
+
 const DEFAULT_COLUMNS = [
     { id: 'name', label: 'Name', visible: true, fixed: true },
     { id: 'email', label: 'Email', visible: true, fixed: true },
@@ -45,6 +108,8 @@ export default function ContactsPage() {
     const [fieldDrawer, setFieldDrawer] = useState(false);
     const [newFieldName, setNewFieldName] = useState('');
     const [newFieldType, setNewFieldType] = useState('');
+    const [newFieldOptions, setNewFieldOptions] = useState('');
+
     const [showTypeDropdown, setShowTypeDropdown] = useState(false);
 
     // Edit contact state
@@ -185,11 +250,16 @@ export default function ContactsPage() {
             const res = await fetch('/api/contacts/fields', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newFieldName, type: newFieldType }),
+                body: JSON.stringify({ 
+                    name: newFieldName, 
+                    type: newFieldType,
+                    options: newFieldType === 'select' ? newFieldOptions : null 
+                }),
             });
             if (res.ok) {
                 setNewFieldName('');
                 setNewFieldType('');
+                setNewFieldOptions('');
                 fetchFields();
                 setFieldDrawer(false);
             }
@@ -347,7 +417,7 @@ export default function ContactsPage() {
             </div>
 
             {/* Table */}
-            <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: '#ffffff', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflowY: 'auto', maxHeight: '280px', background: '#ffffff', boxShadow: 'var(--shadow-sm)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: `${visibleCols.length * 160}px` }}>
                     <thead>
                         <tr>
@@ -425,21 +495,21 @@ export default function ContactsPage() {
                                                     padding: '10px 16px', fontSize: '0.8125rem',
                                                     color: col.id === 'email' ? '#1a1a1a' : 'var(--text-primary)',
                                                     cursor: isEditable ? 'pointer' : 'default',
-                                                    maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                    maxWidth: '200px', overflowY: 'auto', maxHeight: '280px', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                                     fontWeight: col.id === 'email' ? 500 : 400
                                                 }}
                                                 onClick={() => isEditable && !isEditing && startEdit(contact.id, col.id, value)}
                                             >
                                                 {isEditing ? (
-                                                    <input
-                                                        autoFocus
-                                                        className="input"
-                                                        style={{ padding: '4px 8px', fontSize: '0.8125rem', width: '100%' }}
-                                                        value={editValue}
-                                                        onChange={(e) => setEditValue(e.target.value)}
-                                                        onBlur={saveEdit}
-                                                        onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingCell(null); }}
-                                                    />
+                                                    renderCustomFieldInput({
+                                                        field: col.custom ? { type: col.type, options: customFields.find(f => f.id === col.id)?.options } : { type: 'text' },
+                                                        value: editValue,
+                                                        onChange: setEditValue,
+                                                        onBlur: saveEdit,
+                                                        className: 'input',
+                                                        style: { padding: '4px 8px', fontSize: '0.8125rem', width: '100%' },
+                                                        autoFocus: true
+                                                    })
                                                 ) : (
                                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                                                         {col.id === 'name' ? (
@@ -551,13 +621,13 @@ export default function ContactsPage() {
                                             {customFields.map((f) => (
                                                 <div key={f.id} className="input-group">
                                                     <label>{f.name}</label>
-                                                    <input
-                                                        className="input"
-                                                        type={f.type === 'number' || f.type === 'currency' ? 'number' : f.type === 'date' ? 'date' : 'text'}
-                                                        placeholder={f.name}
-                                                        value={addFieldValues[f.id] || ''}
-                                                        onChange={(e) => setAddFieldValues({ ...addFieldValues, [f.id]: e.target.value })}
-                                                    />
+                                                    {renderCustomFieldInput({
+                                                        field: f,
+                                                        value: addFieldValues[f.id] || '',
+                                                        onChange: (val) => setAddFieldValues({ ...addFieldValues, [f.id]: val }),
+                                                        className: 'input',
+                                                        placeholder: f.name
+                                                    })}
                                                 </div>
                                             ))}
                                         </div>
@@ -625,7 +695,7 @@ export default function ContactsPage() {
                                             position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
                                             background: 'var(--bg-white)', border: '1px solid var(--border-color)',
                                             borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)',
-                                            zIndex: 10, overflow: 'hidden',
+                                            zIndex: 10, overflowY: 'auto', maxHeight: '280px',
                                         }}>
                                             {FIELD_TYPES.map((type) => (
                                                 <button
@@ -640,8 +710,8 @@ export default function ContactsPage() {
                                                         borderBottom: '1px solid var(--border-light)',
                                                         transition: 'background 0.1s',
                                                     }}
-                                                    onMouseEnter={(e) => { if (newFieldType !== type.value) e.target.style.background = 'var(--bg-hover)'; }}
-                                                    onMouseLeave={(e) => { if (newFieldType !== type.value) e.target.style.background = 'transparent'; }}
+                                                    onMouseEnter={(e) => { if (newFieldType !== type.value) e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                                                    onMouseLeave={(e) => { if (newFieldType !== type.value) e.currentTarget.style.background = 'transparent'; }}
                                                 >
                                                     <span style={{ fontSize: '1rem' }}>{type.icon}</span>
                                                     {type.label}
@@ -651,6 +721,19 @@ export default function ContactsPage() {
                                     )}
                                 </div>
                             </div>
+
+                            {newFieldType === 'select' && (
+                                <div className="input-group" style={{ marginTop: '16px' }}>
+                                    <label>Options (comma separated)</label>
+                                    <textarea
+                                        className="input"
+                                        placeholder="e.g., Apple, Banana, Orange"
+                                        value={newFieldOptions}
+                                        onChange={(e) => setNewFieldOptions(e.target.value)}
+                                        rows={3}
+                                    />
+                                </div>
+                            )}
 
                             {/* Existing custom fields */}
                             {customFields.length > 0 && (

@@ -26,7 +26,7 @@ export async function POST(request) {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { name, type } = await request.json();
+        const { name, type, options } = await request.json();
         if (!name) {
             return NextResponse.json({ error: 'Field name is required' }, { status: 400 });
         }
@@ -39,6 +39,7 @@ export async function POST(request) {
             data: {
                 name,
                 type: type || 'text',
+                options: options || null,
                 userId: session.user.id,
                 order: count,
             },

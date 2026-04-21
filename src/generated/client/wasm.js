@@ -337,6 +337,7 @@ exports.Prisma.ContactCustomFieldScalarFieldEnum = {
   id: 'id',
   name: 'name',
   type: 'type',
+  options: 'options',
   userId: 'userId',
   order: 'order',
   createdAt: 'createdAt'

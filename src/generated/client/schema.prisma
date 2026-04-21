@@ -278,6 +278,7 @@ model ContactCustomField {
   id        String              @id @default(uuid())
   name      String
   type      String              @default("text")
+  options   String? // Comma-separated options for 'Select' type
   userId    String
   order     Int                 @default(0)
   values    ContactFieldValue[]

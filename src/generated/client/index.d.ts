@@ -18372,6 +18372,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     type: string | null
+    options: string | null
     userId: string | null
     order: number | null
     createdAt: Date | null
@@ -18381,6 +18382,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     type: string | null
+    options: string | null
     userId: string | null
     order: number | null
     createdAt: Date | null
@@ -18390,6 +18392,7 @@ export namespace Prisma {
     id: number
     name: number
     type: number
+    options: number
     userId: number
     order: number
     createdAt: number
@@ -18409,6 +18412,7 @@ export namespace Prisma {
     id?: true
     name?: true
     type?: true
+    options?: true
     userId?: true
     order?: true
     createdAt?: true
@@ -18418,6 +18422,7 @@ export namespace Prisma {
     id?: true
     name?: true
     type?: true
+    options?: true
     userId?: true
     order?: true
     createdAt?: true
@@ -18427,6 +18432,7 @@ export namespace Prisma {
     id?: true
     name?: true
     type?: true
+    options?: true
     userId?: true
     order?: true
     createdAt?: true
@@ -18523,6 +18529,7 @@ export namespace Prisma {
     id: string
     name: string
     type: string
+    options: string | null
     userId: string
     order: number
     createdAt: Date
@@ -18551,6 +18558,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     type?: boolean
+    options?: boolean
     userId?: boolean
     order?: boolean
     createdAt?: boolean
@@ -18562,6 +18570,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     type?: boolean
+    options?: boolean
     userId?: boolean
     order?: boolean
     createdAt?: boolean
@@ -18571,6 +18580,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     type?: boolean
+    options?: boolean
     userId?: boolean
     order?: boolean
     createdAt?: boolean
@@ -18591,6 +18601,7 @@ export namespace Prisma {
       id: string
       name: string
       type: string
+      options: string | null
       userId: string
       order: number
       createdAt: Date
@@ -18991,6 +19002,7 @@ export namespace Prisma {
     readonly id: FieldRef<"ContactCustomField", 'String'>
     readonly name: FieldRef<"ContactCustomField", 'String'>
     readonly type: FieldRef<"ContactCustomField", 'String'>
+    readonly options: FieldRef<"ContactCustomField", 'String'>
     readonly userId: FieldRef<"ContactCustomField", 'String'>
     readonly order: FieldRef<"ContactCustomField", 'Int'>
     readonly createdAt: FieldRef<"ContactCustomField", 'DateTime'>
@@ -28755,6 +28767,7 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     type: 'type',
+    options: 'options',
     userId: 'userId',
     order: 'order',
     createdAt: 'createdAt'
@@ -30390,6 +30403,7 @@ export namespace Prisma {
     id?: StringFilter<"ContactCustomField"> | string
     name?: StringFilter<"ContactCustomField"> | string
     type?: StringFilter<"ContactCustomField"> | string
+    options?: StringNullableFilter<"ContactCustomField"> | string | null
     userId?: StringFilter<"ContactCustomField"> | string
     order?: IntFilter<"ContactCustomField"> | number
     createdAt?: DateTimeFilter<"ContactCustomField"> | Date | string
@@ -30400,6 +30414,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     type?: SortOrder
+    options?: SortOrderInput | SortOrder
     userId?: SortOrder
     order?: SortOrder
     createdAt?: SortOrder
@@ -30413,6 +30428,7 @@ export namespace Prisma {
     NOT?: ContactCustomFieldWhereInput | ContactCustomFieldWhereInput[]
     name?: StringFilter<"ContactCustomField"> | string
     type?: StringFilter<"ContactCustomField"> | string
+    options?: StringNullableFilter<"ContactCustomField"> | string | null
     userId?: StringFilter<"ContactCustomField"> | string
     order?: IntFilter<"ContactCustomField"> | number
     createdAt?: DateTimeFilter<"ContactCustomField"> | Date | string
@@ -30423,6 +30439,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     type?: SortOrder
+    options?: SortOrderInput | SortOrder
     userId?: SortOrder
     order?: SortOrder
     createdAt?: SortOrder
@@ -30440,6 +30457,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"ContactCustomField"> | string
     name?: StringWithAggregatesFilter<"ContactCustomField"> | string
     type?: StringWithAggregatesFilter<"ContactCustomField"> | string
+    options?: StringNullableWithAggregatesFilter<"ContactCustomField"> | string | null
     userId?: StringWithAggregatesFilter<"ContactCustomField"> | string
     order?: IntWithAggregatesFilter<"ContactCustomField"> | number
     createdAt?: DateTimeWithAggregatesFilter<"ContactCustomField"> | Date | string
@@ -32725,6 +32743,7 @@ export namespace Prisma {
     id?: string
     name: string
     type?: string
+    options?: string | null
     userId: string
     order?: number
     createdAt?: Date | string
@@ -32735,6 +32754,7 @@ export namespace Prisma {
     id?: string
     name: string
     type?: string
+    options?: string | null
     userId: string
     order?: number
     createdAt?: Date | string
@@ -32745,6 +32765,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    options?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32755,6 +32776,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    options?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32765,6 +32787,7 @@ export namespace Prisma {
     id?: string
     name: string
     type?: string
+    options?: string | null
     userId: string
     order?: number
     createdAt?: Date | string
@@ -32774,6 +32797,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    options?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32783,6 +32807,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    options?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34695,6 +34720,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     type?: SortOrder
+    options?: SortOrder
     userId?: SortOrder
     order?: SortOrder
     createdAt?: SortOrder
@@ -34708,6 +34734,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     type?: SortOrder
+    options?: SortOrder
     userId?: SortOrder
     order?: SortOrder
     createdAt?: SortOrder
@@ -34717,6 +34744,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     type?: SortOrder
+    options?: SortOrder
     userId?: SortOrder
     order?: SortOrder
     createdAt?: SortOrder
@@ -41637,6 +41665,7 @@ export namespace Prisma {
     id?: string
     name: string
     type?: string
+    options?: string | null
     userId: string
     order?: number
     createdAt?: Date | string
@@ -41646,6 +41675,7 @@ export namespace Prisma {
     id?: string
     name: string
     type?: string
+    options?: string | null
     userId: string
     order?: number
     createdAt?: Date | string
@@ -41708,6 +41738,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    options?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -41717,6 +41748,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    options?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
