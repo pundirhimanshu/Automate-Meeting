@@ -22,24 +22,43 @@ function getBaseUrl() {
 }
 
 /**
+ * Simple retry helper for transient DB connection issues
+ */
+async function withRetry(fn, retries = 3, delay = 2000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await fn();
+        } catch (err) {
+            if (i === retries - 1) throw err;
+            // Only retry on connection-related errors (P1001, P2024, etc.)
+            const isConnectionError = err.code === 'P1001' || err.message?.includes('Can\'t reach database');
+            if (!isConnectionError) throw err;
+
+            console.warn(`[WORKFLOWS] DB Connection retry ${i + 1}/${retries} after ${delay}ms...`);
+            await new Promise(res => setTimeout(res, delay));
+        }
+    }
+}
+
+/**
  * Main entrance for triggering real-time workflows
  */
 export async function triggerWorkflows(triggerType, bookingId) {
     console.log(`[WORKFLOWS] Triggering ${triggerType} for booking ${bookingId}`);
 
     try {
-        const booking = await prisma.booking.findUnique({
+        const booking = await withRetry(() => prisma.booking.findUnique({
             where: { id: bookingId },
             include: {
                 host: true,
                 eventType: { include: { user: true, customQuestions: true } },
                 answers: true
             }
-        });
+        }));
 
         if (!booking) return;
 
-        const workflows = await prisma.workflow.findMany({
+        const workflows = await withRetry(() => prisma.workflow.findMany({
             where: {
                 userId: booking.eventType.userId,
                 trigger: triggerType,
@@ -49,7 +68,7 @@ export async function triggerWorkflows(triggerType, bookingId) {
                     { eventTypes: { some: { id: booking.eventTypeId } } }
                 ]
             }
-        });
+        }));
 
         console.log(`[WORKFLOWS] Found ${workflows.length} applicable workflows`);
 
