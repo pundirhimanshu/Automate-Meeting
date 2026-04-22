@@ -85,14 +85,6 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
         }
 
-        // Check duplicate
-        const existing = await prisma.contact.findUnique({
-            where: { userId_email: { userId: session.user.id, email } },
-        });
-        if (existing) {
-            return NextResponse.json({ error: 'A contact with this email already exists' }, { status: 409 });
-        }
-
         const contact = await prisma.contact.create({
             data: {
                 name,
