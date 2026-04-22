@@ -111,6 +111,8 @@ export default function ContactsPage() {
     const [newFieldOptions, setNewFieldOptions] = useState('');
 
     const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+    const [availableQuestions, setAvailableQuestions] = useState([]);
+    const [loadingQuestions, setLoadingQuestions] = useState(false);
 
     // Edit contact state
     const [editingCell, setEditingCell] = useState(null); // { contactId, column }
@@ -243,17 +245,48 @@ export default function ContactsPage() {
         setEditingCell(null);
     };
 
+    // Fetch unique questions from event types
+    useEffect(() => {
+        if (newFieldType === 'invitee') {
+            fetchUniqueQuestions();
+        }
+    }, [newFieldType]);
+
+    const fetchUniqueQuestions = async () => {
+        setLoadingQuestions(true);
+        try {
+            const res = await fetch('/api/event-types');
+            if (res.ok) {
+                const data = await res.json();
+                const questions = new Set();
+                data.eventTypes.forEach(et => {
+                    et.customQuestions?.forEach(q => {
+                        if (q.question) questions.add(q.question);
+                    });
+                });
+                setAvailableQuestions(Array.from(questions).sort());
+            }
+        } catch (e) {
+            console.error('Failed to fetch questions:', e);
+        } finally {
+            setLoadingQuestions(false);
+        }
+    };
+
     // Create custom field
     const createField = async () => {
         if (!newFieldName.trim() || !newFieldType) return;
         try {
+            const options = newFieldType === 'select' ? newFieldOptions : 
+                          newFieldType === 'invitee' ? newFieldOptions : null;
+
             const res = await fetch('/api/contacts/fields', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     name: newFieldName, 
                     type: newFieldType,
-                    options: newFieldType === 'select' ? newFieldOptions : null 
+                    options: options
                 }),
             });
             if (res.ok) {
@@ -532,8 +565,29 @@ export default function ContactsPage() {
                                                                 </span>
                                                             </div>
                                                         ) : (
-                                                            <>
-                                                                {value || <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                                                                    <>
+                                                                {col.type === 'tags' ? (
+                                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                                                        {value.split(',').map(v => v.trim()).filter(Boolean).map((tag, i) => (
+                                                                            <span key={i} style={{
+                                                                                background: 'var(--primary-light)',
+                                                                                color: 'var(--primary)',
+                                                                                fontSize: '0.6875rem',
+                                                                                padding: '1px 6px',
+                                                                                borderRadius: '10px',
+                                                                                fontWeight: 600,
+                                                                                border: '1px solid var(--primary-border)'
+                                                                            }}>
+                                                                                {tag}
+                                                                            </span>
+                                                                        ))}
+                                                                        {!value && <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        {value || <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                                                                    </>
+                                                                )}
                                                             </>
                                                         )}
                                                     </span>
@@ -732,6 +786,35 @@ export default function ContactsPage() {
                                         onChange={(e) => setNewFieldOptions(e.target.value)}
                                         rows={3}
                                     />
+                                </div>
+                            )}
+
+                            {newFieldType === 'invitee' && (
+                                <div className="input-group" style={{ marginTop: '16px' }}>
+                                    <label>Link to Question (from existing event types)</label>
+                                    {loadingQuestions ? (
+                                        <div style={{ padding: '10px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>
+                                            Loading questions...
+                                        </div>
+                                    ) : availableQuestions.length === 0 ? (
+                                        <div style={{ padding: '10px', color: 'var(--danger)', fontSize: '0.8125rem' }}>
+                                            No custom questions found in your event types. Create some first!
+                                        </div>
+                                    ) : (
+                                        <select 
+                                            className="input" 
+                                            value={newFieldOptions} 
+                                            onChange={(e) => setNewFieldOptions(e.target.value)}
+                                        >
+                                            <option value="">Select a question to map</option>
+                                            {availableQuestions.map(q => (
+                                                <option key={q} value={q}>{q}</option>
+                                            ))}
+                                        </select>
+                                    )}
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                        Booking answers for this question will automatically update this contact field.
+                                    </p>
                                 </div>
                             )}
 

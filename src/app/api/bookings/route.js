@@ -473,6 +473,38 @@ export async function POST(request) {
             });
             contactId = newContact.id;
             console.log('[BOOKING] New contact created for booking:', contactId);
+
+            // SYNC MAPPED FIELDS:
+            // Find all contact fields of type 'invitee' for this host
+            const mappedFields = await prisma.contactCustomField.findMany({
+                where: { userId: assignedHostId, type: 'invitee' }
+            });
+
+            if (mappedFields.length > 0 && answers?.length > 0) {
+                // We need to match question text from the booking answers to the field's 'options'
+                const currentQuestions = await prisma.customQuestion.findMany({
+                    where: { id: { in: answers.map(a => a.questionId) } }
+                });
+
+                for (const field of mappedFields) {
+                    const questionLabel = field.options; // This stores the question label to match
+                    if (!questionLabel) continue;
+
+                    const matchingQuestion = currentQuestions.find(q => q.question === questionLabel);
+                    if (matchingQuestion) {
+                        const answerObj = answers.find(a => a.questionId === matchingQuestion.id);
+                        if (answerObj?.answer) {
+                            await prisma.contactFieldValue.create({
+                                data: {
+                                    contactId: contactId,
+                                    fieldId: field.id,
+                                    value: answerObj.answer
+                                }
+                            });
+                        }
+                    }
+                }
+            }
         } catch (contactErr) {
             console.error('[BOOKING] Contact creation failed:', contactErr.message);
         }
