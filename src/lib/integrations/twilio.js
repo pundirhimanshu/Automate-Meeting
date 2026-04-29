@@ -22,9 +22,9 @@ export async function sendTwilioSMS(userId, toPhone, message) {
             return false;
         }
 
-        const accountSid = decrypt(user.twilioAccountSid);
-        const authToken = decrypt(user.twilioAuthToken);
-        let fromPhone = decrypt(user.twilioPhoneNumber);
+        const accountSid = decrypt(user.twilioAccountSid).trim();
+        const authToken = decrypt(user.twilioAuthToken).trim();
+        let fromPhone = decrypt(user.twilioPhoneNumber).trim();
 
         if (!accountSid || !authToken || !fromPhone) {
             console.error(`[TWILIO] Failed to decrypt credentials for user ${userId}`);
@@ -59,14 +59,21 @@ export async function sendTwilioSMS(userId, toPhone, message) {
         params.append('From', fromPhone);
         params.append('Body', message);
 
-        const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Basic ${auth}`,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: params.toString(),
-        });
+        let res;
+        try {
+            res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Basic ${auth}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'Automate-Bookings/1.0',
+                },
+                body: params.toString(),
+            });
+        } catch (fetchErr) {
+            console.error(`[TWILIO_FETCH_FAILED] Socket/Network error: ${fetchErr.message}`);
+            return false;
+        }
 
         const data = await res.json();
 

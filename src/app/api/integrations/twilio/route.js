@@ -38,10 +38,10 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Encrypt sensitive data
-        const encryptedSid = encrypt(twilioAccountSid);
-        const encryptedToken = encrypt(twilioAuthToken);
-        const encryptedPhone = encrypt(twilioPhoneNumber);
+        // Encrypt sensitive data (with trim to avoid socket errors)
+        const encryptedSid = encrypt(twilioAccountSid.trim());
+        const encryptedToken = encrypt(twilioAuthToken.trim());
+        const encryptedPhone = encrypt(twilioPhoneNumber.trim());
 
         await prisma.user.update({
             where: { id: session.user.id },
