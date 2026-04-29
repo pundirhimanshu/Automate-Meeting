@@ -1,6 +1,7 @@
 import { prisma } from './prisma';
 import nodemailer from 'nodemailer';
 import { sendTwilioSMS } from './integrations/twilio';
+import { withRetry } from './db-utils';
 
 // --- System Email Configuration (from .env) ---
 const transporter = nodemailer.createTransport({
@@ -20,25 +21,6 @@ function getBaseUrl() {
     if (vercelProd) return `https://${vercelProd}`;
     if (process.env.VERCEL) return 'https://automate-meeting.vercel.app';
     return 'http://localhost:3000';
-}
-
-/**
- * Simple retry helper for transient DB connection issues
- */
-async function withRetry(fn, retries = 3, delay = 2000) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            return await fn();
-        } catch (err) {
-            if (i === retries - 1) throw err;
-            // Only retry on connection-related errors (P1001, P2024, etc.)
-            const isConnectionError = err.code === 'P1001' || err.message?.includes('Can\'t reach database');
-            if (!isConnectionError) throw err;
-
-            console.warn(`[WORKFLOWS] DB Connection retry ${i + 1}/${retries} after ${delay}ms...`);
-            await new Promise(res => setTimeout(res, delay));
-        }
-    }
 }
 
 /**

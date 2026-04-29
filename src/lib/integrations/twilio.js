@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { decrypt } from '@/lib/encryption';
+import { withRetry } from '@/lib/db-utils';
 
 /**
  * Send SMS to a phone number using the host's Twilio credentials.
@@ -7,14 +8,14 @@ import { decrypt } from '@/lib/encryption';
  */
 export async function sendTwilioSMS(userId, toPhone, message) {
     try {
-        const user = await prisma.user.findUnique({
+        const user = await withRetry(() => prisma.user.findUnique({
             where: { id: userId },
             select: {
                 twilioAccountSid: true,
                 twilioAuthToken: true,
                 twilioPhoneNumber: true,
             }
-        });
+        }));
 
         if (!user || !user.twilioAccountSid || !user.twilioAuthToken || !user.twilioPhoneNumber) {
             console.log(`[TWILIO] User ${userId} has not connected Twilio. Skipping SMS.`);
