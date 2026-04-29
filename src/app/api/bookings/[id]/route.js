@@ -4,6 +4,7 @@ import { sendBookingCancellation, sendBookingReschedule, sendBookingConfirmation
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { triggerWebhook } from '@/lib/webhook-dispatcher';
 import { decrypt } from '@/lib/encryption';
+import { sendTwilioSMS } from '@/lib/integrations/twilio';
 import DodoPayments from 'dodopayments';
 import Razorpay from 'razorpay';
 
@@ -171,8 +172,10 @@ export async function PUT(request, { params }) {
         const booking = await prisma.booking.findUnique({
             where: { id: params.id },
             include: {
-                eventType: { include: { user: true, coHosts: true } },
-                host: true
+                eventType: { include: { user: true, coHosts: true, customQuestions: true } },
+                host: true,
+                answers: true,
+                contact: true
             },
         });
 
@@ -220,6 +223,29 @@ export async function PUT(request, { params }) {
                 cancelReason: cancelReason || '',
                 timezone: booking.timezone,
             });
+
+            // --- Send SMS Cancellation (Direct Integration) ---
+            try {
+                // Find recipient phone
+                let recipientPhone = booking.contact?.phone;
+                if (!recipientPhone && booking.eventType.locationType === 'phone' && booking.location && !booking.location.startsWith('http')) {
+                    recipientPhone = booking.location;
+                }
+                if (!recipientPhone) {
+                    const phoneAnswer = booking.answers?.find(a => {
+                        const qText = booking.eventType.customQuestions?.find(cq => cq.id === a.questionId)?.question?.toLowerCase() || '';
+                        return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
+                    });
+                    recipientPhone = phoneAnswer?.answer;
+                }
+
+                if (recipientPhone) {
+                    const smsBody = `Meeting Cancelled: Your "${booking.eventType.title}" with ${booking.host.name} on ${new Date(booking.startTime).toLocaleDateString()} has been cancelled. Reason: ${cancelReason || 'None'}`;
+                    await sendTwilioSMS(booking.host.id, recipientPhone, smsBody);
+                }
+            } catch (smsErr) {
+                console.error('[SMS_CANCEL_ERROR]', smsErr);
+            }
 
             // Trigger Workflows
             triggerWorkflows('EVENT_CANCELED', booking.id).catch(e => console.error('Workflow trigger error:', e));
@@ -284,6 +310,29 @@ export async function PUT(request, { params }) {
                 newEndTime: new Date(endTime),
                 timezone: booking.timezone,
             });
+
+            // --- Send SMS Reschedule (Direct Integration) ---
+            try {
+                // Find recipient phone
+                let recipientPhone = booking.contact?.phone;
+                if (!recipientPhone && booking.eventType.locationType === 'phone' && booking.location && !booking.location.startsWith('http')) {
+                    recipientPhone = booking.location;
+                }
+                if (!recipientPhone) {
+                    const phoneAnswer = booking.answers?.find(a => {
+                        const qText = booking.eventType.customQuestions?.find(cq => cq.id === a.questionId)?.question?.toLowerCase() || '';
+                        return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
+                    });
+                    recipientPhone = phoneAnswer?.answer;
+                }
+
+                if (recipientPhone) {
+                    const smsBody = `Meeting Rescheduled: Your "${booking.eventType.title}" with ${booking.host.name} has been rescheduled to ${new Date(startTime).toLocaleDateString()} at ${new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
+                    await sendTwilioSMS(booking.host.id, recipientPhone, smsBody);
+                }
+            } catch (smsErr) {
+                console.error('[SMS_RESCHEDULE_ERROR]', smsErr);
+            }
 
             // Trigger Workflows
             triggerWorkflows('EVENT_RESCHEDULED', booking.id).catch(e => console.error('Workflow trigger error:', e));

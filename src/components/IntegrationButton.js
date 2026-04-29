@@ -16,11 +16,12 @@ export default function IntegrationButton({ provider, connected, connectUrl }) {
 
             if (provider === 'google_calendar' || provider === 'google_meet') {
                 disconnectPath = '/api/integrations/google/disconnect';
-            } else if (provider === 'dodo' || provider === 'razorpay') {
+            } else if (provider === 'dodo' || provider === 'razorpay' || provider === 'twilio') {
                 disconnectPath = `/api/integrations/${provider}`;
                 method = 'DELETE';
             }
 
+            console.log(`[DISCONNECT] Calling ${disconnectPath} with ${method}`);
             const res = await fetch(disconnectPath, { method });
             if (res.ok) {
                 router.refresh();

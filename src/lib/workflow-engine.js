@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
 import nodemailer from 'nodemailer';
+import { sendTwilioSMS } from './integrations/twilio';
 
 // --- System Email Configuration (from .env) ---
 const transporter = nodemailer.createTransport({
@@ -52,7 +53,8 @@ export async function triggerWorkflows(triggerType, bookingId) {
             include: {
                 host: true,
                 eventType: { include: { user: true, customQuestions: true } },
-                answers: true
+                answers: true,
+                contact: true
             }
         }));
 
@@ -70,9 +72,13 @@ export async function triggerWorkflows(triggerType, bookingId) {
             }
         }));
 
-        console.log(`[WORKFLOWS] Found ${workflows.length} applicable workflows`);
+        console.log(`[WORKFLOWS] Found ${workflows.length} applicable workflows for trigger ${triggerType}`);
+        if (workflows.length === 0) {
+            console.log(`[WORKFLOWS] No active workflows found for user ${booking.eventType.userId} with trigger ${triggerType}`);
+        }
 
         for (const wf of workflows) {
+            console.log(`[WORKFLOWS] Executing workflow: ${wf.name} (${wf.id}) for trigger ${triggerType}`);
             await executeWorkflow(wf, booking);
         }
     } catch (err) {
@@ -102,6 +108,8 @@ export async function executeWorkflow(workflow, booking) {
                 await sendWorkflowSlackMessage(workflow, booking);
             } else if (actionName === 'SEND_WEBHOOK') {
                 await sendWorkflowWebhook(workflow, booking);
+            } else if (actionName === 'SEND_SMS') {
+                await sendWorkflowSMS(workflow, booking);
             }
         }
 
@@ -147,6 +155,8 @@ async function sendWorkflowEmail(workflow, booking) {
     let body = workflow.body;
 
     const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    // Replace variables...
 
     const replaceVars = (str) => {
         if (!str) return str;
@@ -274,7 +284,64 @@ async function sendWorkflowWebhook(workflow, booking) {
             notes: booking.notes,
         });
     } catch (err) {
-        console.error('[WORKFLOWS] Webhook dispatch failed:', err);
+        console.error('[WORKFLOWS] Webhook execution failed:', err);
+    }
+}
+
+/**
+ * Handle variable replacement and SMS dispatch.
+ */
+async function sendWorkflowSMS(workflow, booking) {
+    const { host, eventType, inviteeName, startTime, location, answers } = booking;
+    
+    const variables = {
+        'Event Name': eventType.title,
+        'Invitee Full Name': inviteeName,
+        'Event Time': new Date(startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        'Event Date': new Date(startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+        'Location': location || 'No location specified',
+        'Host Full Name': host.name,
+    };
+
+    let body = workflow.body || '';
+
+    // Replace variables
+    const pattern = /[\{\(]{2}\s*([^}\)]+)\s*[\}\)]{2}/gi;
+    body = body.replace(pattern, (match, p1) => {
+        const found = Object.entries(variables).find(([k]) => k.toLowerCase() === p1.trim().toLowerCase());
+        return found ? found[1] : match;
+    });
+
+    // Recipient Detection: Host or Invitee
+    console.log(`[WORKFLOWS] SMS recipient detection for ${workflow.sendTo}: contact=${booking.contact?.phone}, location=${location}, answersCount=${answers?.length}`);
+
+    if (workflow.sendTo === 'HOST') {
+        recipientPhone = host.phone || '';
+    } else {
+        // Invitee detection (Ordered by reliability)
+        if (booking.contact?.phone) {
+            recipientPhone = booking.contact.phone;
+            console.log(`[WORKFLOWS] Found recipient phone from contact: ${recipientPhone}`);
+        } 
+        else if (eventType.locationType === 'phone' && location && !location.startsWith('http')) {
+            recipientPhone = location;
+            console.log(`[WORKFLOWS] Found recipient phone from location: ${recipientPhone}`);
+        }
+        else {
+            const phoneAnswer = answers?.find(a => {
+                const qText = eventType.customQuestions?.find(cq => cq.id === a.questionId)?.question?.toLowerCase() || '';
+                return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
+            });
+            recipientPhone = phoneAnswer?.answer || '';
+            console.log(`[WORKFLOWS] Fallback phone detection from answers: ${recipientPhone}`);
+        }
+    }
+
+    if (recipientPhone) {
+        console.log(`[WORKFLOWS] Dispatching Twilio SMS to ${recipientPhone} (Workflow: ${workflow.name})`);
+        await sendTwilioSMS(host.id, recipientPhone, body);
+    } else {
+        console.warn(`[WORKFLOWS] No phone number found for ${workflow.sendTo} in workflow ${workflow.name} (Trigger: ${workflow.trigger}). Skipping SMS.`);
     }
 }
 

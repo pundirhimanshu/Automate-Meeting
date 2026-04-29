@@ -101,6 +101,7 @@ export default function WorkflowsPage() {
                                                 return `Email (${recipients})`;
                                             }
                                             if (a === 'SEND_SLACK_MESSAGE') return 'Slack Notification';
+                                            if (a === 'SEND_SMS') return 'SMS Notification';
                                             return a;
                                         }).join(' & ')
                                     }

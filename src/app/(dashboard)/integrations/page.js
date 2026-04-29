@@ -17,6 +17,7 @@ export default async function IntegrationsPage() {
         if (provider === 'dodo') return !!user?.dodoApiKey;
         if (provider === 'razorpay') return !!user?.razorpayKeyId;
         if (provider === 'stripe') return !!(user?.stripeAccountId || user?.stripeSecretKey);
+        if (provider === 'twilio') return !!user?.twilioAccountSid;
         return userIntegrations.some(i => i.provider === provider);
     };
 
@@ -95,6 +96,14 @@ export default async function IntegrationsPage() {
             icon: <img src="https://s2.googleusercontent.com/s2/favicons?domain=pabbly.com&sz=128" style={{ width: '24px', height: '24px', objectFit: 'contain', borderRadius: '4px' }} alt="Pabbly" />,
             connected: !!user?.webhookUrl, 
             connectUrl: '/integrations/webhooks' 
+        },
+        { 
+            id: 'twilio', 
+            name: 'Twilio SMS', 
+            desc: 'SMS booking notifications', 
+            icon: <img src="https://www.vectorlogo.zone/logos/twilio/twilio-icon.svg" style={{ width: '28px', height: '28px', objectFit: 'contain' }} alt="Twilio" />,
+            connected: isConnected('twilio'), 
+            connectUrl: '/integrations/twilio' 
         },
     ];
 

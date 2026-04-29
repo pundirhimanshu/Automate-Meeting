@@ -14,6 +14,7 @@ const TRIGGERS = [
 const ACTION_TYPES = [
     { label: 'Send Email', value: 'SEND_EMAIL', icon: '✉️' },
     { label: 'Send Slack Message', value: 'SEND_SLACK_MESSAGE', icon: '💬' },
+    { label: 'Send SMS', value: 'SEND_SMS', icon: '📱' },
 ];
 
 const RECIPIENT_TYPES = [
@@ -59,6 +60,7 @@ export default function EditWorkflowPage() {
     // Connectors
     const [gmailConnected, setGmailConnected] = useState(false);
     const [slackConnected, setSlackConnected] = useState(false);
+    const [twilioConnected, setTwilioConnected] = useState(false);
     const [userEmail, setUserEmail] = useState('');
 
     useEffect(() => {
@@ -127,6 +129,7 @@ export default function EditWorkflowPage() {
                 setUserEmail('');
             }
             setSlackConnected(data.integrations?.some(i => i.provider === 'slack'));
+            setTwilioConnected(!!data.user?.twilioAccountSid);
         }
     };
 
@@ -344,6 +347,20 @@ export default function EditWorkflowPage() {
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{slackConnected ? 'Connected.' : 'Not connected.'}</div>
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {selectedActions.includes('SEND_SMS') && (
+                    <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-light)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '1.25rem' }}>📱</span>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>SMS Notification</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                    {twilioConnected ? 'Connected to your Twilio account.' : 'Twilio is not connected. Please go to Integrations to set up.'}
+                                </div>
+                            </div>
+                         </div>
                     </div>
                 )}
 

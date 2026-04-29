@@ -4,14 +4,43 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 export const COUNTRY_CODES = [
-    { code: '+1', flag: '🇺🇸', label: 'US (+1)' },
-    { code: '+44', flag: '🇬🇧', label: 'UK (+44)' },
-    { code: '+91', flag: '🇮🇳', label: 'IN (+91)' },
-    { code: '+1', flag: '🇨🇦', label: 'CA (+1)' },
-    { code: '+61', flag: '🇦🇺', label: 'AU (+61)' },
-    { code: '+49', flag: '🇩🇪', label: 'DE (+49)' },
-    { code: '+33', flag: '🇫🇷', label: 'FR (+33)' },
-    { code: '+971', flag: '🇦🇪', label: 'AE (+971)' },
+    { code: '+1', flag: '🇺🇸', label: 'United States (+1)' },
+    { code: '+91', flag: '🇮🇳', label: 'India (+91)' },
+    { code: '+44', flag: '🇬🇧', label: 'United Kingdom (+44)' },
+    { code: '+1', flag: '🇨🇦', label: 'Canada (+1)' },
+    { code: '+61', flag: '🇦🇺', label: 'Australia (+61)' },
+    { code: '+971', flag: '🇦🇪', label: 'United Arab Emirates (+971)' },
+    { code: '+49', flag: '🇩🇪', label: 'Germany (+49)' },
+    { code: '+33', flag: '🇫🇷', label: 'France (+33)' },
+    { code: '+81', flag: '🇯🇵', label: 'Japan (+81)' },
+    { code: '+65', flag: '🇸🇬', label: 'Singapore (+65)' },
+    { code: '+852', flag: '🇭🇰', label: 'Hong Kong (+852)' },
+    { code: '+353', flag: '🇮🇪', label: 'Ireland (+353)' },
+    { code: '+31', flag: '🇳🇱', label: 'Netherlands (+31)' },
+    { code: '+34', flag: '🇪🇸', label: 'Spain (+34)' },
+    { code: '+39', flag: '🇮🇹', label: 'Italy (+39)' },
+    { code: '+55', flag: '🇧🇷', label: 'Brazil (+55)' },
+    { code: '+52', flag: '🇲🇽', label: 'Mexico (+52)' },
+    { code: '+27', flag: '🇿🇦', label: 'South Africa (+27)' },
+    { code: '+64', flag: '🇳🇿', label: 'New Zealand (+64)' },
+    { code: '+41', flag: '🇨🇭', label: 'Switzerland (+41)' },
+    { code: '+46', flag: '🇸🇪', label: 'Sweden (+46)' },
+    { code: '+47', flag: '🇳🇴', label: 'Norway (+47)' },
+    { code: '+45', flag: '🇩🇰', label: 'Denmark (+45)' },
+    { code: '+7', flag: '🇷🇺', label: 'Russia (+7)' },
+    { code: '+86', flag: '🇨🇳', label: 'China (+86)' },
+    { code: '+82', flag: '🇰🇷', label: 'South Korea (+82)' },
+    { code: '+90', flag: '🇹🇷', label: 'Turkey (+90)' },
+    { code: '+62', flag: '🇮🇩', label: 'Indonesia (+62)' },
+    { code: '+66', flag: '🇹🇭', label: 'Thailand (+66)' },
+    { code: '+60', flag: '🇲🇾', label: 'Malaysia (+60)' },
+    { code: '+63', flag: '🇵🇭', label: 'Philippines (+63)' },
+    { code: '+84', flag: '🇻🇳', label: 'Vietnam (+84)' },
+    { code: '+966', flag: '🇸🇦', label: 'Saudi Arabia (+966)' },
+    { code: '+965', flag: '🇰🇼', label: 'Kuwait (+965)' },
+    { code: '+968', flag: '🇴🇲', label: 'Oman (+968)' },
+    { code: '+974', flag: '🇶🇦', label: 'Qatar (+974)' },
+    { code: '+973', flag: '🇧🇭', label: 'Bahrain (+973)' },
 ];
 
 const BRAND_COLORS = {
@@ -98,7 +127,20 @@ export default function BookingPage() {
 
     // Update state when detectedTz changes (first load)
     useEffect(() => {
-        if (detectedTz) setInviteeTimezone(detectedTz);
+        if (detectedTz) {
+            setInviteeTimezone(detectedTz);
+            
+            // Heuristic for country code
+            if (detectedTz.includes('India') || detectedTz === 'Asia/Kolkata') {
+                setForm(f => ({ ...f, countryCode: '+91' }));
+            } else if (detectedTz.includes('London') || detectedTz.includes('Europe/London')) {
+                setForm(f => ({ ...f, countryCode: '+44' }));
+            } else if (detectedTz.includes('America')) {
+                setForm(f => ({ ...f, countryCode: '+1' }));
+            } else if (detectedTz.includes('Australia')) {
+                setForm(f => ({ ...f, countryCode: '+61' }));
+            }
+        }
     }, [detectedTz]);
 
     useEffect(() => { fetchData(); }, []);
@@ -275,7 +317,7 @@ export default function BookingPage() {
 
         try {
             const answerList = Object.entries(form.answers)
-                .filter(([_, v]) => v.trim())
+                .filter(([k, v]) => v.trim() && !k.endsWith('_code') && !k.endsWith('_num'))
                 .map(([questionId, answer]) => ({ questionId, answer }));
 
             const res = await fetch('/api/bookings', {
@@ -664,7 +706,51 @@ export default function BookingPage() {
                                 {data.eventType.customQuestions?.map((q) => (
                                     <div key={q.id} className="input-group">
                                         <label>{q.question} {q.required && '*'}</label>
-                                        {q.type === 'textarea' ? (
+                                        {q.type === 'phone' || q.question.toLowerCase().includes('phone') || q.question.toLowerCase().includes('whatsapp') ? (
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <select
+                                                    className="input"
+                                                    value={form.answers[`${q.id}_code`] || form.countryCode}
+                                                    onChange={(e) => {
+                                                        const code = e.target.value;
+                                                        const num = form.answers[`${q.id}_num`] || '';
+                                                        setForm({ 
+                                                            ...form, 
+                                                            answers: { 
+                                                                ...form.answers, 
+                                                                [`${q.id}_code`]: code,
+                                                                [q.id]: `${code}${num}` 
+                                                            } 
+                                                        });
+                                                    }}
+                                                    style={{ width: '90px', padding: '10px 4px', fontSize: '0.9rem', flexShrink: 0 }}
+                                                >
+                                                    {COUNTRY_CODES.map(c => (
+                                                        <option key={`${c.flag}-${c.code}`} value={c.code}>{c.flag} {c.code}</option>
+                                                    ))}
+                                                </select>
+                                                <input
+                                                    type="tel"
+                                                    className="input"
+                                                    placeholder="Phone number"
+                                                    value={form.answers[`${q.id}_num`] || ''}
+                                                    onChange={(e) => {
+                                                        const num = e.target.value;
+                                                        const code = form.answers[`${q.id}_code`] || form.countryCode;
+                                                        setForm({ 
+                                                            ...form, 
+                                                            answers: { 
+                                                                ...form.answers, 
+                                                                [`${q.id}_num`]: num,
+                                                                [q.id]: `${code}${num}` 
+                                                            } 
+                                                        });
+                                                    }}
+                                                    required={q.required}
+                                                    style={{ flex: 1 }}
+                                                />
+                                            </div>
+                                        ) : q.type === 'textarea' ? (
                                             <textarea
                                                 className="input"
                                                 value={form.answers[q.id] || ''}

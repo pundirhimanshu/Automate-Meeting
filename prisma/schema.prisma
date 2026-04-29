@@ -46,6 +46,11 @@ model User {
   stripeSecretKey      String?  // Encrypted manual Stripe secret key
   stripeWebhookSecret  String?  // Encrypted manual Stripe webhook secret
 
+  // Twilio SMS
+  twilioAccountSid     String?   // Encrypted
+  twilioAuthToken      String?   // Encrypted
+  twilioPhoneNumber    String?   // Encrypted — Twilio sender phone (FROM number)
+
   // Start Your Page
   pageAboutMe            String?
   pageHeadline           String?

@@ -463,10 +463,24 @@ export async function POST(request) {
 
             const contactNotes = `Meeting: ${eventType.title}${notes ? '\n\nNotes: ' + notes : ''}${customNotesString}`;
 
+            // Heuristic to find a phone number in answers if inviteePhone is missing
+            let detectedPhone = inviteePhone;
+            if (!detectedPhone && answers?.length > 0) {
+                const questions = await prisma.customQuestion.findMany({
+                    where: { id: { in: answers.map(a => a.questionId) } }
+                });
+                const phoneAnswer = answers.find(a => {
+                    const qText = questions.find(q => q.id === a.questionId)?.question?.toLowerCase() || '';
+                    return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
+                });
+                if (phoneAnswer) detectedPhone = phoneAnswer.answer;
+            }
+
             const newContact = await prisma.contact.create({
                 data: {
                     name: inviteeName,
                     email: inviteeEmail,
+                    phone: detectedPhone || null,
                     userId: assignedHostId,
                     notes: contactNotes,
                 }
@@ -761,6 +775,21 @@ export async function POST(request) {
                 // Send Automatic Slack Notification
                 const slackMessage = `🆕 *New Booking: ${eventType.title}*\n👤 *Invitee:* ${inviteeName}\n📧 *Email:* ${inviteeEmail}\n📅 *Time:* ${new Date(startTime).toLocaleString()}\n🔗 *Meeting Link:* ${meetingLink || 'None'}`;
                 sendSlackNotification(assignedHostId, slackMessage).catch(e => console.error('Slack notification error:', e));
+
+                // Send Automatic Twilio SMS (only if host has it connected)
+                const { sendTwilioSMS } = require('@/lib/integrations/twilio');
+                const inviteePhoneNumber = (() => {
+                    const phoneAnswer = booking.answers?.find(a => {
+                        const qText = eventType.customQuestions?.find(cq => cq.id === a.questionId)?.question?.toLowerCase() || '';
+                        return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
+                    });
+                    return phoneAnswer?.answer || '';
+                })();
+
+                if (inviteePhoneNumber) {
+                    const smsMsg = `✅ Booking Confirmed: ${eventType.title}\n📅 ${new Date(startTime).toLocaleString()}\n📍 ${meetingLink || 'See email for details'}`;
+                    sendTwilioSMS(assignedHostId, inviteePhoneNumber, smsMsg).catch(e => console.error('Twilio SMS error:', e));
+                }
 
                 // Trigger Pabbly / Global Webhook
                 triggerWebhook(assignedHostId, 'booking.confirmed', {
