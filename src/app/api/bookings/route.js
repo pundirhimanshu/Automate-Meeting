@@ -783,7 +783,13 @@ export async function POST(request) {
                 triggerWorkflows('EVENT_BOOKED', booking.id).catch(e => console.error('Workflow trigger error:', e));
 
                 // Send Automatic Slack Notification
-                const slackMessage = `🆕 *New Booking: ${eventType.title}*\n👤 *Invitee:* ${inviteeName}\n📧 *Email:* ${inviteeEmail}\n📅 *Time:* ${new Date(startTime).toLocaleString()}\n🔗 *Meeting Link:* ${meetingLink || 'None'}`;
+                const formattedTime = new Intl.DateTimeFormat('en-US', {
+                    dateStyle: 'full',
+                    timeStyle: 'short',
+                    timeZone: booking.timezone || 'UTC'
+                }).format(new Date(booking.startTime));
+
+                const slackMessage = `🆕 *New Booking: ${eventType.title}*\n👤 *Invitee:* ${inviteeName}\n📧 *Email:* ${inviteeEmail}\n📅 *Time:* ${formattedTime} (${booking.timezone || 'UTC'})\n🔗 *Meeting Link:* ${meetingLink || 'None'}`;
                 sendSlackNotification(assignedHostId, slackMessage).catch(e => console.error('Slack notification error:', e));
 
                 // HubSpot Sync

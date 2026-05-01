@@ -121,8 +121,8 @@ async function sendWorkflowEmail(workflow, booking) {
     const variables = {
         'Event Name': eventType.title,
         'Invitee Full Name': inviteeName,
-        'Event Time': new Date(startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-        'Event Date': new Date(startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+        'Event Time': new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: booking.timezone || 'UTC' }).format(new Date(startTime)),
+        'Event Date': new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: booking.timezone || 'UTC' }).format(new Date(startTime)),
         'Location': location || 'No location specified',
         'Event Description': eventType.description || '',
         'Host Full Name': host.name,
@@ -210,8 +210,8 @@ async function sendWorkflowSlackMessage(workflow, booking) {
     const variables = {
         'Event Name': eventType.title,
         'Invitee Full Name': inviteeName,
-        'Event Time': new Date(startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-        'Event Date': new Date(startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+        'Event Time': new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: booking.timezone || 'UTC' }).format(new Date(startTime)),
+        'Event Date': new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: booking.timezone || 'UTC' }).format(new Date(startTime)),
         'Location': location || 'No location specified',
         'Event Description': eventType.description || '',
         'Host Full Name': host.name,
