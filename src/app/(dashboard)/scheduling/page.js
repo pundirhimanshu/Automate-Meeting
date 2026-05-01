@@ -1582,11 +1582,12 @@ function SchedulingContent() {
                                                         <input name="price" type="number" className="input" placeholder="0.00" value={form.price} onChange={handleChange} min={0} step={form.paymentProvider === 'stripe' ? '0.01' : '1'} />
                                                     </div>
 
-                                                    {form.paymentProvider === 'stripe' && (
+                                                    {(form.paymentProvider === 'stripe' || form.paymentProvider === 'razorpay') && (
                                                         <div className="input-group">
                                                             <label>Currency</label>
                                                             <select name="currency" className="input" value={form.currency} onChange={handleChange}>
                                                                 <option value="USD">USD ($)</option>
+                                                                <option value="INR">INR (₹)</option>
                                                                 <option value="EUR">EUR (€)</option>
                                                                 <option value="GBP">GBP (£)</option>
                                                                 <option value="CAD">CAD ($)</option>
