@@ -49,28 +49,26 @@ export async function getValidHubSpotToken(userId) {
     });
 
     if (!user?.hubspotRefreshToken) {
-        console.log('[HUBSPOT] No refresh token found for user:', userId);
         return null;
     }
 
-    // Check if token is still valid (not expired and not expiring in next 5 minutes)
+    // Check if token is still valid
     const now = new Date();
     const expiresAt = user.hubspotExpiresAt ? new Date(user.hubspotExpiresAt) : null;
     if (expiresAt && expiresAt > new Date(now.getTime() + 5 * 60 * 1000)) {
         try {
             return decrypt(user.hubspotAccessToken);
         } catch (e) {
-            console.error('[HUBSPOT] Failed to decrypt access token, will refresh:', e.message);
+            console.error('[HUBSPOT] Failed to decrypt access token, will refresh');
         }
     }
 
-    // Token expired or about to expire — refresh it
-    console.log('[HUBSPOT] Refreshing access token for user:', userId);
+    // Token expired — refresh it
     let refreshToken;
     try {
         refreshToken = decrypt(user.hubspotRefreshToken);
     } catch (e) {
-        console.error('[HUBSPOT] Failed to decrypt refresh token:', e.message);
+        console.error('[HUBSPOT] Failed to decrypt refresh token');
         return null;
     }
 
@@ -95,7 +93,6 @@ export async function getValidHubSpotToken(userId) {
 
     const data = await response.json();
     
-    // Save new tokens
     await prisma.user.update({
         where: { id: userId },
         data: {
@@ -105,160 +102,123 @@ export async function getValidHubSpotToken(userId) {
         },
     });
 
-    console.log('[HUBSPOT] Token refreshed successfully');
     return data.access_token;
 }
 
 /**
- * Create or Update a Contact in HubSpot
+ * Full HubSpot sync — single function, single token fetch, runs fast
  */
-export async function syncHubSpotContact(userId, booking) {
-    console.log('[HUBSPOT] Syncing contact for booking:', booking.id, 'Email:', booking.inviteeEmail);
-    
+export async function syncBookingToHubSpot(userId, booking) {
+    console.log('[HUBSPOT] Starting sync for booking:', booking.id);
+    const startTs = Date.now();
+
     const token = await getValidHubSpotToken(userId);
     if (!token) {
-        console.log('[HUBSPOT] No valid token — skipping contact sync');
-        return null;
+        console.log('[HUBSPOT] No valid token — skipping sync');
+        return;
     }
 
-    const properties = {
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+    };
+
+    // ---- STEP 1: Create or find Contact ----
+    let contactId = null;
+    const contactProps = {
         email: booking.inviteeEmail,
         firstname: booking.inviteeName?.split(' ')[0] || '',
         lastname: booking.inviteeName?.split(' ').slice(1).join(' ') || '.',
     };
 
-    console.log('[HUBSPOT] Creating/updating contact with properties:', JSON.stringify(properties));
-
-    // Try to search for existing contact by email
+    // Search for existing contact
     try {
         const searchRes = await fetch('https://api.hubapi.com/crm/v3/objects/contacts/search', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
-                filterGroups: [{
-                    filters: [{ propertyName: 'email', operator: 'EQ', value: booking.inviteeEmail }]
-                }],
+                filterGroups: [{ filters: [{ propertyName: 'email', operator: 'EQ', value: booking.inviteeEmail }] }],
             }),
         });
 
         if (searchRes.ok) {
             const searchData = await searchRes.json();
             if (searchData.total > 0) {
-                const contactId = searchData.results[0].id;
-                console.log('[HUBSPOT] Found existing contact:', contactId);
-                // Update existing contact
-                await fetch(`https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ properties }),
-                });
-                return contactId;
+                contactId = searchData.results[0].id;
+                // Update existing
+                fetch(`https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`, {
+                    method: 'PATCH', headers,
+                    body: JSON.stringify({ properties: contactProps }),
+                }).catch(() => {});
             }
-        } else {
-            const errText = await searchRes.text();
-            console.error('[HUBSPOT] Contact search failed:', searchRes.status, errText);
         }
-    } catch (searchErr) {
-        console.error('[HUBSPOT] Contact search error:', searchErr.message);
+    } catch (e) {
+        console.error('[HUBSPOT] Contact search error:', e.message);
     }
 
-    // Create new contact
-    try {
-        const createRes = await fetch('https://api.hubapi.com/crm/v3/objects/contacts', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ properties }),
-        });
-
-        if (createRes.ok) {
-            const createData = await createRes.json();
-            console.log('[HUBSPOT] Created new contact:', createData.id);
-            return createData.id;
-        } else {
-            const errText = await createRes.text();
-            console.error('[HUBSPOT] Contact creation failed:', createRes.status, errText);
+    // Create if not found
+    if (!contactId) {
+        try {
+            const createRes = await fetch('https://api.hubapi.com/crm/v3/objects/contacts', {
+                method: 'POST', headers,
+                body: JSON.stringify({ properties: contactProps }),
+            });
+            if (createRes.ok) {
+                const createData = await createRes.json();
+                contactId = createData.id;
+            } else {
+                const errText = await createRes.text();
+                console.error('[HUBSPOT] Contact creation failed:', createRes.status, errText);
+            }
+        } catch (e) {
+            console.error('[HUBSPOT] Contact creation error:', e.message);
         }
-    } catch (createErr) {
-        console.error('[HUBSPOT] Contact creation error:', createErr.message);
     }
 
-    return null;
-}
+    if (!contactId) {
+        console.error('[HUBSPOT] Could not create or find contact — aborting meeting sync');
+        return;
+    }
 
-/**
- * Log a Meeting in HubSpot and associate it with a contact
- */
-export async function syncHubSpotMeeting(userId, booking, contactId) {
-    console.log('[HUBSPOT] Syncing meeting for booking:', booking.id, 'Contact:', contactId);
+    console.log('[HUBSPOT] Contact ready:', contactId);
 
-    const token = await getValidHubSpotToken(userId);
-    if (!token || !contactId) return null;
-
+    // ---- STEP 2: Create Meeting ----
     const startTime = new Date(booking.startTime).toISOString();
     const endTime = new Date(booking.endTime).toISOString();
     const title = booking.eventType?.title || 'Meeting';
 
-    const meetingData = {
-        properties: {
-            hs_timestamp: startTime,
-            hs_meeting_title: `${title}: ${booking.inviteeName}`,
-            hs_meeting_body: `Scheduled via Automate Bookings.\n\nNotes: ${booking.notes || 'None'}`,
-            hs_internal_meeting_notes: `Booking ID: ${booking.id}`,
-            hs_meeting_start_time: startTime,
-            hs_meeting_end_time: endTime,
-            hs_meeting_outcome: 'SCHEDULED',
-        },
-    };
-
     try {
-        const res = await fetch('https://api.hubapi.com/crm/v3/objects/meetings', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(meetingData),
+        const meetRes = await fetch('https://api.hubapi.com/crm/v3/objects/meetings', {
+            method: 'POST', headers,
+            body: JSON.stringify({
+                properties: {
+                    hs_timestamp: startTime,
+                    hs_meeting_title: `${title}: ${booking.inviteeName}`,
+                    hs_meeting_body: `Scheduled via Automate Bookings.\nNotes: ${booking.notes || 'None'}`,
+                    hs_internal_meeting_notes: `Booking ID: ${booking.id}`,
+                    hs_meeting_start_time: startTime,
+                    hs_meeting_end_time: endTime,
+                    hs_meeting_outcome: 'SCHEDULED',
+                },
+            }),
         });
 
-        if (res.ok) {
-            const data = await res.json();
-            const meetingId = data.id;
-            console.log('[HUBSPOT] Created meeting:', meetingId);
+        if (meetRes.ok) {
+            const meetData = await meetRes.json();
+            console.log('[HUBSPOT] Meeting created:', meetData.id);
 
-            // Associate meeting with contact
-            const assocRes = await fetch(`https://api.hubapi.com/crm/v4/objects/meetings/${meetingId}/associations/contacts/${contactId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
+            // Associate meeting with contact (fire & forget for speed)
+            fetch(`https://api.hubapi.com/crm/v4/objects/meetings/${meetData.id}/associations/contacts/${contactId}`, {
+                method: 'PUT', headers,
                 body: JSON.stringify([{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 200 }]),
-            });
-
-            if (assocRes.ok) {
-                console.log('[HUBSPOT] Meeting associated with contact successfully');
-            } else {
-                const assocErr = await assocRes.text();
-                console.error('[HUBSPOT] Meeting association failed:', assocRes.status, assocErr);
-            }
-
-            return meetingId;
+            }).catch(e => console.error('[HUBSPOT] Association error:', e.message));
         } else {
-            const errText = await res.text();
-            console.error('[HUBSPOT] Meeting creation failed:', res.status, errText);
+            const errText = await meetRes.text();
+            console.error('[HUBSPOT] Meeting creation failed:', meetRes.status, errText);
         }
-    } catch (meetErr) {
-        console.error('[HUBSPOT] Meeting creation error:', meetErr.message);
+    } catch (e) {
+        console.error('[HUBSPOT] Meeting creation error:', e.message);
     }
 
-    return null;
+    console.log(`[HUBSPOT] Sync completed in ${Date.now() - startTs}ms`);
 }
