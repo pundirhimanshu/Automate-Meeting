@@ -4,6 +4,7 @@ import { decrypt } from '@/lib/encryption';
 import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { createGoogleCalendarEvent } from '@/lib/integrations/google';
+import { sendBookingConfirmationSMS } from '@/lib/integrations/twilio';
 import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
@@ -129,6 +130,9 @@ export async function POST(request) {
 
             // Trigger workflows
             triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[STRIPE_WEBHOOK] Workflow error:', e));
+
+            // --- Direct SMS Confirmation ---
+            sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[STRIPE_WEBHOOK] SMS confirmation error:', e));
 
             // Notifications
             const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];

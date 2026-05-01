@@ -5,6 +5,7 @@ import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { triggerWebhook } from '@/lib/webhook-dispatcher';
 import { createGoogleCalendarEvent } from '@/lib/integrations/google';
+import { sendBookingConfirmationSMS } from '@/lib/integrations/twilio';
 import crypto from 'crypto';
 
 export async function POST(request) {
@@ -121,6 +122,9 @@ export async function POST(request) {
             
             // Trigger Workflows
             triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[RAZORPAY_WEBHOOK] Workflow error:', e));
+
+            // --- Direct SMS Confirmation ---
+            sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[RAZORPAY_WEBHOOK] SMS confirmation error:', e));
 
             // Trigger Pabbly / Global Webhook
             triggerWebhook(hostId, 'booking.confirmed', {
