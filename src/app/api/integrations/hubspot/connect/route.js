@@ -10,6 +10,13 @@ export async function GET() {
         const CLIENT_ID = process.env.HUBSPOT_CLIENT_ID;
         const REDIRECT_URI = process.env.HUBSPOT_REDIRECT_URI;
         
+        if (!CLIENT_ID || !REDIRECT_URI) {
+            console.error('[HUBSPOT_CONNECT] Missing credentials:', { CLIENT_ID: !!CLIENT_ID, REDIRECT_URI: !!REDIRECT_URI });
+            return NextResponse.json({ 
+                error: 'HubSpot configuration is missing on the server. Please ensure HUBSPOT_CLIENT_ID and HUBSPOT_REDIRECT_URI are set in Vercel environment variables.' 
+            }, { status: 500 });
+        }
+        
         // Scopes needed for contacts and meetings
         const scopes = [
             'crm.objects.contacts.write',

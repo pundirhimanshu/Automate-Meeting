@@ -23,6 +23,11 @@ export async function GET(request) {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        if (!process.env.HUBSPOT_CLIENT_SECRET) {
+            console.error('[HUBSPOT_CALLBACK] Missing HUBSPOT_CLIENT_SECRET');
+            return NextResponse.redirect(new URL('/integrations?error=hubspot_config_error', request.url));
+        }
+
         // Exchange code for tokens
         const data = await exchangeHubSpotCode(code);
 
