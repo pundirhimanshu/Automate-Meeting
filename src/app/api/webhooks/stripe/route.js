@@ -129,10 +129,10 @@ export async function POST(request) {
             console.log('[STRIPE_WEBHOOK] Booking confirmed!');
 
             // Trigger workflows
-            triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[STRIPE_WEBHOOK] Workflow error:', e));
-
-            // --- Direct SMS Confirmation ---
+            // --- Direct SMS Confirmation (PRIORITY) ---
             sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[STRIPE_WEBHOOK] SMS confirmation error:', e));
+
+            triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[STRIPE_WEBHOOK] Workflow error:', e));
 
             // Notifications
             const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];

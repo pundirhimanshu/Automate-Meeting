@@ -91,6 +91,9 @@ export async function GET(request, { params }) {
                     });
 
                     // Finalize (Workflows, Emails)
+                    // --- Direct SMS Confirmation (PRIORITY) ---
+                    sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[SMS_CONFIRM_ERROR]', e));
+
                     triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(console.error);
                     
                     const origin = request.headers.get('origin') || `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'localhost:3000'}`;
@@ -110,9 +113,6 @@ export async function GET(request, { params }) {
                         manageUrl,
                         timezone: updatedBooking.timezone,
                     });
-
-                    // --- Direct SMS Confirmation ---
-                    await sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[SMS_CONFIRM_ERROR]', e));
 
                     // Trigger Pabbly / Global Webhook
                     triggerWebhook(updatedBooking.hostId, 'booking.confirmed', {

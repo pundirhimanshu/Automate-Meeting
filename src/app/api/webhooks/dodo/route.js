@@ -131,12 +131,12 @@ export async function POST(request) {
 
                 // 8. Finalize Booking (Emails, Workflows, Sync)
                 
+                // --- Direct SMS Confirmation (PRIORITY) ---
+                sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[DODO_WEBHOOK] SMS confirmation error:', e));
+
                 // Trigger Workflows
                 console.log('[DODO_WEBHOOK] Triggering workflows for EVENT_BOOKED...');
                 triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[DODO_WEBHOOK] Workflow trigger error:', e));
-
-                // --- Direct SMS Confirmation ---
-                sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[DODO_WEBHOOK] SMS confirmation error:', e));
 
                 // Trigger Pabbly / Global Webhook
                 triggerWebhook(hostId, 'booking.confirmed', {

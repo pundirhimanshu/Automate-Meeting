@@ -757,6 +757,14 @@ export async function POST(request) {
             const manageUrl = booking.manageToken ? `${origin}/book/manage/${booking.manageToken}` : '';
 
             // Send confirmation emails
+            // --- Direct SMS Confirmation (PRIORITY) ---
+            sendBookingConfirmationSMS({
+                ...booking,
+                host: eventType.user,
+                eventType,
+                contact: { id: contactId, phone: inviteePhone },
+            }).catch(e => console.error('[SMS_CONFIRM_ERROR]', e));
+
             await sendBookingConfirmation({
                 booking,
                 eventType,
@@ -776,14 +784,6 @@ export async function POST(request) {
                 // Send Automatic Slack Notification
                 const slackMessage = `🆕 *New Booking: ${eventType.title}*\n👤 *Invitee:* ${inviteeName}\n📧 *Email:* ${inviteeEmail}\n📅 *Time:* ${new Date(startTime).toLocaleString()}\n🔗 *Meeting Link:* ${meetingLink || 'None'}`;
                 sendSlackNotification(assignedHostId, slackMessage).catch(e => console.error('Slack notification error:', e));
-
-                // Send Automatic Twilio SMS
-                sendBookingConfirmationSMS({
-                    ...booking,
-                    host: eventType.user,
-                    eventType,
-                    contact: { id: contactId, phone: inviteePhone },
-                }).catch(e => console.error('[SMS_CONFIRM_ERROR]', e));
 
                 // Trigger Pabbly / Global Webhook
                 triggerWebhook(assignedHostId, 'booking.confirmed', {
