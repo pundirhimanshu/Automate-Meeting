@@ -4,7 +4,7 @@ import { sendBookingCancellation, sendBookingReschedule, sendBookingConfirmation
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { triggerWebhook } from '@/lib/webhook-dispatcher';
 import { decrypt } from '@/lib/encryption';
-import { sendTwilioSMS } from '@/lib/integrations/twilio';
+import { sendTwilioSMS, sendBookingConfirmationSMS } from '@/lib/integrations/twilio';
 import DodoPayments from 'dodopayments';
 import Razorpay from 'razorpay';
 
@@ -110,6 +110,9 @@ export async function GET(request, { params }) {
                         manageUrl,
                         timezone: updatedBooking.timezone,
                     });
+
+                    // --- Direct SMS Confirmation ---
+                    await sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[SMS_CONFIRM_ERROR]', e));
 
                     // Trigger Pabbly / Global Webhook
                     triggerWebhook(updatedBooking.hostId, 'booking.confirmed', {

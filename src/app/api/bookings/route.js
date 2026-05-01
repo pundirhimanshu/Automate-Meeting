@@ -12,6 +12,7 @@ import { createGoogleMeetEvent, createGoogleCalendarEvent } from '@/lib/integrat
 import { canCreateBooking, canUseIntegration } from '@/lib/plans';
 import { getUserSubscription } from '@/lib/subscription';
 import { decrypt } from '@/lib/encryption';
+import { sendBookingConfirmationSMS } from '@/lib/integrations/twilio';
 import DodoPayments from 'dodopayments';
 import Razorpay from 'razorpay';
 import Stripe from 'stripe';
@@ -776,20 +777,13 @@ export async function POST(request) {
                 const slackMessage = `🆕 *New Booking: ${eventType.title}*\n👤 *Invitee:* ${inviteeName}\n📧 *Email:* ${inviteeEmail}\n📅 *Time:* ${new Date(startTime).toLocaleString()}\n🔗 *Meeting Link:* ${meetingLink || 'None'}`;
                 sendSlackNotification(assignedHostId, slackMessage).catch(e => console.error('Slack notification error:', e));
 
-                // Send Automatic Twilio SMS (only if host has it connected)
-                const { sendTwilioSMS } = require('@/lib/integrations/twilio');
-                const inviteePhoneNumber = (() => {
-                    const phoneAnswer = booking.answers?.find(a => {
-                        const qText = eventType.customQuestions?.find(cq => cq.id === a.questionId)?.question?.toLowerCase() || '';
-                        return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
-                    });
-                    return phoneAnswer?.answer || '';
-                })();
-
-                if (inviteePhoneNumber) {
-                    const smsMsg = `✅ Booking Confirmed: ${eventType.title}\n📅 ${new Date(startTime).toLocaleString()}\n📍 ${meetingLink || 'See email for details'}`;
-                    sendTwilioSMS(assignedHostId, inviteePhoneNumber, smsMsg).catch(e => console.error('Twilio SMS error:', e));
-                }
+                // Send Automatic Twilio SMS
+                sendBookingConfirmationSMS({
+                    ...booking,
+                    host: eventType.user,
+                    eventType,
+                    contact: { id: contactId, phone: inviteePhone },
+                }).catch(e => console.error('[SMS_CONFIRM_ERROR]', e));
 
                 // Trigger Pabbly / Global Webhook
                 triggerWebhook(assignedHostId, 'booking.confirmed', {

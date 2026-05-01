@@ -89,3 +89,34 @@ export async function sendTwilioSMS(userId, toPhone, message) {
         return false;
     }
 }
+
+/**
+ * High-level helper to send a booking confirmation SMS.
+ * Automatically detects the phone number from the booking data.
+ */
+export async function sendBookingConfirmationSMS(booking) {
+    try {
+        const { host, eventType, inviteeName, startTime, contact, answers, location } = booking;
+        
+        // Find recipient phone (Invitee)
+        let recipientPhone = contact?.phone;
+        if (!recipientPhone && eventType.locationType === 'phone' && location && !location.startsWith('http')) {
+            recipientPhone = location;
+        }
+        if (!recipientPhone) {
+            const phoneAnswer = answers?.find(a => {
+                const qText = eventType.customQuestions?.find(cq => cq.id === a.questionId)?.question?.toLowerCase() || '';
+                return qText.includes('phone') || qText.includes('contact') || qText.includes('mobile') || a.answer.match(/^\+?[\d\s-]{10,}$/);
+            });
+            recipientPhone = phoneAnswer?.answer;
+        }
+
+        if (recipientPhone) {
+            const smsBody = `Confirmed: Your "${eventType.title}" with ${host.name} is scheduled for ${new Date(startTime).toLocaleDateString()} at ${new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
+            return await sendTwilioSMS(host.id, recipientPhone, smsBody);
+        }
+    } catch (err) {
+        console.error('[SMS_CONFIRM_ERROR]', err);
+    }
+    return false;
+}
