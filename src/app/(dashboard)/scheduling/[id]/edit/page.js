@@ -45,6 +45,23 @@ const COUNTRY_CODES = [
     { code: '+973', flag: '🇧🇭', label: 'Bahrain (+973)' },
 ];
 
+const CURRENCIES = [
+    { code: 'USD', symbol: '$', label: 'US Dollar' },
+    { code: 'INR', symbol: '₹', label: 'Indian Rupee' },
+    { code: 'EUR', symbol: '€', label: 'Euro' },
+    { code: 'GBP', symbol: '£', label: 'British Pound' },
+    { code: 'CAD', symbol: 'CA$', label: 'Canadian Dollar' },
+    { code: 'AUD', symbol: 'A$', label: 'Australian Dollar' },
+    { code: 'AED', symbol: 'DH', label: 'UAE Dirham' },
+    { code: 'SAR', symbol: 'SR', label: 'Saudi Riyal' },
+    { code: 'SGD', symbol: 'S$', label: 'Singapore Dollar' },
+    { code: 'JPY', symbol: '¥', label: 'Japanese Yen' },
+    { code: 'CHF', symbol: 'Fr', label: 'Swiss Franc' },
+    { code: 'NZD', symbol: '$', label: 'New Zealand Dollar' },
+    { code: 'HKD', symbol: '$', label: 'Hong Kong Dollar' },
+    { code: 'ZAR', symbol: 'R', label: 'South African Rand' },
+];
+
 export default function EditEventType() {
     const router = useRouter();
     const params = useParams();
@@ -69,8 +86,11 @@ export default function EditEventType() {
                     location: data.eventType.location || '',
                     countryCode: data.eventType.countryCode || '+1',
                     phoneCallSource: data.eventType.phoneCallSource || 'host',
-                    inviteeLimit: data.eventType.inviteeLimit || 1,
                     customQuestions: data.eventType.customQuestions || [],
+                    requiresPayment: data.eventType.requiresPayment || false,
+                    paymentProvider: data.eventType.paymentProvider || 'dodo',
+                    currency: data.eventType.currency || 'USD',
+                    price: data.eventType.price || '',
                     webhookUrl: data.eventType.webhookUrl || '',
                     webhookEvents: data.eventType.webhookEvents || 'booking.confirmed,booking.cancelled,booking.rescheduled',
                 });
@@ -154,6 +174,8 @@ export default function EditEventType() {
                     minNotice: parseInt(form.minNotice),
                     isActive: form.isActive,
                     requiresPayment: form.requiresPayment,
+                    paymentProvider: form.paymentProvider,
+                    currency: form.currency,
                     price: form.price ? parseFloat(form.price) : null,
                     inviteeLimit: parseInt(form.inviteeLimit) || 1,
                     customQuestions: form.customQuestions.filter((q) => q.question.trim()),
@@ -496,6 +518,65 @@ export default function EditEventType() {
                                         ) : null}
                                     </div>
                                 ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Payment */}
+                <div className="card" style={{ marginBottom: '24px' }}>
+                    <div className="card-header">
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Payment Settings</h3>
+                    </div>
+                    <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                name="requiresPayment"
+                                checked={form.requiresPayment}
+                                onChange={handleChange}
+                            />
+                            <span style={{ fontSize: '0.9375rem', fontWeight: 500 }}>Collect payment for this event</span>
+                        </label>
+
+                        {form.requiresPayment && (
+                            <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div className="input-group">
+                                    <label>Payment Provider</label>
+                                    <select name="paymentProvider" className="input" value={form.paymentProvider} onChange={handleChange}>
+                                        <option value="dodo">Dodo Payments (Recommended)</option>
+                                        <option value="stripe">Stripe</option>
+                                        <option value="razorpay">Razorpay</option>
+                                    </select>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                    <div className="input-group">
+                                        <label>Currency</label>
+                                        <select name="currency" className="input" value={form.currency} onChange={handleChange}>
+                                            {CURRENCIES.map(c => (
+                                                <option key={c.code} value={c.code}>{c.label} ({c.code})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Price ({form.currency})</label>
+                                        <input
+                                            name="price"
+                                            type="number"
+                                            className="input"
+                                            placeholder="0.00"
+                                            value={form.price}
+                                            onChange={handleChange}
+                                            min={0}
+                                            step="0.01"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                    Make sure you have connected your {form.paymentProvider === 'dodo' ? 'Dodo Payments' : form.paymentProvider === 'stripe' ? 'Stripe' : 'Razorpay'} account in the Integrations page.
+                                </p>
                             </div>
                         )}
                     </div>
