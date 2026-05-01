@@ -112,7 +112,18 @@ export async function sendBookingConfirmationSMS(booking) {
         }
 
         if (recipientPhone) {
-            const smsBody = `Confirmed: Your "${eventType.title}" with ${host.name} is scheduled for ${new Date(startTime).toLocaleDateString()} at ${new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
+            const tz = booking.timezone || 'UTC';
+            const dateStr = new Intl.DateTimeFormat('en-US', { 
+                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+                timeZone: tz 
+            }).format(new Date(startTime));
+            
+            const timeStr = new Intl.DateTimeFormat('en-US', { 
+                hour: 'numeric', minute: '2-digit', hour12: true,
+                timeZone: tz 
+            }).format(new Date(startTime));
+
+            const smsBody = `Confirmed: Your "${eventType.title}" with ${host.name} is scheduled for ${dateStr} at ${timeStr} (${tz}).`;
             return await sendTwilioSMS(host.id, recipientPhone, smsBody);
         }
     } catch (err) {

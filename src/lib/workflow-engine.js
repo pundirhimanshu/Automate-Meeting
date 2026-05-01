@@ -276,11 +276,12 @@ async function sendWorkflowWebhook(workflow, booking) {
 async function sendWorkflowSMS(workflow, booking) {
     const { host, eventType, inviteeName, startTime, location, answers } = booking;
     
+    const tz = booking.timezone || 'UTC';
     const variables = {
         'Event Name': eventType.title,
         'Invitee Full Name': inviteeName,
-        'Event Time': new Date(startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-        'Event Date': new Date(startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+        'Event Time': new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz }).format(new Date(startTime)),
+        'Event Date': new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: tz }).format(new Date(startTime)),
         'Location': location || 'No location specified',
         'Host Full Name': host.name,
     };
