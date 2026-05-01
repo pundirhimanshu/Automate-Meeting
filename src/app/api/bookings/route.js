@@ -6,6 +6,7 @@ import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { triggerWebhook } from '@/lib/webhook-dispatcher';
 import { sendSlackNotification } from '@/lib/integrations/slack';
+import { syncHubSpotContact, syncHubSpotMeeting } from '@/lib/integrations/hubspot';
 import { createZoomMeeting } from '@/lib/integrations/zoom';
 import { createTeamsMeeting } from '@/lib/integrations/teams';
 import { createGoogleMeetEvent, createGoogleCalendarEvent } from '@/lib/integrations/google';
@@ -784,6 +785,18 @@ export async function POST(request) {
                 // Send Automatic Slack Notification
                 const slackMessage = `🆕 *New Booking: ${eventType.title}*\n👤 *Invitee:* ${inviteeName}\n📧 *Email:* ${inviteeEmail}\n📅 *Time:* ${new Date(startTime).toLocaleString()}\n🔗 *Meeting Link:* ${meetingLink || 'None'}`;
                 sendSlackNotification(assignedHostId, slackMessage).catch(e => console.error('Slack notification error:', e));
+
+                // HubSpot Sync
+                (async () => {
+                    try {
+                        const contactId = await syncHubSpotContact(assignedHostId, booking);
+                        if (contactId) {
+                            await syncHubSpotMeeting(assignedHostId, booking, contactId);
+                        }
+                    } catch (hsErr) {
+                        console.error('[HUBSPOT_SYNC_ERROR]', hsErr);
+                    }
+                })().catch(() => {});
 
                 // Trigger Pabbly / Global Webhook
                 triggerWebhook(assignedHostId, 'booking.confirmed', {

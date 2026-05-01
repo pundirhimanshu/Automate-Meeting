@@ -6,6 +6,7 @@ import { triggerWorkflows } from '@/lib/workflow-engine';
 import { triggerWebhook } from '@/lib/webhook-dispatcher';
 import { createGoogleCalendarEvent } from '@/lib/integrations/google';
 import { sendBookingConfirmationSMS } from '@/lib/integrations/twilio';
+import { syncHubSpotContact, syncHubSpotMeeting } from '@/lib/integrations/hubspot';
 import DodoPayments from 'dodopayments';
 
 export async function POST(request) {
@@ -137,6 +138,18 @@ export async function POST(request) {
                 // Trigger Workflows
                 console.log('[DODO_WEBHOOK] Triggering workflows for EVENT_BOOKED...');
                 triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[DODO_WEBHOOK] Workflow trigger error:', e));
+
+                // HubSpot Sync
+                (async () => {
+                    try {
+                        const contactId = await syncHubSpotContact(hostId, updatedBooking);
+                        if (contactId) {
+                            await syncHubSpotMeeting(hostId, updatedBooking, contactId);
+                        }
+                    } catch (hsErr) {
+                        console.error('[HUBSPOT_SYNC_ERROR]', hsErr);
+                    }
+                })().catch(() => {});
 
                 // Trigger Pabbly / Global Webhook
                 triggerWebhook(hostId, 'booking.confirmed', {

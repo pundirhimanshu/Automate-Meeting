@@ -65,6 +65,12 @@ model User {
   pageSchedulerHeader    String?
   webhookUrl             String?
   webhookEvents          String?   @default("booking.confirmed,booking.cancelled,booking.rescheduled")
+
+  // HubSpot
+  hubspotAccessToken     String?   @db.Text
+  hubspotRefreshToken    String?   @db.Text
+  hubspotExpiresAt       DateTime?
+  hubspotPortalId        String?
 }
 
 model Integration {

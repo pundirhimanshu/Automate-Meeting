@@ -5,6 +5,7 @@ import { sendBookingConfirmation } from '@/lib/email';
 import { triggerWorkflows } from '@/lib/workflow-engine';
 import { createGoogleCalendarEvent } from '@/lib/integrations/google';
 import { sendBookingConfirmationSMS } from '@/lib/integrations/twilio';
+import { syncHubSpotContact, syncHubSpotMeeting } from '@/lib/integrations/hubspot';
 import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
@@ -133,6 +134,18 @@ export async function POST(request) {
             sendBookingConfirmationSMS(updatedBooking).catch(e => console.error('[STRIPE_WEBHOOK] SMS confirmation error:', e));
 
             triggerWorkflows('EVENT_BOOKED', updatedBooking.id).catch(e => console.error('[STRIPE_WEBHOOK] Workflow error:', e));
+
+            // HubSpot Sync
+            (async () => {
+                try {
+                    const contactId = await syncHubSpotContact(updatedBooking.hostId, updatedBooking);
+                    if (contactId) {
+                        await syncHubSpotMeeting(updatedBooking.hostId, updatedBooking, contactId);
+                    }
+                } catch (hsErr) {
+                    console.error('[HUBSPOT_SYNC_ERROR]', hsErr);
+                }
+            })().catch(() => {});
 
             // Notifications
             const rawRecipients = [updatedBooking.eventType.user, ...(updatedBooking.eventType.coHosts || [])];

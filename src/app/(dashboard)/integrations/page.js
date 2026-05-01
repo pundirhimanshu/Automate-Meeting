@@ -18,6 +18,7 @@ export default async function IntegrationsPage() {
         if (provider === 'razorpay') return !!user?.razorpayKeyId;
         if (provider === 'stripe') return !!(user?.stripeAccountId || user?.stripeSecretKey);
         if (provider === 'twilio') return !!user?.twilioAccountSid;
+        if (provider === 'hubspot') return !!user?.hubspotRefreshToken;
         return userIntegrations.some(i => i.provider === provider);
     };
 
@@ -104,6 +105,14 @@ export default async function IntegrationsPage() {
             icon: <img src="https://www.vectorlogo.zone/logos/twilio/twilio-icon.svg" style={{ width: '28px', height: '28px', objectFit: 'contain' }} alt="Twilio" />,
             connected: isConnected('twilio'), 
             connectUrl: '/integrations/twilio' 
+        },
+        { 
+            id: 'hubspot', 
+            name: 'HubSpot', 
+            desc: 'Sync contacts & meetings', 
+            icon: <img src="https://www.vectorlogo.zone/logos/hubspot/hubspot-icon.svg" style={{ width: '28px', height: '28px', objectFit: 'contain' }} alt="HubSpot" />,
+            connected: isConnected('hubspot'), 
+            connectUrl: '/api/integrations/hubspot/connect' 
         },
     ];
 
