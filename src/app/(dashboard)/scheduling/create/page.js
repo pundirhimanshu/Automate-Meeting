@@ -589,28 +589,40 @@ export default function CreateEventType() {
                             <span style={{ fontSize: '0.9375rem', fontWeight: 500 }}>Collect payment for this event</span>
                         </label>
 
-                        {form.requiresPayment && (
-                            <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <div className="input-group">
-                                    <label>Payment Provider</label>
-                                    <select name="paymentProvider" className="input" value={form.paymentProvider} onChange={handleChange}>
+                        {!!form.requiresPayment && (
+                            <div style={{ marginTop: '16px', padding: '20px', border: '1px solid var(--border-color)', borderRadius: '12px', background: 'var(--bg-page)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                                <div className="input-group" style={{ marginBottom: '20px' }}>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Payment Provider</label>
+                                    <select 
+                                        name="paymentProvider" 
+                                        className="input" 
+                                        value={form.paymentProvider || 'dodo'} 
+                                        onChange={handleChange}
+                                        style={{ height: '44px', fontSize: '0.9375rem' }}
+                                    >
                                         <option value="dodo">Dodo Payments (Recommended)</option>
                                         <option value="stripe">Stripe</option>
                                         <option value="razorpay">Razorpay</option>
                                     </select>
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                     <div className="input-group">
-                                        <label>Currency</label>
-                                        <select name="currency" className="input" value={form.currency} onChange={handleChange}>
+                                        <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Currency</label>
+                                        <select 
+                                            name="currency" 
+                                            className="input" 
+                                            value={form.currency || 'USD'} 
+                                            onChange={handleChange}
+                                            style={{ height: '44px', fontSize: '0.9375rem' }}
+                                        >
                                             {CURRENCIES.map(c => (
                                                 <option key={c.code} value={c.code}>{c.label} ({c.code})</option>
                                             ))}
                                         </select>
                                     </div>
                                     <div className="input-group">
-                                        <label>Price ({form.currency})</label>
+                                        <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Price ({form.currency || 'USD'})</label>
                                         <input
                                             name="price"
                                             type="number"
@@ -621,12 +633,16 @@ export default function CreateEventType() {
                                             min={0}
                                             step="0.01"
                                             required
+                                            style={{ height: '44px', fontSize: '0.9375rem' }}
                                         />
                                     </div>
                                 </div>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                                    Make sure you have connected your {form.paymentProvider === 'dodo' ? 'Dodo Payments' : form.paymentProvider === 'stripe' ? 'Stripe' : 'Razorpay'} account in the Integrations page.
-                                </p>
+                                
+                                <div style={{ marginTop: '16px', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', borderLeft: '4px solid var(--primary)' }}>
+                                    <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
+                                        <strong>Note:</strong> Ensure you have connected your <strong>{form.paymentProvider === 'dodo' ? 'Dodo Payments' : form.paymentProvider === 'stripe' ? 'Stripe' : 'Razorpay'}</strong> account in the <a href="/integrations" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Integrations</a> page to receive payments.
+                                    </p>
+                                </div>
                             </div>
                         )}
                     </div>
