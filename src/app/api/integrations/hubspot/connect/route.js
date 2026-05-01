@@ -19,12 +19,10 @@ export async function GET() {
             }, { status: 500 });
         }
         
-        // Scopes needed for contacts and meetings
+        // Valid HubSpot OAuth scopes for contacts and meetings
         const scopes = [
             'crm.objects.contacts.write',
             'crm.objects.contacts.read',
-            'crm.objects.appointments.write',
-            'crm.objects.appointments.read'
         ].join(' ');
 
         const hubspotAuthUrl = `https://app.hubspot.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(scopes)}`;

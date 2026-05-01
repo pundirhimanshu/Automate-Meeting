@@ -112,7 +112,9 @@ export default async function IntegrationsPage() {
             desc: 'Sync contacts & meetings', 
             icon: <img src="https://www.vectorlogo.zone/logos/hubspot/hubspot-icon.svg" style={{ width: '28px', height: '28px', objectFit: 'contain' }} alt="HubSpot" />,
             connected: isConnected('hubspot'), 
-            connectUrl: '/api/integrations/hubspot/connect' 
+            connectUrl: process.env.HUBSPOT_CLIENT_ID 
+                ? `https://app.hubspot.com/oauth/authorize?client_id=${process.env.HUBSPOT_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.HUBSPOT_REDIRECT_URI || '')}&scope=${encodeURIComponent('crm.objects.contacts.write crm.objects.contacts.read')}`
+                : '/api/integrations/hubspot/connect'
         },
     ];
 
