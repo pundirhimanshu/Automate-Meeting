@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server';
 import { exchangeHubSpotCode } from '@/lib/integrations/hubspot';
 import { encrypt } from '@/lib/encryption';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
