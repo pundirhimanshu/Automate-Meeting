@@ -24,22 +24,36 @@ export default function TopHeader() {
             .then(r => r.json())
             .then(d => { if (d.isOwner) setIsOwner(true); })
             .catch(() => { });
+
+        // Listen for messages from the Service Worker
+        const handleSWMessage = (event) => {
+            if (event.data && event.data.type === 'fcm-notification-received') {
+                console.log('Notification received from SW, refreshing bell...');
+                fetchNotifications();
+            }
+        };
+
         window.addEventListener('logo-updated', fetchUser);
         window.addEventListener('profile-updated', fetchUser);
         window.addEventListener('fcm-notification-received', fetchNotifications);
+        navigator.serviceWorker?.addEventListener('message', handleSWMessage);
+
         // Refresh notifications when user navigates back to the tab
         const handleVisibility = () => {
             if (document.visibilityState === 'visible') fetchNotifications();
         };
         document.addEventListener('visibilitychange', handleVisibility);
+        
         return () => {
             window.removeEventListener('logo-updated', fetchUser);
             window.removeEventListener('profile-updated', fetchUser);
             window.removeEventListener('fcm-notification-received', fetchNotifications);
+            navigator.serviceWorker?.removeEventListener('message', handleSWMessage);
             document.removeEventListener('visibilitychange', handleVisibility);
         };
 
     }, []);
+
 
     useEffect(() => {
         if (showSignOutModal) {
