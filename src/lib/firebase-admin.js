@@ -4,13 +4,17 @@ const initializeFirebaseAdmin = () => {
   if (admin.apps.length > 0) return true;
 
   try {
-    const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    let rawJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
     if (!rawJson) {
       console.warn("Firebase Admin: FIREBASE_SERVICE_ACCOUNT_JSON is missing in .env");
       return false;
     }
 
+    // Safety: Trim whitespace and remove accidental surrounding quotes (common in Vercel/Docker)
+    rawJson = rawJson.trim().replace(/^['"]|['"]$/g, '');
+
     const serviceAccount = JSON.parse(rawJson);
+
     if (serviceAccount.private_key) {
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
