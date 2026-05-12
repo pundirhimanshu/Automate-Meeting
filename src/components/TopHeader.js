@@ -26,6 +26,7 @@ export default function TopHeader() {
             .catch(() => { });
         window.addEventListener('logo-updated', fetchUser);
         window.addEventListener('profile-updated', fetchUser);
+        window.addEventListener('fcm-notification-received', fetchNotifications);
         // Refresh notifications when user navigates back to the tab
         const handleVisibility = () => {
             if (document.visibilityState === 'visible') fetchNotifications();
@@ -34,8 +35,10 @@ export default function TopHeader() {
         return () => {
             window.removeEventListener('logo-updated', fetchUser);
             window.removeEventListener('profile-updated', fetchUser);
+            window.removeEventListener('fcm-notification-received', fetchNotifications);
             document.removeEventListener('visibilitychange', handleVisibility);
         };
+
     }, []);
 
     useEffect(() => {

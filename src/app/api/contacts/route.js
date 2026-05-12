@@ -12,25 +12,60 @@ export async function GET(request) {
 
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 10;
+        const contactFilter = searchParams.get('contactFilter') || 'all';
+        const companyFilter = searchParams.get('companyFilter') || '';
+
+        const skip = (page - 1) * limit;
 
         const where = { userId: session.user.id };
+        
         if (search) {
             where.OR = [
-                { name: { contains: search } },
-                { email: { contains: search } },
-                { company: { contains: search } },
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { company: { contains: search, mode: 'insensitive' } },
             ];
         }
 
-        const contacts = await prisma.contact.findMany({
-            where,
-            include: {
-                fieldValues: {
-                    include: { field: true },
+        if (companyFilter) {
+            where.company = companyFilter;
+        }
+
+        if (contactFilter === 'with-meetings') {
+            where.bookings = {
+                some: {
+                    status: { not: 'cancelled' }
+                }
+            };
+        } else if (contactFilter === 'no-meetings') {
+            where.bookings = {
+                none: {
+                    status: { not: 'cancelled' }
+                }
+            };
+        }
+
+        const [total, contacts, uniqueCompanies] = await Promise.all([
+            prisma.contact.count({ where }),
+            prisma.contact.findMany({
+                where,
+                include: {
+                    fieldValues: {
+                        include: { field: true },
+                    },
                 },
-            },
-            orderBy: { createdAt: 'desc' },
-        });
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            prisma.contact.findMany({
+                where: { userId: session.user.id },
+                distinct: ['company'],
+                select: { company: true },
+            })
+        ]);
 
         // Fetch last and next meeting dates for each contact
         const enriched = await Promise.all(
@@ -67,12 +102,21 @@ export async function GET(request) {
             })
         );
 
-        return NextResponse.json({ contacts: enriched });
+        return NextResponse.json({ 
+            contacts: enriched,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+            uniqueCompanies: uniqueCompanies.map(c => c.company).filter(Boolean)
+        });
+
     } catch (error) {
         console.error('Contacts GET error:', error);
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
+
 
 export async function POST(request) {
     try {

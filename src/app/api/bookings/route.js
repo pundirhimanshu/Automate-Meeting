@@ -17,6 +17,8 @@ import { sendBookingConfirmationSMS } from '@/lib/integrations/twilio';
 import DodoPayments from 'dodopayments';
 import Razorpay from 'razorpay';
 import Stripe from 'stripe';
+import { sendPushNotification } from '@/lib/firebase-admin';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -738,9 +740,9 @@ export async function POST(request) {
             // Trigger Workflows (Non-blocking)
             triggerWorkflows('EVENT_BOOKED', booking.id).catch(e => console.error('Workflow trigger error:', e));
 
-            // Create in-app notifications
-            await Promise.all(hostRecipients.map(recipient =>
-                prisma.notification.create({
+            // Create in-app notifications and send push notifications
+            await Promise.all(hostRecipients.map(async recipient => {
+                const notification = await prisma.notification.create({
                     data: {
                         userId: recipient.id,
                         type: 'booking_confirmed',
@@ -750,8 +752,38 @@ export async function POST(request) {
                             : `${inviteeName} booked "${eventType.title}"`,
                         bookingId: booking.id,
                     },
-                })
-            ));
+                });
+
+                // Send Push Notification via Firebase
+                try {
+                    console.log(`[FCM] Attempting to send push to user: ${recipient.id}`);
+                    const userTokens = await prisma.fCMToken.findMany({
+                        where: { userId: recipient.id },
+                        select: { token: true }
+                    });
+
+                    console.log(`[FCM] Found ${userTokens.length} tokens for user ${recipient.id}`);
+
+                    if (userTokens.length > 0) {
+                        const tokenList = userTokens.map(t => t.token);
+                        const result = await sendPushNotification(
+                            tokenList,
+                            'New Booking',
+                            eventType.type === 'collective'
+                                ? `${inviteeName} booked "${eventType.title}" with the team`
+                                : `${inviteeName} booked "${eventType.title}"`,
+                            { bookingId: booking.id }
+                        );
+                        console.log(`[FCM] sendPushNotification result:`, result);
+                    }
+                } catch (pushErr) {
+                    console.error('[FCM] Error sending push notification:', pushErr);
+                }
+
+
+                return notification;
+            }));
+
 
             // Generate manage URL for invitee self-service
             const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';

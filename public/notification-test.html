@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head><title>Push Notification Test</title></head>
+<body style="font-family: Arial; padding: 40px; background: #1a1a1a; color: #fff;">
+  <h1>🔔 Push Notification Diagnostic</h1>
+  <div id="results" style="margin-top: 20px; line-height: 2;"></div>
+  <br/>
+  <button onclick="testManualNotification()" style="padding: 12px 24px; font-size: 16px; cursor: pointer; background: #0069ff; color: #fff; border: none; border-radius: 8px;">
+    Test Manual Notification
+  </button>
+  <br/><br/>
+  <button onclick="testSWNotification()" style="padding: 12px 24px; font-size: 16px; cursor: pointer; background: #00a854; color: #fff; border: none; border-radius: 8px;">
+    Test Service Worker Notification
+  </button>
+
+  <script>
+    const log = (msg, ok) => {
+      document.getElementById('results').innerHTML += 
+        `<div>${ok ? '✅' : '❌'} ${msg}</div>`;
+    };
+
+    // Check everything
+    async function diagnose() {
+      // 1. Notification API
+      log('Notification API supported: ' + ('Notification' in window), 'Notification' in window);
+      
+      // 2. Permission
+      log('Notification permission: ' + Notification.permission, Notification.permission === 'granted');
+      
+      // 3. Service Worker API
+      log('Service Worker supported: ' + ('serviceWorker' in navigator), 'serviceWorker' in navigator);
+      
+      // 4. Check registered service workers
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        log('Service Workers registered: ' + regs.length, regs.length > 0);
+        regs.forEach((r, i) => {
+          log(`  SW ${i}: scope=${r.scope}, active=${!!r.active}, state=${r.active?.state || 'none'}`, !!r.active);
+        });
+      }
+
+      // 5. Windows notification check
+      log('Check Windows Settings > System > Notifications > Chrome must be ON', true);
+      log('Check Chrome > Settings > Privacy > Notifications > localhost must be Allowed', true);
+    }
+
+    async function testManualNotification() {
+      if (Notification.permission !== 'granted') {
+        const perm = await Notification.requestPermission();
+        log('Permission requested: ' + perm, perm === 'granted');
+        if (perm !== 'granted') return;
+      }
+      new Notification('Manual Test ✅', { body: 'If you see this popup, browser notifications work!' });
+      log('Manual notification sent - did you see it?', true);
+    }
+
+    async function testSWNotification() {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      if (regs.length === 0) {
+        log('No service worker found! Register one first by visiting the app.', false);
+        return;
+      }
+      const reg = regs[0];
+      if (!reg.active) {
+        log('Service worker is not active!', false);
+        return;
+      }
+      await reg.showNotification('Service Worker Test ✅', { 
+        body: 'If you see this, SW notifications work!',
+        requireInteraction: true 
+      });
+      log('SW notification sent - did you see it?', true);
+    }
+
+    diagnose();
+  </script>
+</body>
+</html>

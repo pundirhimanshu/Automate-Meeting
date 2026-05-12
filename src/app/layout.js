@@ -1,4 +1,5 @@
 import './globals.css';
+import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 
 export const metadata = {
     title: 'Scheduler — Scheduling Made Easy',
@@ -16,7 +17,11 @@ export default function RootLayout({ children }) {
                     rel="stylesheet"
                 />
             </head>
-            <body>{children}</body>
+            <body>
+                <ServiceWorkerRegistrar />
+                {children}
+            </body>
         </html>
     );
 }
+

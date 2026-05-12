@@ -791,11 +791,16 @@ body.modal-open .sidebar {
   margin-left: var(--sidebar-width);
   transition: margin-left var(--transition-normal);
   min-height: 100vh;
+  max-width: calc(100vw - var(--sidebar-width));
+  overflow-x: hidden;
+
 }
 
 .sidebar.collapsed~.main-content,
 .main-content.sidebar-collapsed {
   margin-left: var(--sidebar-collapsed);
+  max-width: calc(100vw - var(--sidebar-collapsed));
+
 }
 
 /* Top Header */
@@ -2344,6 +2349,15 @@ select.input {
 
 .meeting-card { background: #ffffff!important; border: 1px solid var(--border-color)!important; box-shadow: var(--shadow-sm)!important; }
 .event-type-card { background: #ffffff!important; border: 1px solid var(--border-color)!important; box-shadow: var(--shadow-sm)!important; }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 .card-header h3 { font-family: 'Inria Serif', serif!important; font-size: 1.25rem!important; font-weight: 700!important; color: #1a1a1a!important; font-style: italic!important; }
 .availability-toggle.active { background: #1a1a1a!important; }

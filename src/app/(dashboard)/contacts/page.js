@@ -96,6 +96,15 @@ export default function ContactsPage() {
     const [showContactFilter, setShowContactFilter] = useState(false);
     const [companyFilter, setCompanyFilter] = useState('');
     const [showCompanyFilter, setShowCompanyFilter] = useState(false);
+    const [uniqueCompanies, setUniqueCompanies] = useState([]);
+
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalContacts, setTotalContacts] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [limit] = useState(10);
+
 
     // Add contact drawer
     const [addDrawer, setAddDrawer] = useState(false);
@@ -126,7 +135,8 @@ export default function ContactsPage() {
         fetchContacts();
         fetchFields();
         fetchColumns();
-    }, []);
+    }, [currentPage, contactFilter, companyFilter]);
+
 
     const fetchColumns = async () => {
         try {
@@ -140,16 +150,30 @@ export default function ContactsPage() {
 
     const fetchContacts = async () => {
         try {
-            const searchParam = search ? `?search=${encodeURIComponent(search)}` : '';
-            const res = await fetch(`/api/contacts${searchParam}`);
+            setLoading(true);
+            const params = new URLSearchParams({
+                page: currentPage.toString(),
+                limit: limit.toString(),
+                contactFilter,
+                companyFilter,
+                search
+            });
+            const res = await fetch(`/api/contacts?${params.toString()}`);
             if (res.ok) {
                 const data = await res.json();
                 setContacts(data.contacts || []);
+                setTotalContacts(data.total || 0);
+                setTotalPages(data.totalPages || 1);
+                setUniqueCompanies(data.uniqueCompanies || []);
             }
-        } catch (e) { } finally {
+
+        } catch (e) {
+            console.error('Failed to fetch contacts:', e);
+        } finally {
             setLoading(false);
         }
     };
+
 
     const fetchFields = async () => {
         try {
@@ -163,11 +187,12 @@ export default function ContactsPage() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setLoading(true);
+            setCurrentPage(1); // Reset to page 1 on search
             fetchContacts();
         }, 300);
         return () => clearTimeout(timer);
     }, [search]);
+
 
     // Add contact
     const handleAddContact = async (e) => {
@@ -344,13 +369,9 @@ export default function ContactsPage() {
     const visibleCols = allColumns.filter((c) => c.visible);
 
     // Apply client-side filters
-    const uniqueCompanies = [...new Set(contacts.filter(c => c.company).map(c => c.company))];
-    const filteredContacts = contacts.filter(c => {
-        if (contactFilter === 'with-meetings' && !c.nextMeetingDate && !c.lastMeetingDate) return false;
-        if (contactFilter === 'no-meetings' && (c.nextMeetingDate || c.lastMeetingDate)) return false;
-        if (companyFilter && c.company !== companyFilter) return false;
-        return true;
-    });
+    const filteredContacts = contacts; // Now handled by backend
+
+
 
     return (
         <div>
@@ -375,12 +396,18 @@ export default function ContactsPage() {
                     {showContactFilter && (
                         <div className="dropdown-menu" style={{ minWidth: '180px' }}>
                             {[{ v: 'all', l: 'All contacts' }, { v: 'with-meetings', l: 'With meetings' }, { v: 'no-meetings', l: 'No meetings' }].map(o => (
-                                <button key={o.v} className={`dropdown-item ${contactFilter === o.v ? 'active' : ''}`} onClick={() => { setContactFilter(o.v); setShowContactFilter(false); }}
+                                <button key={o.v} className={`dropdown-item ${contactFilter === o.v ? 'active' : ''}`} 
+                                    onClick={() => { 
+                                        setContactFilter(o.v); 
+                                        setCurrentPage(1);
+                                        setShowContactFilter(false); 
+                                    }}
                                     style={contactFilter === o.v ? { background: 'var(--primary-light)', color: 'var(--primary)' } : {}}>
                                     {o.l}
                                 </button>
                             ))}
                         </div>
+
                     )}
                 </div>
 
@@ -401,11 +428,17 @@ export default function ContactsPage() {
                                 style={!companyFilter ? { background: 'var(--primary-light)', color: 'var(--primary)' } : {}}>All companies</button>
                             {uniqueCompanies.length > 0 && <div className="dropdown-divider" />}
                             {uniqueCompanies.map(c => (
-                                <button key={c} className={`dropdown-item ${companyFilter === c ? 'active' : ''}`} onClick={() => { setCompanyFilter(c); setShowCompanyFilter(false); }}
+                                <button key={c} className={`dropdown-item ${companyFilter === c ? 'active' : ''}`} 
+                                    onClick={() => { 
+                                        setCompanyFilter(c); 
+                                        setCurrentPage(1);
+                                        setShowCompanyFilter(false); 
+                                    }}
                                     style={companyFilter === c ? { background: 'var(--primary-light)', color: 'var(--primary)' } : {}}>
                                     {c}
                                 </button>
                             ))}
+
                             {uniqueCompanies.length === 0 && (
                                 <div style={{ padding: '10px 14px', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>No companies found</div>
                             )}
@@ -450,7 +483,11 @@ export default function ContactsPage() {
             </div>
 
             {/* Table */}
-            <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflowY: 'auto', maxHeight: '280px', background: '#ffffff', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', background: '#ffffff', boxShadow: 'var(--shadow-sm)', width: '100%', overflow: 'hidden' }}>
+                <div className="no-scrollbar" style={{ overflowX: 'auto', width: '100%', position: 'relative' }}>
+
+
+
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: `${visibleCols.length * 160}px` }}>
                     <thead>
                         <tr>
@@ -462,8 +499,14 @@ export default function ContactsPage() {
                                         fontWeight: 600, color: 'var(--text-secondary)',
                                         borderBottom: '1px solid var(--border-color)',
                                         background: 'var(--bg-page)', whiteSpace: 'nowrap',
-                                        position: 'relative',
+                                        position: col.id === 'name' ? 'sticky' : 'relative',
+                                        left: col.id === 'name' ? 0 : 'auto',
+                                        zIndex: col.id === 'name' ? 2 : 1,
+                                        boxShadow: col.id === 'name' ? '2px 0 5px rgba(0,0,0,0.1)' : 'none',
+                                        borderRight: col.id === 'name' ? '1px solid var(--border-color)' : 'none',
                                     }}
+
+
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         {col.label}
@@ -529,8 +572,16 @@ export default function ContactsPage() {
                                                     color: col.id === 'email' ? '#1a1a1a' : 'var(--text-primary)',
                                                     cursor: isEditable ? 'pointer' : 'default',
                                                     maxWidth: '200px', overflowY: 'auto', maxHeight: '280px', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                                    fontWeight: col.id === 'email' ? 500 : 400
+                                                    fontWeight: col.id === 'email' ? 500 : 400,
+                                                    position: col.id === 'name' ? 'sticky' : 'relative',
+                                                    left: col.id === 'name' ? 0 : 'auto',
+                                                    background: col.id === 'name' ? '#ffffff' : 'transparent',
+                                                    zIndex: col.id === 'name' ? 1 : 'auto',
+                                                    boxShadow: col.id === 'name' ? '2px 0 5px rgba(0,0,0,0.1)' : 'none',
+                                                    borderRight: col.id === 'name' ? '1px solid var(--border-light)' : 'none',
                                                 }}
+
+
                                                 onClick={() => isEditable && !isEditing && startEdit(contact.id, col.id, value)}
                                             >
                                                 {isEditing ? (
@@ -618,12 +669,68 @@ export default function ContactsPage() {
                         )}
                     </tbody>
                 </table>
+                </div>
             </div>
 
-            <div style={{ marginTop: '12px', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
-                {filteredContacts.length} contact{filteredContacts.length !== 1 ? 's' : ''}
-                {filteredContacts.length !== contacts.length && <span> (of {contacts.length} total)</span>}
+            {/* Pagination */}
+            <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+                    Showing <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{(currentPage - 1) * limit + 1}</span> to <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{Math.min(currentPage * limit, totalContacts)}</span> of <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{totalContacts}</span> contacts
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                        className="btn btn-secondary btn-sm" 
+                        disabled={currentPage === 1 || loading}
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        style={{ padding: '6px 12px' }}
+                    >
+                        Previous
+                    </button>
+                    
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                        {[...Array(totalPages)].map((_, i) => {
+                            const p = i + 1;
+                            // Show first, last, and pages around current
+                            if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) {
+                                return (
+                                    <button
+                                        key={p}
+                                        onClick={() => setCurrentPage(p)}
+                                        style={{
+                                            width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            borderRadius: 'var(--radius-md)', fontSize: '0.875rem', border: '1px solid',
+                                            borderColor: currentPage === p ? 'var(--primary)' : 'var(--border-color)',
+                                            background: currentPage === p ? 'var(--primary)' : 'transparent',
+                                            color: currentPage === p ? '#fff' : 'var(--text-secondary)',
+                                            cursor: 'pointer', fontWeight: currentPage === p ? 600 : 400,
+                                            transition: '0.2s'
+                                        }}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            }
+                            if (p === currentPage - 2 || p === currentPage + 2) {
+                                return <span key={p} style={{ color: 'var(--text-tertiary)' }}>...</span>;
+                            }
+                            return null;
+                        })}
+                    </div>
+
+                    <button 
+                        className="btn btn-secondary btn-sm" 
+                        disabled={currentPage === totalPages || loading}
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        style={{ padding: '6px 12px' }}
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
+
+
+
 
             {/* ===== ADD CONTACT DRAWER ===== */}
             {addDrawer && (
